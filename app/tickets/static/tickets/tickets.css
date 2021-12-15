@@ -1,0 +1,28 @@
+.ticket_state_N {
+    color: #19bb19;
+    font-weight: bold;
+}
+
+.ticket_state_C {
+    color: #5a5;
+}
+
+.ticket_state_A {
+    color: #14a014;
+    font-weight: bold;
+}
+
+.ticket_state_F {
+    color: #9dc59d;
+}
+
+.ticket_state_D {
+    color: #555;
+}
+
+.ticket-description {
+    display: block;
+    padding: 3px;
+    background: #f5f4f4;
+    margin: 10px 0px;
+}

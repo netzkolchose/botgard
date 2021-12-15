@@ -1,0 +1,75 @@
+{% extends admin_base_tmpl %}
+{% load i18n static %}
+
+{% block extrastyle %}
+	{{ block.super }}
+	<link rel="stylesheet" href="{% static 'tickets/tickets.css' %}" />
+{% endblock %}
+
+{% block more_breadcrumbs %}
+    {{ block.super }}
+    {% if ticket %}
+        {{ ticket.title }} &rsaquo; {{ ticket.current_state_name|safe }} &rsaquo;
+    {% endif %}
+{% endblock %}
+
+
+{% block page_tools %}
+
+	<div id="new_ticket">
+		<form action="../">
+			<label for="ticket_type">{% trans 'new ticket' %}:</label>
+			<select id="ticket_type" style="width:100px;"
+					onchange="if(this.options[this.selectedIndex].value!=''){
+							  window.open(this.options[this.selectedIndex].value,'')}"
+			>
+			    <option value="">Typ wählen</option>
+			    <option value="{% url 'admin:tickets_lasergravurticket_add' %}">{% trans 'laser gravure' %}</option>
+			    <option value="{% url 'admin:tickets_basicticket_add' %}">{% trans 'basic ticket' %}</option>
+			</select>
+		</form>
+	</div>
+
+{% endblock %}
+
+
+{% block page_content %}
+
+	{# currently unused #}
+    <div class="ticket_list">
+    	<h1>Meine Tickets:</h1>
+    	{% if my_tickets %}
+		<table cellspacing="0" id="result_list" style="width:100%;">
+			<thead>
+				<tr>
+					<th>Titel</th>
+					<th>Typ</th>
+					<th>Aktueller Status</th>
+					<th>Ticket erstellt am</th>
+					<th>Fällig am</th>
+					<th>Erstellt von</th>
+					<th>Nächste Aktion</th>
+				</tr>
+			</thead>
+			<tbody>
+    		{% for ticket in my_tickets %}
+				<tr>
+					<th><a href="#">{{ ticket.title }}</a></th>
+						<td>{{ ticket.type_decorator }}</td>
+						<td>{{ ticket.current_state }}</td>
+						<td>{{ ticket.creation_date }}</td>
+						<td>{{ ticket.due_date }}</td>
+						<td>{{ ticket.created_by }}</td>
+						<td>{{ ticket.next_step_decorator }}</td>
+				</tr>
+			{% endfor %}
+			</tbody>
+			</table>
+		{% else %}
+			<p>Keine persönlichen Tickets vorhanden.</p>
+		{% endif %}
+
+    </div>
+
+{% endblock %}
+

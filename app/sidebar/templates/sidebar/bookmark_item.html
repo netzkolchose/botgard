@@ -1,0 +1,6 @@
+{% load i18n %}
+<li class="link-list-element{% if current %} current{% endif %}" data-element-key="{{ bookmark.pk }}" data-order="{{ bookmark.order}}">
+    <i class="{% if current %}fa{% else %}far{% endif %} fa-star"></i>
+    <a class="bookmark-link" href="{{ bookmark.url }}">{{ bookmark.title }}</a>
+    <a href="{% url 'sidebar:delete_bookmark' bookmark.pk %}" data-confirm-message="{% trans "Delete bookmark?" %}" class="delete tool-button"><i class="far fa-minus-square"></i></a>
+</li>

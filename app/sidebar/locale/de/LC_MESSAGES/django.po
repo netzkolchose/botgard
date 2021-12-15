@@ -1,0 +1,148 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2021-09-16 12:26+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: sidebar/__init__.py:28
+msgid "An object is expected"
+msgstr ""
+
+#: sidebar/__init__.py:31
+msgid "A key 'enabled' must be present."
+msgstr ""
+
+#: sidebar/__init__.py:34
+msgid "Value for key 'enabled' must be a boolean."
+msgstr ""
+
+#: sidebar/__init__.py:37
+msgid "A key 'elements' must be present"
+msgstr ""
+
+#: sidebar/__init__.py:40
+msgid "A key 'elements' must be a list."
+msgstr ""
+
+#: sidebar/__init__.py:69
+msgid "A list is expected."
+msgstr ""
+
+#: sidebar/__init__.py:73
+msgid "Each item requires an icon attribute."
+msgstr ""
+
+#: sidebar/__init__.py:75
+msgid "Each item requires a target or target_url attribute."
+msgstr ""
+
+#: sidebar/__init__.py:77
+msgid "Each item requires a caption attribute."
+msgstr ""
+
+#: sidebar/__init__.py:79
+msgid "Each item requires a group attribute."
+msgstr ""
+
+#: sidebar/__init__.py:81
+msgid "Each item requires a only_superuser attribute."
+msgstr ""
+
+#: sidebar/__init__.py:84
+msgid "The attribute groups must be a list."
+msgstr ""
+
+#: sidebar/__init__.py:86
+#, python-format
+msgid "The attribute caption must contain a key %s."
+msgstr ""
+
+#: sidebar/models.py:11 sidebar/models.py:29
+msgid "URL"
+msgstr ""
+
+#: sidebar/models.py:12 sidebar/templates/sidebar/sidebar.html:30
+msgid "title"
+msgstr "Titel"
+
+#: sidebar/models.py:13
+msgid "order"
+msgstr "sortierung"
+
+#: sidebar/models.py:30
+msgid "note"
+msgstr "Notiz"
+
+#: sidebar/models.py:32
+msgid "public"
+msgstr "öffentlich"
+
+#: sidebar/templates/sidebar/bookmark_item.html:5
+msgid "Delete bookmark?"
+msgstr "Bookmark löschen?"
+
+#: sidebar/templates/sidebar/note_item.html:6
+msgid "by"
+msgstr "von"
+
+#: sidebar/templates/sidebar/note_item.html:10
+msgid "Delete note?"
+msgstr "Notiz löschen?"
+
+#: sidebar/templates/sidebar/note_item.html:11
+msgid "Unpublish note?"
+msgstr "Veröffentlichung zurücknehmen?"
+
+#: sidebar/templates/sidebar/note_item.html:12
+msgid "Publish note?"
+msgstr "Notiz veröffentlichen?"
+
+#: sidebar/templates/sidebar/sidebar.html:15
+msgid "Shortcuts"
+msgstr ""
+
+#: sidebar/templates/sidebar/sidebar.html:38
+msgid "Bookmarks"
+msgstr ""
+
+#: sidebar/templates/sidebar/sidebar.html:39
+msgid "add bookmark"
+msgstr "Bookmark hinzufügen"
+
+#: sidebar/templates/sidebar/sidebar.html:46
+msgid ""
+"There are no bookmarks yet. <br>Use the little <i class=\"fa fa-plus\"></i> "
+"to add your first Bookmark."
+msgstr ""
+"Noch gibt es keine Bookmarks. <br>Nutze das kleine <i class=\"fa fa-plus\"></"
+"i>,um Deinen ersten Bookmark zu erstellen."
+
+#: sidebar/templates/sidebar/sidebar.html:54
+msgid "Notes"
+msgstr "Notizen"
+
+#: sidebar/templates/sidebar/sidebar.html:56
+msgid "add note"
+msgstr "Notiz hinzufügen"
+
+#: sidebar/templates/sidebar/sidebar.html:62
+msgid ""
+"There are no notes for this page yet. <br>Use the little <i class=\"fa fa-"
+"plus\"></i> to add a note."
+msgstr ""
+"Noch gibt es keine Notizen für diese Seite. <br>Nutze das kleine <i class="
+"\"fa fa-plus\"></i>, um eine Notiz hinzuzufügen."

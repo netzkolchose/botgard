@@ -1,0 +1,64 @@
+{% extends admin_base_tmpl %}
+{% load i18n %}
+
+{% block page_content %}
+
+<form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="recalc-all" value="1"/>
+    <input type="submit" value="complete data migration" />
+</form>
+
+<p><hr/></p>
+
+<form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="strip-whitespace" value="1"/>
+    <input type="submit" value="strip whitespace from CharFields" />
+</form>
+
+<form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="assign-territory" value="1"/>
+    <input type="submit" value="assign territories to departments" />
+</form>
+
+<form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="recalc-individuals-outplantings" value="1"/>
+    <input type="submit" value="recalc outplantings per individual" />
+</form>
+
+<form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="recalc-outplanting" value="1"/>
+    <input type="submit" value="recalc outplantings per territory/department" />
+</form>
+
+<p>{{ info|safe }}</p>
+
+<p><hr/></p>
+
+<h3>table settings:</h3>
+<table>
+    {% for ts in table_settings %}
+        <tr>
+            <td>
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="del-table-settings" value="1"/>
+                    <input type="hidden" name="pk" value="{{ ts.id }}" />
+                    <input type="submit" class="deletelink" value="delete" />
+                </form>
+            </td>
+            <td>
+                <b>{{ ts.user }}</b>
+                {{ ts.model }}
+            </td>
+        </tr>
+    {% empty %}
+        <p>none</p>
+    {% endfor %}
+</table>
+
+{% endblock %}

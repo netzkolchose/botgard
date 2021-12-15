@@ -1,0 +1,9 @@
+.label-doc-table .label-name {
+    font-weight: bold;
+    font-size: 1.33rem;
+    padding-bottom: .5rem;
+}
+
+.label-doc-table .label-example {
+    color: #888;
+}

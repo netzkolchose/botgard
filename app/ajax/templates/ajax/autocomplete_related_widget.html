@@ -1,0 +1,18 @@
+{% load i18n static %}
+<div class="autocomplete-related-widget-wrapper">
+    {{ widget }}
+    {% block links %}
+        <a class="autocomplete-related-widget-wrapper-link change-related" id="change_id_{{ name }}"
+            data-ac-href="{{ url_change_related }}?{{ url_params }}"
+            title="{% blocktrans %}Change selected {{ model }}{% endblocktrans %}"
+            target="_blank">
+            <img src="{% static 'admin/img/icon-changelink.svg' %}" alt="{% trans 'Change' %}"/>
+        </a>
+        <a class="autocomplete-related-widget-wrapper-link add-related" id="add_id_{{ name }}"
+            href="{{ url_add_related }}?{{ url_params }}"
+            title="{% blocktrans %}Add another {{ model }}{% endblocktrans %}"
+            target="_blank">
+            <img src="{% static 'admin/img/icon-addlink.svg' %}" alt="{% trans 'Add' %}"/>
+        </a>
+    {% endblock %}
+</div>

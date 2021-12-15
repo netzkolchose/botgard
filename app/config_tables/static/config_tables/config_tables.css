@@ -1,0 +1,105 @@
+.config_table_form table {
+    width: 100%;
+}
+
+.tablesettings {
+    width: 100%;
+}
+
+.tablesettings ul {
+    margin-left: 0;
+    padding: 0;
+}
+
+.tablesettings ul li {
+    list-style-type: none;
+    margin-right: 0;
+}
+
+.tablesettings h2 {
+    text-align: center;
+}
+
+.tablesettings .fields, .tablesettings .selected {
+    width: 50%;
+    float: left;
+}
+
+.tablesettings input {
+    vertical-align: middle;
+}
+
+body.dragging, body.dragging * {
+    cursor: move !important;
+}
+
+.dragged {
+    position: absolute;
+    opacity: 0.7;
+    z-index: 2000;
+}
+
+#selected li {
+    background: #F2F2F2;
+    margin: 5px;
+    margin-right: 0;
+    padding: 5px;
+    cursor: move;
+}
+
+#selected li.placeholder {
+    position: relative;
+    background: #595F65;
+    /** More li styles **/
+}
+#selected li.placeholder:before {
+    position: absolute;
+    /** Define arrowhead **/
+}
+
+.responsive.config-tables #content-main table th label {
+    line-height: 2.5;
+}
+
+.responsive.config-tables #content-main table .tablesettings .fields,
+.responsive.config-tables #content-main table .tablesettings .selected {
+    float: none;
+    display: block;
+    width: 100%;
+}
+.responsive.config-tables #content-main table .tablesettings .fields label {
+    line-height: 1.75;
+}
+.responsive.config-tables #content-main table .tablesettings .fields li {
+    display: flex;
+}
+
+.responsive.config-tables #content-main table .tablesettings .fields li input {
+    order: 0;
+    margin-top: 6px;
+}
+
+.responsive #selected li:before {
+    content: "⇳";
+    display: inline-block;
+    width: 18px;
+    font-size: 1.25rem;
+    color: darkgray;
+    margin-top: -1px;
+    vertical-align: top;
+}
+
+@media (min-width: 767px) {
+    .responsive.config-tables #content-main table .tablesettings {
+        display: -ms-grid;
+        -ms-grid-rows: auto 1fr;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+    .responsive.config-tables #content-main table .tablesettings .fields {
+        -ms-grid-column: 1;
+    }
+    .responsive.config-tables #content-main table .tablesettings .selected {
+        -ms-grid-column: 2;
+    }
+}

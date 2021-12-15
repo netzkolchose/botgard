@@ -1,0 +1,7 @@
+{% load i18n admin_urls static admin_list %}
+
+{% for attr in attributes %}
+<li>
+    <input name="{{ attr.1 }}" id="{{ attr.1 }}" type="checkbox" {% if attr.3 %}checked="checked"{% endif %} value="{{ attr.0|capfirst }} ({{ attr.1 }})" />
+    <label for="{{ attr.1 }}"><b>{{ attr.0|capfirst }}</b> ({{ attr.1 }})</label></li>
+{% endfor %}

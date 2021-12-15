@@ -1,0 +1,45 @@
+{% extends "admin/base_site.html" %}
+{% load i18n l10n admin_urls static admin_modify static %}
+
+{% block extrahead %}
+    <link rel="shortcut icon" type="image/png" href="{% static 'BotGard/icons/favicon.png' %}" />
+    {{ block.super }}
+{% endblock %}
+
+{% block extrastyle %}
+    {{ block.super }}
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a> &rsaquo;
+    {% if show_admin_links %}
+        <a href="{% url 'admin:app_list' app_label %}">{{app_label|capfirst|escape}}</a> &rsaquo;
+        <a href="{% url opts|admin_urlname:'changelist' %}">{{opts.verbose_name_plural|capfirst}}</a> &rsaquo;
+    {% endif %}
+    {% block more_breadcrumbs %}
+    {% endblock %}
+</div>
+{% endblock %}
+
+
+{% block content %}
+<div id="content-main">
+
+    <ul class="object-tools">
+        {% block page_tools %}
+        {% endblock %}
+    </ul>
+
+    <div class="module">
+        {% if error %}
+            <div class="errornote">{{ error|safe }}</div>
+        {% endif %}
+
+        {% block page_content %}
+            {{ page_content|safe }}
+        {% endblock %}
+    </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,89 @@
+div[data-modal] {
+    display: none;
+}
+
+div[data-modal].open {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(255,255,255,0.8);
+    -webkit-backdrop-filter: blur(0.5rem) saturate(0%);
+    z-index: 10001;
+}
+
+@media (prefers-color-scheme: dark) {
+    div[data-modal].open {
+        background-color: rgba(0,0,0,0.8);
+    }
+}
+
+
+div[data-modal].open .wrapper {
+    max-width: 50vw;
+    min-width: 200px;
+    max-height: 80vh;
+    min-height: 100px;
+
+    padding: 40px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: var(--body-bg);
+    border: 1px solid var(--hairline-color);
+
+    box-shadow: 0 0 10px rgba(0,0,0,0.05);
+}
+
+div[data-modal].open .content {
+    overflow: auto;
+    max-height: 80vh;
+}
+
+div[data-modal].open a.close {
+    position: absolute;
+    font-size: 24px;
+    top: 13px;
+    right: 20px;
+}
+
+div[data-modal].full.open .wrapper {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    padding: 20px;
+}
+
+div[data-modal].full.open .wrapper a.close {
+    top: 33px;
+    right: 35px;
+}
+div[data-modal].full.open .wrapper .content {
+    padding: 20px;
+}
+
+@media (max-width: 1024px) {
+    .responsive div[data-modal].open .wrapper {
+        max-width: 80vw;
+    }
+}
+
+@media (max-width: 767px) {
+    .responsive div[data-modal].open .wrapper .content {
+        max-height: 85vh;
+    }
+    .responsive div[data-modal].open .wrapper {
+        height: 100vh;
+        box-shadow: none;
+        transform: none;
+        position: relative;
+        top: 0;
+        left: 0;
+        max-width: none;
+        max-height: none;
+    }
+}

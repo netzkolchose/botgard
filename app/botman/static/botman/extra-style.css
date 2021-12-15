@@ -1,0 +1,308 @@
+/* admin modules */
+
+.module h2, .module caption, .inline-group h2 {
+    background: #7dad52;
+    color: #f0ffe3;
+}
+
+#user-tools a {
+    border: none;
+}
+
+
+input.autocomplete-relation {
+    border-color: var(--hairline-color);
+}
+
+
+/* header */
+
+#header {
+    position: relative;
+    width: auto;
+    height: 40px;
+    padding: 10px 40px;
+    background: #6aaf2d;
+    line-height: 40px;
+    color: #ecfbec;
+    overflow: visible;
+}
+
+.login #header {
+    overflow: hidden;
+}
+
+#branding h1 a {
+    background: url('../BotGard/icons/icon.svg');
+    background-repeat: no-repeat;
+    background-size: contain;
+    padding-left: 36px;
+    margin-left: -8px;
+    color: #f5dd5d;
+}
+
+#branding h1, #branding h1 a:link, #branding h1 a:visited {
+    color: #fff;
+}
+
+.content {
+    display: flex;
+    flex-direction: column;
+}
+
+div.breadcrumbs {
+    background: #484;
+    color: #b7d4b7;;
+}
+
+div.breadcrumbs a {
+    color: #f5fff4;
+}
+
+div.breadcrumbs a:hover {
+    color: #a6d2a2;
+}
+
+ul.messagelist li {
+    background: #ebffd9;
+}
+
+@media (prefers-color-scheme: dark) {
+    ul.messagelist li {
+        background: #1d3507;
+    }
+}
+
+/* change list buttons */
+
+.object-tools a:link, .object-tools a:visited {
+    background: #9fb59f;
+    color: #f7fff7;
+    padding-right: 12px;
+}
+
+.object-tools a:link:hover, .object-tools a:visited:hover {
+    background: #517a53;
+    color: #fff;
+}
+
+/* change form buttons */
+
+.button, input[type=submit], input[type=button], .submit-row input, a.button {
+    background: #588c58;
+}
+
+.button:active, input[type=submit]:active, input[type=button]:active,
+.button:focus, input[type=submit]:focus, input[type=button]:focus,
+.button:hover, input[type=submit]:hover, input[type=button]:hover {
+    background: #4a774a;
+}
+
+.submit-row input, a.button, a.button:visited {
+    background: #588c58;
+    color: #dcf9dc;
+    padding: 10px;
+    margin: 5px;
+}
+
+.submit-row input:hover, a.button:hover {
+    background: #4a774a;
+}
+
+.button.default, input[type=submit].default, .submit-row input.default {
+    background: #359e35;
+}
+
+.button.default:hover, input[type=submit].default:hover, .submit-row input.default:hover {
+    background: #207720;
+}
+
+
+/* general little adjustments */
+
+input[type="checkbox"] {
+    margin-right: 10px;
+}
+
+
+.auto-expandable {
+    width: 10px;
+    height: 20px;
+    border-radius: 4px;
+    overflow: hidden;
+    background: #f6f7f6;
+    cursor: pointer;
+}
+
+.auto-expandable:before {
+    content: "\25B6"
+}
+
+.auto-expanded {
+    width: auto;
+    height: auto;
+    cursor: auto;
+    background: #f6f7f6;
+}
+
+.auto-expanded:before {
+    content: "\25BC";
+}
+
+
+#user-tools a:focus, #user-tools a:hover {
+    border-bottom: none;
+    color: #236131;
+}
+
+#header #user-tools .user-menu .css-dropdown-list {
+    position: absolute;
+    right: 0;
+    margin-top: -0.75em;
+}
+
+#header #user-tools .user-menu li > a,
+#header #user-tools .user-menu li {
+    text-align: left;
+    text-transform: none;
+}
+
+#header #user-tools .user-menu li {
+    color: #999;
+}
+
+#header #user-tools .user-menu li > a,
+#header #user-tools .user-menu li > a:visited {
+    font-weight: bolder;
+    font-style: normal;
+    color: #236131;
+}
+
+/*#header #user-tools .user-menu li > a:before {*/
+/*content: "‣";*/
+/*margin-right: 0.5em;*/
+/*}*/
+#header #user-tools .user-menu li > a:hover,
+#header #user-tools .user-menu li > a:focus {
+    color: #719452;
+}
+
+/* language switcher */
+#header .language-switcher {
+    padding: 0;
+    margin: 0 1rem 0 0;
+    display: inline-block;
+}
+
+#header .language-switcher li {
+    display: inline;
+    margin-right: 0.25rem;
+}
+
+#header .language-switcher li.active a {
+    color: #236131;
+}
+
+
+#content-main caption a:hover {
+    color: #236131;
+    text-decoration: none;
+}
+
+.login #container {
+    min-height: 0;
+}
+
+#container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+#container #content {
+    flex: 1 0 auto;
+}
+
+footer {
+    background: #6aaf2d;
+    color: #ddd;
+    padding: 20px 40px;
+    margin-top: 40px;
+}
+
+footer a:link,
+footer a:visited {
+    color: white;
+}
+
+footer a:link:hover,
+footer a:visited:hover {
+    color: #236131;
+}
+
+footer .links {
+    padding: 0;
+}
+
+footer .links li {
+    list-style: none;
+    padding: 0;
+    display: inline-block;
+    margin-right: 10px;
+}
+
+footer .build-info {
+    font-size: 12px;
+}
+
+footer .branch {
+    font-weight: bold;
+    color: white;
+    text-transform: uppercase;
+}
+
+footer .branch span {
+    display: none;
+    font-weight: normal;
+    color: #bbb;
+    margin-left: 0.25em;
+}
+
+footer .branch:hover span {
+    display: inline;
+}
+
+.login footer .branch:hover span {
+    display: block;
+    margin-left: 0;
+}
+
+
+span.icon-yes,
+span.icon-no {
+    display: inline-block;
+    width: 13px;
+    height: 13px;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-image: url('../admin/img/icon-yes.svg');
+}
+
+span.icon-no {
+    background-image: url('../admin/img/icon-no.svg');
+}
+
+
+:root {
+    --link-fg: #236131;
+    --link-hover-color: #236131;
+    --link-selected-fg: #60b153;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --link-fg: #6aaf2d;
+        --link-hover-color: #484;
+        --link-selected-fg: #236131;
+    }
+}

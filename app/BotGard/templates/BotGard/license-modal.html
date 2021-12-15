@@ -1,0 +1,7 @@
+{% extends "BotGard/modal/modal.html" %}
+{% load botman_admin_helpers %}
+{% block modal-id %}license-info{% endblock %}
+{% block modal-classes %}license-info{% endblock %}
+{% block modal-content %}
+    {% get_license %}
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "admin/base_site.html" %}
+{% load static i18n config_app_tags %}
+{% block extrahead %}
+    {% with 'sidebar'|config_app_value as sidebar_conf %}
+        {% if sidebar_conf.enabled %}
+            <link rel="stylesheet" type="text/css" href="{% static 'sidebar/sidebar.css' %}" />
+            <link rel="stylesheet" type="text/css" href="{% static 'sidebar/fontawesome/fontawesome-all.css' %}" />
+
+            <script type="text/javascript" src="{% static "sidebar/sidebar.js" %}"></script>
+        {% endif %}
+    {% endwith %}
+    {{ block.super }}
+{% endblock extrahead %}
+
+{% block branding %}
+    <button class="sidebar-trigger" type="button">Show Sidebar</button>
+    {{ block.super }}
+{% endblock %}
+
+{% block pretitle %}
+    {% with 'sidebar'|config_app_value as sidebar_conf %}
+        {% if sidebar_conf.enabled %}
+            {% include "sidebar/sidebar.html" %}
+        {% endif %}
+    {% endwith %}
+    {{ block.super }}
+{% endblock %}

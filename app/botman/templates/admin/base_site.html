@@ -1,0 +1,93 @@
+{% extends "admin/base_site.html" %}
+{% load i18n l10n admin_urls admin_modify static config_app_tags botman_admin_helpers %}
+
+
+{% block branding %}
+<h1 id="site-name"><a href="{% url 'admin:index' %}">{% config_app_value 'site_branding' %}</a></h1>
+{% endblock %}
+{% block bodyclass %}responsive{% endblock %}
+
+{% block extrahead %}
+    {{ block.super }}
+{% endblock %}
+
+{% block extrastyle %}
+    <link rel="shortcut icon" type="image/png" href="{% static 'BotGard/icons/favicon.png' %}" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="{% static 'botman/extra-style.css' %}" />
+    <link rel="stylesheet" type="text/css" href="{% static 'botman/form-inputs.css' %}" />
+    <script type="text/javascript" src="{% static "config_tables/jquery-3.5.1.min.js"%}"></script>
+    <script type="text/javascript" src="{% static "config_tables/jquery-ui.min.js"%}"></script>
+    <script type="text/javascript" src="{% static "BotGard/cookies/cookies.js" %}"></script>
+    <script type="text/javascript" src="{% static "BotGard/jquerysortable/jquery.sortable.js" %}"></script>
+    <script type="text/javascript" src="{% static "BotGard/debounce/debounce.js" %}"></script>
+    <script type="text/javascript" src="{% static "BotGard/modals/modal.js" %}"></script>
+    <link rel="stylesheet" type="text/css" href="{% static 'BotGard/responsive/responsive.css' %}" />
+    <link rel="stylesheet" type="text/css" href="{% static 'BotGard/responsive/overloads.css' %}" />
+    <script type="text/javascript" src="{% static "BotGard/responsive/responsive.js" %}"></script>
+    <link rel="stylesheet" type="text/css" href="{% static 'BotGard/css_dropdown/css_dropdown.css' %}" />
+    <script type="text/javascript" src="{% static "BotGard/css_dropdown/css_dropdown.js" %}"></script>
+    <link rel="stylesheet" type="text/css" href="{% static 'BotGard/modals/modal.css' %}" />
+{% endblock %}
+
+
+{% block usertools %}
+    <div id="user-tools">
+        {% if has_permission %}
+            {% get_available_languages as languages %}
+            {% get_current_language as current_language %}
+            <ul class="language-switcher">
+                {% for lang_code, lang_name in languages %}
+                    <li class="{% if lang_code == current_language %}active{% endif %}"><a href="{% change_lang lang_code %}" hreflang="{{ lang_code }}">{{ lang_code }} {{ language }}</a></li>
+                {% endfor %}
+            </ul>
+            <div class="css-dropdown user-menu">
+                <a href>
+                    {% block welcome-msg %}
+                    {% trans 'Welcome,' %}
+                    <strong>{% firstof user.get_short_name user.get_username %}</strong>.
+                {% endblock %}
+                </a>
+                <ul class="css-dropdown-list">
+                    {% block userlinks %}
+                        <li>
+                        </li>
+                        {% if request.user.is_superuser %}
+                            <li>{% trans "Administration" %}:</li>
+                            <li><a href="{% url 'botman:activity' %}">{% trans 'All activities' %}</a></li>
+                            <li><a href="{% url 'admin:app_list' 'config_app'%}">{% trans 'Global configurations' %}</a></li>
+                            <li><hr></li>
+                            <li>{% trans "User tools:" %}</li>
+                        {% endif %}
+                        {% if site_url %}
+                            <li><a href="{{ site_url }}">{% trans 'View site' %}</a></li>
+                        {% endif %}
+                        {% if user.is_active and user.is_staff %}
+                            {% url 'django-admindocs-docroot' as docsroot %}
+                            {% if docsroot %}
+                                <li><a href="{{ docsroot }}">{% trans 'Documentation' %}</a></li>
+                            {% endif %}
+                        {% endif %}
+                        {% if user.has_usable_password %}
+                            <li><a href="{% url 'admin:password_change' %}">{% trans 'Change password' %}</a></li>
+                        {% endif %}
+                        <li><a href="{% url 'admin:logout' %}">{% trans 'Log out' %}</a></li>
+                    {% endblock %}
+                </ul>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block footer %}
+    <footer>
+        <ul class="links">
+            <li><a href="https://botgard.de/">{% trans "About BotGard" %}</a></li>
+            <li><a href="#" data-modal="license-info">{% trans "License" %}</a></li>
+        </ul>
+        <p class="build-info">
+            BotGard 3.0.2 <span class="build">Build <span class="branch">{% include "build_infos.html" %}</span></span>
+        </p>
+    </footer>
+    {% include "BotGard/license-modal.html" %}
+{% endblock %}

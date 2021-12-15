@@ -1,0 +1,29 @@
+{% extends "admin/base.html" %}
+{% load i18n %}
+
+{% block welcome-msg %}{% endblock %}
+{% block userlinks %}{% endblock %}
+{% block breadcrumbs %}{% endblock %}
+{% block branding %}{{ branding }}{% endblock %}
+
+{% block content %}
+    <div class="results">
+        <table id="result_list">
+            <thead>
+                <tr>
+                    {% for header in headers %}
+                        <th scope="col" {{ header.class_attrib }}><div class="text">{{ header.text|safe }}</div></th>
+                    {% endfor %}
+                </tr>
+            </thead>
+
+            {% for row in rows %}
+                <tr class="{% cycle 'row1' 'row2' %}">
+                    {% for item in row %}
+                        {{ item|safe }}
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+{% endblock %}

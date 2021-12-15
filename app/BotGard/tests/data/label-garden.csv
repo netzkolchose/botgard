@@ -1,0 +1,5 @@
+{{obj.address_lines.0|safe}}
+{{obj.address_lines.1|safe}}
+{{obj.address_lines.2|safe}}
+----
+{{obj.address_lines.3|safe}}

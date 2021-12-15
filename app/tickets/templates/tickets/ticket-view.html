@@ -1,0 +1,63 @@
+{% extends 'tickets/base.html'%}
+{% load i18n static %}
+
+{% if print_labels %}
+    {% block extrastyle %}
+        {{ block.super }}
+        <script type="text/javascript" src="{% static 'tickets/is_done_check.js' %}"></script>
+    {% endblock %}
+{% endif %}
+
+{% block page_content %}
+
+    {% if ticket.description %}
+	    <div class="ticket-description">{{ ticket.description|linebreaks }}</div>
+    {% endif %}
+
+    {% if heading %}
+    	<h2>{{ heading|safe }}</h2>
+    {% endif %}
+
+	<ul>
+		{% for label in labels %}
+            <li>
+                <span style="display: inline-block; width: 300px;">{{ label.individual }}</span>
+                <span style="display: inline-block; width: 400px;">
+                    {% if print_labels %}
+                        <a href="{{ label.get_label_url }}" class="print-label-link"
+                           data-label-url="{{ label.get_set_done_url }}">
+                            {% trans 'generate label' %} ({{ label.get_label_type_name }})
+                        </a>
+                    {% endif %}
+                    {% if check_species %}
+                        {% if not label.individual.species.nomenclature_checked %}
+                            <a target="_blank"
+                               href="{% url 'admin:species_species_change' label.individual.species.pk %}">
+                                {% trans 'open and verify' %}
+                            </a>
+                        {% endif %}
+                    {% endif %}
+                </span>
+                {% if print_labels %}
+                    <span style="display: inline-block; width: 300px;">
+                        {{ label.is_done_decorator|safe }}
+                    </span>
+                {% endif %}
+			</li>
+		{% endfor%}
+	</ul>
+
+    <hr/>
+
+    <div class="submit-row" style="padding: 20px;">
+        <a href="{{ change_list_url }}" class="button">
+            {% trans 'Abort' %}
+        </a>
+    	<a href="{{ ticket.pk }}?changeState=True" class="button">
+            {{ next_state_text|capfirst }}
+        </a>
+    </div>
+
+
+{% endblock%}
+

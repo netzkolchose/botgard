@@ -1,0 +1,15 @@
+{% load i18n %}
+
+
+<div>
+    <div>
+        {{ widget }}
+    </div>
+
+    <input id="import-file" type="file" style="display: none"/>
+
+    <div>
+        <input id="import-button" type="button" value="{% trans 'import markup file' %}" />
+        <input id="export-button" type="button" value="{% trans 'export markup file' %}" />
+    </div>
+</div>

@@ -1,0 +1,77 @@
+{% load i18n %}
+
+<h1>{{catalog}}</h1>
+<div style="margin-bottom: 20px;">
+    <a href="{% url 'admin:individuals_seed_changelist' %}">Zu den Samen</a>&nbsp;&nbsp;&nbsp;
+    <a href="{% url 'admin:seedcatalog_seedcatalog_changelist' %}}">Zu den Katalogen</a>
+</div>
+
+{% if catalog_message %}
+    <div style="margin-bottom: 20px;">
+        Letzte Aktion: {{ catalog_message }}
+    </div>
+{% endif %}
+
+<div style="margin-bottom: 20px;"><a href="#samenvorhanden">Zu den Samen, die in diesem Katalog fehlen</a></div>
+
+<table style="border-collapse:collapse;">
+    <tr style="background-color: #EEE;">
+        <td width="50"></td>
+        <td width="50">Bst.Nr.</td>
+        <td width="350">Samen</td>
+        <td>HC</td><td width="80">vorhanden</td>
+        <td width="120">Lager</td>
+        <td width="100">Nomenklatur</td>
+        <td width="180">aus Katalog entfernen</td>
+    </tr>
+    {%for seed in seeds %}
+        <tr>
+            <td>{{forloop.counter}}</td>
+            <td>{{seed.order_number}}</td>
+            <td><a href="/admin/individuals/seed/{{seed.pk}}/">{{seed}}</a></td>
+            <td>{{seed.accession_extension}}</td>
+            <td><span class="{% if seed.seed_available %}icon-yes{% else %}icon-no{% endif %}"></span></td>
+            <td>{% if seed.seed_in_stock %}auf Lager{%else%}nicht auf Lager{%endif%}</td>
+            <td>{%if not seed.species.nomenclature_checked%}
+                <a href="/admin/species/species/{{seed.species.pk}}/">prüfen</a>
+                {%endif%}
+            </td>
+            <td><a href="/seedcatalog/remove/{{seed.pk}}/from/{{catalog.pk}}/"
+                   data-catalog="{{catalog.pk}}" data-seed="{{seed.pk}}"
+                   data-action="remove">entfernen</a>
+            </td>
+        </tr>
+    {%endfor%}
+</table>
+
+<br/>
+<h2 id="samenvorhanden">Samen ausserhalb dieses Katalogs</h2>
+<table style="border-collapse:collapse;">
+    <tr style="background-color: #EEE;">
+        <td width="50">Bst.Nr.</td>
+        <td width="350">Samen</td>
+        <td>HC</td><td width="80">vorhanden</td>
+        <td width="120">Lager</td>
+        <td width="100">Nomenklatur</td>
+        <td width="180">aus Katalog entfernen</td>
+    </tr>
+    {%for seed in allseeds %}
+        {% if not seed in seeds %}
+            <tr>
+                <td>{{seed.order_number}}</td>
+                <td><a href="/admin/individuals/seed/{{seed.pk}}/">{{seed}}</a></td>
+                <td>{{seed.accession_extension}}</td>
+                <td><span class="{% if seed.seed_available %}icon-yes{% else %}icon-no{% endif %}"></span></td>
+                <td>{% if seed.seed_in_stock %}auf Lager{%else%}nicht auf Lager{%endif%}</td>
+                <td>{%if not seed.species.nomenclature_checked%}
+                        <a href="/admin/species/species/{{seed.species.pk}}/">prüfen</a>
+                    {%endif%}
+                </td>
+                <td><a href="/seedcatalog/add/{{seed.pk}}/to/{{catalog.pk}}/"
+                       data-catalog="{{catalog.pk}}" data-seed="{{seed.pk}}"
+                       data-action="add">hinzufügen</a>
+                </td>
+            </tr>
+        {% endif %}
+    {%endfor%}
+</table>

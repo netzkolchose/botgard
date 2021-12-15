@@ -1,0 +1,7 @@
+{% extends "admin/login.html" %}
+{% load static %}
+{% block extrahead %}
+    {{ block.super }}
+    <script type="text/javascript" src="{% static "admin/js/vendor/jquery/jquery.js" %}"></script>
+    <script type="text/javascript" src="{% static "admin/js/jquery.init.js"  %}"></script>
+{% endblock extrahead %}

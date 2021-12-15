@@ -1,0 +1,48 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd"><html>
+	<head>
+		<title>Verfügbarkeitsliste</title>
+		<link rel="stylesheet" type="text/css" href="/static/checklist.css" media="all"/>
+		<link rel="stylesheet" type="text/css" href="/static/checklistprint.css" media="print" />
+	</head>
+	<body>
+		<h1>Verfügbarkeitsliste</h1>
+		<h2>{% now "Y-m-d" %}</h2>
+		
+		<h3 style="margin-top: 30px;">Standorte lebender Individuen</h3>
+		<table width="100%">
+			<tr class="table_header">
+				<td width="50px" align="center"></td>
+				<td width="80px" align="center">Nr.</td>
+				<td>Art</td> 
+				<td width="80px">gepflanzt</td>
+				<td width="80px">gestorben?</td>
+				<td align="center">Kommentar</td>
+			</tr>
+		{% for outplanting in places %}
+			<tr>
+				<td>{{ outplanting.department.code}}</td>
+				<td>{{ outplanting.individual.accession_number }}{% if outplanting.individual.accession_extension %}-{{ outplanting.individual.accession_extension }}{% endif %}</td>
+				<td><a href="/admin/individuals/individual/{{ outplanting.individual.pk }}">{{ outplanting.individual.species.family.family }} {{ outplanting.individual.species }}</a></td>
+				<td align="center">{% if outplanting.date %}{{ outplanting.date }}{% endif %}</td>
+				<td align="center"><div class="checkbox{% if outplanting.plant_died %} checkbox_checked{% endif %}"></div></td>
+				<td></td>
+			</tr>
+		{% endfor %}
+		</table>
+
+		<h3 style="margin-top: 30px;">Verfügbare Samen zu Individuen dieser Art</h3>
+		<table width="100%">
+			<tr class="table_header">
+				<td width="80px" align="center">Nr.</td>
+				<td>Art</td> 
+			</tr>
+		{% for seed in seeds %}
+			<tr>
+				<td>{{ seed.accession_number }}{% if seed.accession_extension %}-{{ seed.accession_extension }}{% endif %}</td>
+				<td><a href="/admin/individuals/individual/{{ seed.pk }}">{{ seed.species.family.family }} {{ seed.species }}</a></td>
+			</tr>
+		{% endfor %}
+
+		</table>
+	</body>
+</html>

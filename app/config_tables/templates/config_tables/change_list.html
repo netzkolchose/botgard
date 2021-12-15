@@ -1,0 +1,32 @@
+{% extends "admin/change_list.html" %}
+{% load i18n admin_urls admin_list result_list_searchable %}
+
+{% block object-tools-items %}
+
+
+        <li><a href="{% url opts|admin_urlname:'csv' %}{% if queries_serialized %}?{{ queries_serialized }}{% endif %}"
+               class="csv-export-button"
+               data-num-items="{{ num_list_items }}"
+               data-num-items-per-sec="{{ num_list_items_per_sec }}"
+               data-confirmation-text="{% trans 'The export will take approximately <sec> seconds, continue?' %}"
+            >
+            {% blocktrans %}CSV-Export {{ num_list_items }} lines{% endblocktrans %}
+        </a></li>
+
+        <li><a href="{% url opts|admin_urlname:'print' %}{% if queries_serialized %}?{{ queries_serialized }}{% endif %}">
+            {% trans 'Print view' %}
+        </a></li>
+
+        <li><a href="{% url opts|admin_urlname:'configuretable' %}">
+            {% trans "Configure table" %}
+        </a></li>
+
+    {{block.super}}
+
+{% endblock %}
+
+{% block result_list %}
+    {% if action_form and actions_on_top and cl.show_admin_actions %}{% admin_actions %}{% endif %}
+    {% result_list_searchable cl change_list_searchable_headers django_hidden_fields %}
+    {% if action_form and actions_on_bottom and cl.show_admin_actions %}{% admin_actions %}{% endif %}
+{% endblock %}

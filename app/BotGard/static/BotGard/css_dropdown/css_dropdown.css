@@ -1,0 +1,38 @@
+.css-dropdown {
+    display: inline-block;
+    position: relative;
+    white-space: nowrap;
+}
+
+.css-dropdown > a:after {
+    content: "▾";
+    margin-left: 0.25em;
+}
+
+.css-dropdown.open .css-dropdown-list,
+.css-dropdown.open .css-dropdown-content {
+    display: block;
+    z-index: 1;
+}
+
+.css-dropdown .css-dropdown-list,
+.css-dropdown .css-dropdown-content {
+    display: none;
+    position: fixed;
+    margin: 0;
+    padding: 0.5em 0.75em ;
+    border: 1px solid #999;
+    background-color: white;
+    letter-spacing: normal;
+}
+
+.css-dropdown .css-dropdown-list li {
+    margin-left: 0;
+    list-style: none;
+}
+
+@media (max-width: 1024px) {
+    .responsive .css-dropdown .css-dropdown-list li a {
+        padding: 7px 0px 7px;
+    }
+}

@@ -1,0 +1,71 @@
+{% load static i18n sidebar_tags botman_admin_helpers config_app_tags %}
+{% if user.is_active and user.is_staff %}
+    {% with 'sidebar'|config_app_value as sidebar_conf %}
+        <div id="sidebar" class="">
+            <div class="trigger">
+                <i class="fa fa-bolt"></i>
+                <i class="fa fa-bookmark"></i>
+                <i class="fa fa-sticky-note"></i>
+            </div>
+            <div class="content">
+                {% for element in sidebar_conf.elements %}
+                    {% if element == "shortcuts" %}
+                        <div class="section shortcuts">
+                            <div class="title">
+                                <h2 class="section-title"><i class="fa fa-bolt"></i>{% trans "Shortcuts" %}</h2>
+                            </div>
+                            <div class="content">
+                                <ul class="shortcuts-list">
+                                    {% shortcut_list %}
+                                </ul>
+                            </div>
+                        </div>
+                    {% elif element == "bookmarks" %}
+                        <div class="section bookmarks">
+                            {% csrf_token %}
+                            <template class="add-edit-form">
+                                <li>
+                                    <form method="POST" action="{% url "sidebar:add_bookmark" %}">
+                                        {% csrf_token %}
+                                        <input type="text" name="title" placeholder="{% trans "title" %}">
+                                        <input type="hidden" name="url" value="{% clean_url %}">
+                                        <button type="submit"><i class="fa fa-check"></i></button>
+                                        <button type="reset"><i class="fa fa-times"></i></button>
+                                    </form>
+                                </li>
+                            </template>
+                            <div class="title">
+                                <h2 class="section-title"><i class="fa fa-bookmark"></i>{% trans "Bookmarks" %}</h2>
+                                <button type="button" class="add-element" title="{% trans "add bookmark" %}"><i
+                                        class="fa fa-plus"></i></button>
+                            </div>
+                            <div class="content">
+                                <ul class="element-list"
+                                    data-order-update-url="{% url 'sidebar:update_bookmark_order' %}">
+                                    {% bookmark_list %}
+                                    <li class="empty-list">{% trans 'There are no bookmarks yet. <br>Use the little <i class="fa fa-plus"></i> to add your first Bookmark.' %}</li>
+                                </ul>
+                            </div>
+                        </div>
+                    {% elif element == "notes" %}
+                        <div class="section notes" data-current-page-url="{% clean_url %}">
+                            {% csrf_token %}
+                            <div class="title">
+                                <h2 class="section-title"><i class="fa fa-sticky-note"></i>{% trans "Notes" %}</h2>
+                                <button type="button" data-new-item-url="{% url "sidebar:new_note" %}"
+                                        class="add-element" title="{% trans "add note" %}"><i class="fa fa-plus"></i>
+                                </button>
+                            </div>
+                            <div class="content">
+                                <ul class="element-list">
+                                    {% notes_list %}
+                                    <li class="empty-list">{% trans 'There are no notes for this page yet. <br>Use the little <i class="fa fa-plus"></i> to add a note.' %}</li>
+                                </ul>
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    {% endwith %}
+{% endif %}

@@ -1,0 +1,18 @@
+
+ .stats-col-num {
+    text-align: right;
+    font-weight: bold;
+    padding-right: 20px;
+ }
+
+
+ .responsive .stats-table-wrap {
+     max-width: 100%;
+     overflow-x: auto;
+     -webkit-overflow-scrolling: touch;
+ }
+ @media (min-width: 767px) {
+     .responsive .stats-col-num {
+         min-width: 50px;
+     }
+ }

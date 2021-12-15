@@ -1,0 +1,12 @@
+{% extends 'admin/change_form.html' %}
+
+{% block content %}
+
+{{ block.super }}
+
+<div hidden="hidden"
+     class="bg-translations"
+     data-tr="{{bg_translations}}"
+></div>
+
+{% endblock %}

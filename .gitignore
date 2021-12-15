@@ -1,0 +1,46 @@
+# libreoffice
+.~lock*.o*
+
+settings_local.py
+
+*.pdf
+*.sh
+
+# Python & VirtualEnv
+env/
+venv/
+*.py[cod]
+
+# IntelliJ
+.idea/
+
+# Django App specifics
+/app/static/
+/app/media/
+db.sqlite3
+
+# Node modules
+node_modules/
+
+#sass project files
+.sass-cache/
+
+# System Junk
+*.so
+*~
+*.swp
+*.swo
+*.diff
+*.err
+*.orig
+*.log
+*.rej
+*.vi
+.DS_Store
+Thumbs.db
+.cache
+.project
+.settings
+_notes
+dwsync.xml
+*.iml

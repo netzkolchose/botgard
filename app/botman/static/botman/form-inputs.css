@@ -1,0 +1,58 @@
+/* this actually is awefull, let's see if we can move this a bit further */
+
+
+/* species */
+input#id_family,
+input#id_deutscher_name,
+input#id_area_of_distribution_etikettxt,
+
+/* botman */
+input#id_website,
+input#id_email,
+
+/* individuals */
+input[data-ac-id="individuals-department-name"],
+input[data-ac-id="individuals-territory-name"],
+
+/* tickets */
+input[data-ac-id="tickets-basicticket-title"],
+
+textarea
+{
+    min-width: 400px;
+}
+
+@media (max-width: 767px) {
+    /* species */
+    input#id_family,
+    input#id_deutscher_name,
+    input#id_area_of_distribution_etikettxt,
+
+        /* botman */
+    input#id_website,
+    input#id_email,
+
+        /* individuals */
+    input[data-ac-id="individuals-department-name"],
+    input[data-ac-id="individuals-territory-name"],
+
+        /* tickets */
+    input[data-ac-id="tickets-basicticket-title"],
+
+    textarea
+    {
+        margin-top: 0.25rem;
+        max-width: 100%;
+        margin-right: 10px;
+    }
+
+}
+
+
+#id_accession_number::-webkit-inner-spin-button {
+    display: none;
+}
+
+#id_accession_number {
+    -moz-appearance: textfield;
+}

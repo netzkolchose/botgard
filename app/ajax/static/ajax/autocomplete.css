@@ -1,0 +1,58 @@
+input.autocomplete-relation {
+}
+
+.autocomplete-verify {
+    background: #fff;
+}
+
+.autocomplete-verify[data-ac-state="none"] {
+    background: #ffe1e1;
+}
+
+.autocomplete-verify[data-ac-state="many"] {
+    background: #fff5d0;
+}
+
+.autocomplete-verify[data-ac-state="one"] {
+    background: #ebf7e0;
+}
+
+.autocomplete-verify[data-ac-state="empty"][required] {
+    background: #fee;
+}
+
+@media (prefers-color-scheme: dark) {
+    .autocomplete-verify {
+        background: #000000;
+    }
+
+    .autocomplete-verify[data-ac-state="none"] {
+        background: #400000;
+    }
+
+    .autocomplete-verify[data-ac-state="many"] {
+        background: #404000;
+    }
+
+    .autocomplete-verify[data-ac-state="one"] {
+        background: #004000;
+    }
+
+    .autocomplete-verify[data-ac-state="empty"][required] {
+        background: #502020;
+    }
+}
+
+.autocomplete-related-widget-wrapper {
+    display: inline;
+}
+
+.autocomplete-related-widget-wrapper-link {
+    margin: 5px;
+}
+
+.autocomplete-related-widget-wrapper-link[href=""] {
+   pointer-events: none;
+   cursor: default;
+   opacity: .3;
+}

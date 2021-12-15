@@ -1,0 +1,57 @@
+{% extends 'admin/change_form.html' %}
+{% load i18n %}
+
+{% if change %}
+    {% block object-tools-items %}
+
+        <li><a href="{% url 'labels:doc_template' %}">
+            {% trans '❓ Documentation' %}
+        </a></li>
+
+        {{block.super}}
+
+    {% endblock %}
+
+{% elif add %}
+
+    {% block object-tools %}
+        {% if not is_popup %}
+        <ul class="object-tools">
+            <li><a href="{% url 'labels:doc_template' %}">
+                {% trans '❓ Documentation' %}
+            </a></li>
+        </ul>
+        {% endif %}
+    {% endblock %}
+
+{% endif %}
+
+
+{% block submit_buttons_bottom %}
+
+    {{ block.super }}
+
+    <style>
+        .svg-preview svg { border: 1px solid #eee; }
+    </style>
+
+    <div style="display: grid; grid-template-columns: .3fr .3fr; grid-gap: 10px;">
+        <div>
+            <div class="svg-preview">{{ svg_markup_plain|safe }}</div>
+            <p>{% trans 'original' %}</p>
+        </div>
+        <div>
+            <div id="svg-example" class="svg-preview"
+                 {% if original.pk %}
+                 data-url="{% url 'labels:random' original.pk %}?include_links"
+                 {% endif %}
+            ></div>
+
+            <span class="button" onclick="renderExample();">{% trans 'new' %}</span>
+
+        </div>
+    </div>
+
+
+
+{% endblock %}

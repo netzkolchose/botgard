@@ -1,0 +1,28 @@
+{% extends admin_base_tmpl %}
+{% load i18n %}
+{% load static %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static 'individuals/checklist.css' %}" />
+{% endblock %}
+
+{% block page_content %}
+
+    <div class="object-tools" style="float: right;">
+        <li><a href="?csv=1">{% trans 'CSV-Export' %}</a></li>
+    </div>
+
+    <p>{% blocktrans %}There are {{result_len}} individuals registered{% endblocktrans %}:</p>
+
+
+    <table class="checklist-table">
+        <thead>
+            {{ headers|safe }}
+        </thead>
+        <tbody>
+            {{ rows|safe }}
+        </tbody>
+    </table>
+
+{% endblock %}

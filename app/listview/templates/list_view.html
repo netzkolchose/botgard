@@ -1,0 +1,11 @@
+{% load i18n admin_urls static admin_list %}
+
+{% for attr in attributes %}
+<li>
+    <input name="{{ attr.1 }}" type="checkbox" {% if attr.3 %}checked="checked"{% endif %} value="{{ attr.1 }}" />
+    {% if attr.2 %}
+        <a onclick="treepart('?ttt={{ attr.1 }}', this);">show</a>
+    {% endif %}
+    {{ attr.0|capfirst }}
+</li>
+{% endfor %}

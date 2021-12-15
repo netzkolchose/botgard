@@ -1,0 +1,9 @@
+{% load i18n %}
+<div class="css-dropdown label-select">
+    <a href>{{ title }}</a>
+    <ul class="css-dropdown-list">
+        {% for item in items %}
+            <li><a title="{{ item.title }}" href="{{ item.url }}">{{ item.name }}</a></li>
+        {% endfor %}
+    </ul>
+</div>

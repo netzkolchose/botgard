@@ -1,0 +1,28 @@
+{% extends 'admin/change_form.html' %}
+{% load i18n %}
+
+{% block submit_buttons_bottom %}
+    <div class="submit-row">
+        <span style="float:left">
+            {{ original.seed.count }} {% trans 'seeds in catalog' %}
+        </span>
+        {% if not is_new %}
+            {% if can_finalize %}
+                {% if original.is_finalized %}
+                    <a class="catalog-button" href="{% url 'seedcatalog:finalize_catalog' original.id %}"
+                       title="{% trans "De-finalize the catalog to change it's contents" %}"
+                    >{% trans 'Reopen catalog' %}</a>
+                {% else %}
+                    <a class="catalog-button" href="{% url 'seedcatalog:finalize_catalog' original.id %}"
+                       title="{% trans "Finalize the catalog to make it's contents immutable" %}"
+                    >{% trans 'Finalize catalog' %}</a>
+                {% endif %}
+            {% endif %}
+            <a class="catalog-button" href="{% url 'seedcatalog:duplicate_catalog' original.id %}"
+               title="{% trans 'Duplicate the current catalog to a new one' %}"
+            >{% trans 'Duplicate catalog' %}</a>
+        {% endif %}
+    </div>
+    {{ block.super }}
+{% endblock %}
+

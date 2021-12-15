@@ -1,0 +1,9 @@
+<div data-modal="{% block modal-id %}{% endblock %}" class="modal {% block modal-classes %}{% endblock %}">
+    <div class="wrapper">
+        <a class="close" href="">✕</a>
+        <div class="content">
+            {% block modal-content %}
+            {% endblock %}
+        </div>
+    </div>
+</div>

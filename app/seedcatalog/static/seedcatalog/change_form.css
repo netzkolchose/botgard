@@ -1,0 +1,15 @@
+
+a.catalog-button {
+    background: #6f8a6f;
+    padding: 10px 15px;
+    margin: 6px;
+    border: none;
+    border-radius: 4px;
+    color: #fff;
+    cursor: pointer;
+}
+
+a.catalog-button:hover {
+    background: #596f59;
+    color: #fff;
+}

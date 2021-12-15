@@ -1,0 +1,18 @@
+{% extends admin_base_tmpl %}
+{% load i18n static %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <script type="text/javascript" src="{% static 'seedcatalog/edit_page.js' %}"></script>
+{% endblock %}
+
+{% block page_content %}
+
+    <div class="seed-catalog-container"
+         data-add-url="{% url 'seedcatalog:add_seed' 0 1 %}?inline"
+         data-remove-url="{% url 'seedcatalog:remove_seed' 0 1 %}?inline"
+    >
+        {% include './edit_inline.html' %}
+    </div>
+
+{% endblock %}

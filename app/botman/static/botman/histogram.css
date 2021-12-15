@@ -1,0 +1,26 @@
+.histogram {
+    display: block;
+    border: 1px solid var(--hairline-color);
+    border-radius: 7px;
+    padding: 4px;
+    margin-bottom: 2rem;
+}
+
+.histogram-bin {
+    position: relative;
+    display:inline-block;
+    margin: 0px;
+    margin-right: -2px;
+    width: 5px;
+    height: 100px;
+    background: var(--darkened-bg);
+    cursor: pointer;
+}
+
+.histogram-bin-value {
+    position: absolute;
+    bottom: 0;
+    width: 4px;
+    background: #6aaf2d;
+}
+

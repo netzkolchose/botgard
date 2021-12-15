@@ -1,0 +1,26 @@
+{% load admin_urls %}
+{% load i18n l10n admin_urls %}
+
+<div class="tablesettings">
+    <div class="fields">
+        <h2>{% trans 'Select Fields' %}</h2>
+        <ul id="tree"></ul>
+    </div>
+    <div class="selected">
+        <h2>{% trans 'Order' %}</h2>
+        <i>{% trans 'Drag items to change their order.' %}</i>
+        <ul id="selected">
+            {% for elem in selected %}
+            <li value="{{ elem.0 }}"><b>{{ elem.1|capfirst }}</b> ({{ elem.0 }})</li>
+            {% endfor %}
+        </ul>
+    </div>
+    <script type="text/javascript">
+        var tablesettings = {};
+        tablesettings.user = {{ instance.user.pk }};
+        tablesettings.model = '{{ instance.model }}';
+        tablesettings.tree_url = "{% url opts|admin_urlname:'configuretable_tree' %}";
+        tablesettings.settings_id = '{{ settings_id }}';
+    </script>
+    <div style="clear: both"></div>
+</div>

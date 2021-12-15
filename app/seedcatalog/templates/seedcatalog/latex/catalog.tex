@@ -1,0 +1,92 @@
+{% load tex %}
+{% autoescape off%}
+\documentclass[a4paper, 9pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+
+%\usepackage[a4paper]{geometry}
+
+\usepackage[a4paper,vmargin={20mm,20mm},hmargin={20mm,10mm}]{geometry}
+
+\usepackage{longtable}
+\usepackage{courier}
+%\usepackage{german}
+
+\usepackage{parskip}
+
+\usepackage[bookmarks,bookmarksopen ,colorlinks=false]{hyperref}
+
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+
+\usepackage{amssymb}
+\usepackage{textcomp}
+
+\begin{document}
+\renewcommand{\headrulewidth}{0pt}
+\pagestyle{plain}
+
+\thispagestyle{empty}
+\begin{titlepage}
+	\begin{center}
+		\vspace{3cm}\\
+		\Large {{ catalog.title }}\\
+		\vspace{3cm}
+		\Huge
+		{\bf Index Seminum} \\
+		{\huge\bf {{catalog.release_date|date:"Y"}}--{{catalog.valid_until_date|date:"Y"}}}\\
+		{%if catalog.title_sub %}
+		\vspace{7.5cm}
+		\normalsize {{ catalog.title_sub }}\\
+		{% endif %}
+	\end{center}
+\end{titlepage}
+\normalsize
+\newpage
+
+\tableofcontents
+
+{{ catalog.preface }}
+
+\newpage
+\section{Gartensamen / Garden Seeds}
+\small
+\begin{tabbing}
+{% for seed in seeds %}
+{% if seed.accession_extension != "W" %}
+{% ifchanged seed.species.family.family %}\end{tabbing}\subsection*{{seed.species.family.family|brackets}}\addcontentsline{toc}{subsection}{{seed.species.family.family|brackets}}\begin{tabbing}
+\hspace{0.5em}\=\hspace{1em}\=\hspace{3.5em}\=\\*{% endifchanged %}
+ \>{% if seed.accession_extension == "20" or seed.accession_extension == "10" %}{\tiny $\bigstar$}{% endif %} \>\texttt{{seed.order_number|brackets}} \> {{seed.species|tex_full_name}}\\*
+ \>\>\>{\footnotesize \texttt{{seed.ipen_generated|texify|brackets}} }{%if seed.found_text%}\\*
+ \>\>\>{\footnotesize {{seed.found_text|truncatewords:10|texify}} }{% endif %}{%if seed.collector_name %}\\*
+ \>\>\>{\footnotesize {{seed.collector_name|texify}}{%if seed.collector_date%}, {{seed.collector_date|date:"Y-m-d"}}{% endif %}} {% endif %}
+\\
+{% endif%}
+{% endfor %}
+
+
+\newpage
+\section{Wildsamen / Wild Seeds}
+\footnotesize
+\begin{tabbing}
+{% for seed in seeds %}
+{% if seed.accession_extension == "W" %}
+{% ifchanged seed.species.family.family %}\end{tabbing}\subsection*{{seed.species.family.family|brackets}}\addcontentsline{toc}{subsection}{{seed.species.family.family|brackets}}\begin{tabbing}
+\hspace{0.5em}\=\hspace{1em}\=\hspace{3.5em}\=\\*{% endifchanged %}
+ \>{% if seed.accession_extension == "20" or seed.accession_extension == "10" %}{\tiny $\bigstar$}{% endif %} \>\texttt{{seed.order_number|brackets}} \> {{seed.species|tex_full_name}}\\*
+ \>\>\>{\footnotesize \texttt{{seed.ipen_generated|texify|brackets}} }{%if seed.found_text%}\\*
+ \>\>\>{\footnotesize {{seed.found_text|truncatewords:10|texify}} }{% endif %}{%if seed.collector_name %}\\*
+ \>\>\>{\footnotesize {{seed.collector_name|texify}}{%if seed.collector_date%}, {{seed.collector_date|date:"Y-m-d"}}{% endif %}} {% endif %}
+\\
+{% endif%}
+{% endfor %}
+
+
+\end{tabbing}
+\normalsize
+\newpage
+{{ catalog.copyright_note}}
+\end{document}
+{% endautoescape %}

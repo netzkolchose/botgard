@@ -1,0 +1,68 @@
+{% extends admin_base_tmpl %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'config_tables/jquery-ui.min.css' %}" />
+<link rel="stylesheet" href="{% static 'labels/docs.css' %}" />
+<link rel="stylesheet" href="{% static 'ajax/autocomplete.css' %}" />
+<script src="{% static 'ajax/autocomplete.js' %}"></script>
+{% endblock %}
+
+{% block page_content %}
+
+<form class="doc-settings">
+    <label>
+        {% trans 'label type' %}
+        <select name="label_type">
+            {% for i in label_type_choices %}
+                <option value="{{i.0}}" {%if i.2%}selected{%endif%}>{{i.1}}</option>
+            {% endfor %}
+        </select>
+    </label>
+
+    <label>
+        <input
+            name="instance_id"
+            class="autocomplete-modelfield"
+            value="{{instance_id}}"
+            data-ac-json-url="{{instance_field.json_url}}"
+            data-ac-id="{{instance_field.id}}"
+        >
+    </label>
+
+    <button type="submit">{% trans 'update' %}</button>
+</form>
+
+<hr>
+
+{% if error %}
+<div class="error">{{error}}</div>
+{% endif %}
+
+<table class="label-doc-table">
+    <thead>
+        <tr>
+            <td>{% trans 'template tag' %}</td>
+            <td>{% trans 'description' %}</td>
+            {% if has_example %}
+                <td>{% trans 'example' %}</td>
+            {% endif %}
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for doc in docs %}
+            <tr>
+                <td class="label-name">&#123;&#123;obj.{{doc.name}}&#125;&#125;</td>
+                <td>{{doc.verbose_name}}</td>
+                {% if has_example %}
+                    <td class="label-example">{{doc.example}}</td>
+                {% endif %}
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}
+

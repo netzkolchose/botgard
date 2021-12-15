@@ -1,0 +1,204 @@
+/* Overrides for the responsive-admin backport from django 2.0 */
+
+.responsive.change-form fieldset .field-box {
+    margin-bottom: 10px;
+}
+
+button[type='button'],
+button[type='submit'],
+button[type='reset'] {
+    -webkit-appearance: none;
+    /*padding: 0.5em 0.5em 0.6em 0.5em;*/
+    padding: 0.5em;
+    background-color: #9fb59f;
+    border: none;
+    color: #f7fff7;
+    border-radius: 2px;
+    line-height: 1.25;
+    cursor: pointer;
+}
+
+button[type='button']:hover,
+button[type='submit']:hover,
+button[type='button']:focus,
+button[type='submit']:focus {
+    background-color: #517a53
+}
+
+button[type='reset'] {
+    background-color: #ff9c97;
+}
+button[type='reset']:hover,
+button[type='reset']:focus {
+    background-color: #ba2121;
+}
+
+/* tablets and small desktops */
+@media (max-width: 1024px) {
+    #user-tools {
+        display: flex;
+    }
+    #header .language-switcher {
+        padding: 0;
+        margin: 0 0 0 1rem;
+        display: inline-block;
+        align-self: flex-end;
+        flex-grow: 2;
+        order: 2;
+        text-align: right;
+    }
+
+
+    .responsive #changelist #toolbar form input[type="submit"] {
+        margin-left: 0.25rem;
+    }
+
+    .responsive #changelist .actions .button:focus, #changelist .actions .button {
+        align-self: flex-end;
+    }
+    .responsive #changelist .actions label {
+        margin-right: 0.25rem;
+    }
+    .responsive #changelist .actions select {
+        margin-left: 0;
+    }
+    .responsive fieldset .field-box + .field-box {
+        margin-top: 0;
+    }
+
+    .responsive .object-tools {
+        display: flex;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+        margin-left: -0.25rem;
+        margin-right: -0.25rem;
+    }
+    .responsive .object-tools li {
+        margin: 0 0.25rem 0.25rem;
+    }
+
+    #header #branding h1 a {
+        padding-left: 28px;
+        margin-left: -2px;
+    }
+
+    .responsive #header #user-tools .user-menu .css-dropdown-list {
+        right: auto;
+    }
+}
+
+
+/* mobile */
+@media (max-width: 767px) {
+    .responsive #changelist .actions span.all,
+    .responsive #changelist .actions span.action-counter,
+    .responsive #changelist .actions span.clear,
+    .responsive #changelist .actions span.question {
+        margin-left: 0;
+    }
+
+
+    /* filter change-list view adjustments */
+    .responsive #changelist #toolbar,
+    .responsive .filtered .actions,
+    .responsive.change-list .filtered .results,
+    .responsive.change-list .filtered .paginator,
+    .responsive .filtered #toolbar, .filtered div.xfull {
+        margin-right: 0;
+    }
+    .responsive #changelist-filter {
+        position: relative;
+        order: 2;
+        width: 100%;
+    }
+
+    .responsive #changelist-filter {
+        height: 29px; /* it's painfull to use px here – however the inner structure of filter view is a little annoying */
+        overflow: hidden;
+    }
+    .responsive #changelist-filter h2 {
+        cursor: pointer;
+    }
+    .responsive #changelist-filter h2:after {
+        content: "▾";
+        float: right;
+    }
+    .responsive #changelist-filter.open {
+        height: auto; /* it's painfull to use px here – however the inner structure of filter view is a little annoying */
+    }
+    .responsive #changelist-filter.open h2:after {
+        transform: rotate(180deg);
+    }
+
+    .responsive .submit-row input.default,
+    .responsive .submit-row .deletelink-box,
+    .responsive .submit-row input {
+        margin: 0 0 0.75rem;
+    }
+    .responsive .submit-row .deletelink-box,
+    .responsive .submit-row a.deletelink{
+        margin-bottom: 0;
+    }
+
+
+    .responsive fieldset .field-box {
+        margin-right: 0;
+    }
+
+    .responsive .aligned .form-row,
+    .responsive .aligned .form-row > div {
+        max-width: calc(100vw - 49px);
+    }
+
+
+    .responsive label.inline {
+        order: 0;
+        padding-left: 0;
+        max-width: 170px;
+    }
+    .responsive input[type=checkbox] {
+        order: 1;
+    }
+    .responsive .aligned label,
+    .responsive .aligned label.inline,
+    .responsive .aligned label.required {
+        margin-top: 6px;
+    }
+    .responsive .aligned label {
+        line-height: 1.5;
+    }
+    .responsive .aligned label ~ textarea,
+    .responsive .aligned label ~ select {
+        margin-top: 0.25rem;
+    }
+
+
+    .responsive .inline-group .module h2:after{
+        content: "...";
+        font-weight: bold;
+    }
+
+
+    .responsive inline-group ul.tools a.add,
+    .responsive .inline-group div.add-row a,
+    .responsive .inline-group .tabular tr.add-row td a{
+        background-position: 0 9px;
+    }
+
+    .responsive.login #container {
+        min-width: 0;
+        width: auto;
+    }
+
+    .responsive.login #header {
+        padding: 10px 16px;
+    }
+}
+
+.sortable-placeholder {
+    min-height: 4px;
+    background-color: rgba(0,0,0,0.1);
+    pointer-events: none;
+}
+
+

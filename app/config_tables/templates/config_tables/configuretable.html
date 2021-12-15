@@ -1,0 +1,65 @@
+{% extends "admin/change_list.html" %}
+{% load i18n l10n admin_urls %}
+{% load i18n admin_urls static admin_modify %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <script type="text/javascript" src="{% static "admin/js/vendor/jquery/jquery.js" %}"></script>
+    <script type="text/javascript" src="{% static "admin/js/jquery.init.js"  %}"></script>
+{% endblock %}
+
+{% block bodyclass %}{{ block.super }} config-tables{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a> &rsaquo;
+    <a href="{% url 'admin:app_list' app_label %}">{{app_label|capfirst|escape}}</a> &rsaquo;
+    <a href="{% url opts|admin_urlname:'changelist' %}">{{opts.verbose_name_plural|capfirst}}</a> &rsaquo;
+    {% blocktrans with opts.verbose_name_plural|escape as name %}Configure table{% endblocktrans %} {{name}}
+</div>
+{% endblock %}
+
+
+{% block content %}
+<div id="content-main">
+    <ul class="object-tools">
+        {% if form.instance %}
+        <li>
+            <a href="javascript: document.getElementById('{{ opts.model_name }}_configure_delete_form').submit();">
+                <div class="deletelink">
+                    {% blocktrans with cl.opts.verbose_name_plural|escape as name %}Reset{% endblocktrans %}
+                </div>
+            </a>
+        </li>
+        {% endif %}
+
+        <li>
+            <a href="{% url opts|admin_urlname:'changelist' %}">
+                {% blocktrans with cl.opts.verbose_name_plural|escape as name %}Abort{% endblocktrans %}
+            </a>
+        </li>
+        <li>
+            <a href="javascript: update_settings();document.getElementById('{{ opts.model_name }}_configure_form').submit()" class="addlink">
+                {% blocktrans with cl.opts.verbose_name_plural|escape as name %}Save{% endblocktrans %}
+            </a>
+        </li>
+    </ul>
+    <div class="module">
+        <form class="config_table_form" action="{% url opts|admin_urlname:'configuretable' %}" method="post" id="{{ opts.model_name }}_configure_form" novalidate>
+            {% csrf_token %}
+            {% block form_top %}
+            {% endblock %}
+        <table>
+            {{ form.as_table }}
+        </table>
+        </form>
+
+        <form action="{% url opts|admin_urlname:'configuretable' %}"
+              method="post"
+              id="{{ opts.model_name }}_configure_delete_form">
+            {% csrf_token %}
+            <input type="hidden" name="_delete" />
+        </form>
+    </div>
+</div>
+{% endblock %}

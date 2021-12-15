@@ -1,0 +1,19 @@
+{% load humanize i18n %}
+<li class="list-element note{% if is_own_note %} own-note{% endif %}" data-editable="{{ is_editable  }}" data-note-id="{{ note.pk }}" data-is-public="{{ note.public }}">
+    <div class="note-content">
+        <div class="header">
+            <span>
+                <span class="owner">{% trans "by" %} <span>{{ note.user }}</span></span>
+                <span class="date">{{ note.created | naturaltime }}</span>
+            </span>
+            {% if is_editable %}
+            <a href="{% url "sidebar:delete_note" note.pk %}" data-confirm-message="{% trans "Delete note?" %}" class="delete tool-button"><i class="far fa-minus-square"></i></a>
+            <a href="{% url "sidebar:publish_note" note.pk 0 %}" data-confirm-message="{% trans "Unpublish note?" %}" class="public-off tool-button"><i class="fa fa-eye"></i></a>
+            <a href="{% url "sidebar:publish_note" note.pk 1 %}" data-confirm-message="{% trans "Publish note?" %}" class="public-on tool-button"><i class="fa fa-eye-slash"></i></a>
+            {% endif %}
+        </div>
+        <div class="text" data-change-url="{% url "sidebar:edit_note" note.pk %}" {% if is_editable %}contenteditable="True"{% endif %}>
+            {{ note.note | safe}}
+        </div>
+    </div>
+</li>

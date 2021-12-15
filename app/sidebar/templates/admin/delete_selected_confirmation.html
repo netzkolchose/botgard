@@ -1,0 +1,11 @@
+{% extends "admin/delete_selected_confirmation.html" %}
+{% load static i18n config_app_tags %}
+
+{% block extrahead %}
+    {% with 'sidebar'|config_app_value as sidebar_conf %}
+        {% if sidebar_conf.enabled %}
+            <link rel="stylesheet" type="text/css" href="{% static 'sidebar/sidebar.css' %}" />
+        {% endif %}
+    {% endwith %}
+    {{ block.super }}
+{% endblock %}

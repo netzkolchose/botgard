@@ -1,0 +1,32 @@
+{% extends admin_base_tmpl %}
+{% load i18n static %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static 'botman/histogram.css' %}" />
+{% endblock %}
+
+
+{% block page_content %}
+
+<div class="histogram">
+    {% for h in histogram %}
+    <a class="histogram-bin" title="{{ h.2 }}: {{ h.1 }}" href="?dt={{ h.3 }}">
+        <div class="histogram-bin-value" style="height:{{ h.0 }}px"></div>
+    </a>
+    {% endfor %}
+</div>
+
+<h1>{{ from_date }} - {{ to_date }}</h1>
+
+<table>
+{% for log in log_entries %}
+    <tr>
+        <td><nobr>{{ log.action_time }}</nobr></td>
+        <td><nobr>{{ log.user }}</nobr></td>
+        <td>{{ log }}</td>
+    </tr>
+{% endfor %}
+</table>
+
+{% endblock %}

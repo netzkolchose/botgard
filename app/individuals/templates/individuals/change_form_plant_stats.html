@@ -1,0 +1,61 @@
+{% extends 'admin/change_form.html' %}
+{% load i18n %}
+
+
+{% block submit_buttons_bottom %}
+    {{ block.super }}
+    {% if original %}
+    <h2>{% blocktrans %}Individuals in {{ original }}{% endblocktrans %}</h2>
+    <div class="stats-table-wrap">
+        <table class="stats-table">
+            {% if original.num_departments %}
+                <tr>
+                    <td>{% trans 'Number of departments' %}</td>
+                    <td class="stats-col-num">{{ original.num_departments }}</td>
+                </tr>
+            {% endif %}
+            <tr>
+                <td>{% trans 'Overall outplantings' %}</td>
+                <td class="stats-col-num">{{ original.num_outplantings }}</td>
+            </tr>
+            <tr>
+                <td>{% trans 'Number of individuals' %}</td>
+                <td class="stats-col-num">{{ original.num_individuals }}</td>
+                <td>{% trans 'Ratio of individuals/outplantings' %}</td>
+                <td class="stats-col-num">{{ original.num_individuals_percent }}</td>
+            </tr>
+            <tr>
+                <td>{% trans 'Number of alive individuals' %}</td>
+                <td class="stats-col-num">{{ original.num_individuals_alive }}</td>
+                <td>{% trans 'Ratio of alive/planted individuals' %}</td>
+                <td class="stats-col-num">{{ original.num_individuals_alive_percent }}</td>
+            </tr>
+            <tr>
+                <td>{% trans 'Number of species' %}</td>
+                <td class="stats-col-num">{{ original.num_species }}</td>
+                <td>{% trans 'Ratio of species/individuals' %}</td>
+                <td class="stats-col-num">{{ original.num_species_percent }}</td>
+            </tr>
+            <tr>
+                <td>{% trans 'Number of alive species' %}</td>
+                <td class="stats-col-num">{{ original.num_species_alive }}</td>
+                <td>{% trans 'Ratio of alive/planted species' %}</td>
+                <td class="stats-col-num">{{ original.num_species_alive_percent }}</td>
+            </tr>
+
+            <tr>
+                <td>{% trans 'Number of genera' %}</td>
+                <td class="stats-col-num">{{ original.num_genera }}</td>
+                <td>{% trans 'Ratio of genera/individuals' %}</td>
+                <td class="stats-col-num">{{ original.num_genera_percent }}</td>
+            </tr>
+            <tr>
+                <td>{% trans 'Number of alive genera' %}</td>
+                <td class="stats-col-num">{{ original.num_genera_alive }}</td>
+                <td>{% trans 'Ratio of alive/planted genera' %}</td>
+                <td class="stats-col-num">{{ original.num_genera_alive_percent }}</td>
+            </tr>
+        </table>
+    </div>
+{% endif %}
+{% endblock %}

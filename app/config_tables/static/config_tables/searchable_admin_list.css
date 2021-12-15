@@ -1,0 +1,43 @@
+
+.filter-form-wrapper {
+    position: relative;
+}
+
+.filter-form-wrapper input,
+.filter-form-wrapper select {
+    width: 100%;
+    box-sizing: border-box;
+    color: var(--body-fg);
+    background-color: var(--body-bg);
+    border: 1px solid var(--border-color);
+    height: 30px;
+    min-width: 5rem;
+}
+
+.filter-form-wrapper select {
+    min-width: 5rem;
+}
+
+.filter-form-wrapper input {
+    padding-right: 18px;
+}
+
+.filter-form-wrapper button.filter-form-reset {
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: auto;
+    width: 20px;
+    height: 100%;
+    border: none;
+    background-image: url('/static/admin/img/icon-no.svg');
+    background-color: transparent;
+    background-repeat: no-repeat;
+    background-position: center center;
+
+    cursor: pointer;
+}
+
+.filter-form-wrapper button.filter-form-reset.inactive {
+    display: none;
+}

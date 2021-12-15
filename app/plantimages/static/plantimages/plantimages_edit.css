@@ -1,0 +1,65 @@
+#plantimage_set-group * {
+    box-sizing: border-box;
+}
+#plantimage_set-group .preview-image {
+    width: 100%;
+    height: auto;
+    max-width: 100%;
+}
+
+#plantimage_set-group label[for$="-image"] {
+    display: none;
+}
+#plantimage_set-group .errorlist {
+    margin-left: 0;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+#plantimage_set-group .image-preview-widget-wrapper .file-upload {
+    margin-top: 1rem;
+    margin-left: 0;
+}
+
+#plantimage_set-group .image-preview-widget-wrapper .clearable-file-input {
+    float: right;
+}
+
+
+@media (min-width: 768px) {
+    #plantimage_set-group > fieldset {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-gap: 30px;
+    }
+
+    #plantimage_set-group > fieldset > h2,
+    #plantimage_set-group > fieldset > .add-row {
+        grid-column-end: span 2;
+    }
+
+    #plantimage_set-group > fieldset > .inline-related {
+        border: 1px solid silver;
+    }
+}
+
+
+@media (min-width: 1024px) {
+    #plantimage_set-group > fieldset {
+        grid-template-columns: 1fr 1fr 1fr;
+    }
+    #plantimage_set-group > fieldset > h2,
+    #plantimage_set-group > fieldset > .add-row {
+        grid-column-end: span 3;
+    }
+}
+
+@media (min-width: 1600px) {
+    #plantimage_set-group > fieldset {
+        grid-template-columns: 1fr 1fr 1fr 1fr;
+    }
+    #plantimage_set-group > fieldset > h2,
+    #plantimage_set-group > fieldset > .add-row {
+        grid-column-end: span 4;
+    }
+}
