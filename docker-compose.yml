@@ -1,0 +1,50 @@
+version: "3.9"
+services:
+  application:
+    build: .
+    volumes:
+      - botgard_media:/app/media:rw
+      - botgard_static:/app/static:rw
+    environment:
+      - POSTGRES_PASSWORD=CHANGE_ME
+      - POSTGRES_NAME=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_HOST=db
+      - HOST_INTERFACE=application
+      - DJANGO_DEBUG=False
+      - DJANGO_SECRET_KEY=CHANGE_ME
+      - DJANGO_ALLOWED_HOSTS=* #CHANGE ME
+    depends_on:
+      - db
+    links:
+      - db
+    ports:
+      - "8000:8000"
+  db:
+    image: postgres:13-alpine
+    environment:
+      - PGDATA=/pgdata/data/
+      - POSTGRES_PASSWORD=CHANGE_ME
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+    volumes:
+      - botgard_db:/pgdata/data/
+  nginx:
+    image: nginx:alpine
+    volumes:
+      - botgard_media:/usr/share/nginx/html/media:ro
+      - botgard_static:/usr/share/nginx/html/static:ro
+      - ./nginx_conf.d/default.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - "8888:8888"
+    links:
+      - application
+    depends_on:
+      - application
+volumes:
+  botgard_media:
+    external: false
+  botgard_db:
+    external: false
+  botgard_static:
+    external: false
