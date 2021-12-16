@@ -13,13 +13,11 @@ services:
       - HOST_INTERFACE=application
       - DJANGO_DEBUG=False
       - DJANGO_SECRET_KEY=CHANGE_ME
-      - DJANGO_ALLOWED_HOSTS=* #CHANGE ME
+      - DJANGO_ALLOWED_HOSTS=* #CHANGE_ME
     depends_on:
       - db
     links:
       - db
-    ports:
-      - "8000:8000"
   db:
     image: postgres:13-alpine
     environment:
@@ -36,7 +34,7 @@ services:
       - botgard_static:/usr/share/nginx/html/static:ro
       - ./nginx_conf.d/default.conf:/etc/nginx/conf.d/default.conf:ro
     ports:
-      - "8888:8888"
+      - "127.0.0.1:8888:8888"
     links:
       - application
     depends_on:
