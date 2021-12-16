@@ -101,13 +101,19 @@ The following **environment variables** will be used by
 
 ### docker-compose
 
-You can start the application with postgres and a reverse nginx reverse proxy using the included docker-compose configuration.
+You can start the application with postgres and a nginx reverse proxy using the
+included docker-compose configuration.
 
 Just run:
 
 ```bash
-docker-compose up
+docker-compose up -d
+
+# create a superuser:
+docker-compose exec application /app/manage.py createsuperuser
 ```
+
+After that you can access BotGard via [http://localhost:8888/](http://localhost:8888/).
 
 **WARNING:**
 The docker-compose setup is not intended for production use. It shall give you
