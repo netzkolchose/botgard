@@ -81,8 +81,10 @@ docker build --tag botgard-dev .
 docker run -ti --env BOTGARD_RUN_TESTS=1 botgard-dev
 ```
 
+### Enironment Variables
+
 The following **environment variables** will be used by 
-[app/BotGard/settings.py](app/BotGard/settings.py) if present:
+[app/BotGard/settings.py](app/BotGard/settings.py) and the [start-server.sh](app/start-server.sh) script if present:
 
 - `POSTGRES_PASSWORD`: Password of the postgres user, 
   if specified the postgres database backend will be used. 
@@ -95,7 +97,25 @@ The following **environment variables** will be used by
 - `DJANGO_TIME_ZONE`: The default timezone, defaults to `Europe/Berlin`
 - `DJANGO_ALLOWED_HOSTS`: A list of hosts separated by spaces, defaults to empty list
 - `DJANGO_DEBUG`: Set Django debug mode, defaults to `True`
+- `HOST_INTERFACE`: Set the interface the Django Application is listening on, defaults to `localhost`
 
+### docker-compose
+
+You can start the application with postgres and a reverse nginx reverse proxy using the included docker-compose configuration.
+
+Just run:
+
+```bash
+docker-compose up
+```
+
+**WARNING:**
+The docker-compose setup is not intended for production use. It shall give you
+a simple method to _simulate_ a complete runtime environment with debug mode
+disabled, gunicorn, reverse proxy, LaTeX and a propper PostgreSQL database
+during development and evaluation. If you still intend to use this
+configuration for production, MAKE SHURE you know what you're doing and modify
+docker-compose.yml according to your needs.
 
 ### Data migration
 
