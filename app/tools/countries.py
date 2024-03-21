@@ -209,6 +209,7 @@ ISO_COUNTRY_CHOICES = (
     ('st', 'ST (Saint Tome (Sao Tome) and Principe)'),
     ('su', 'SU (USSR (former))'),
     ('sv', 'SV (El Salvador)'),
+    ('sx', 'SX (Sint Maarten)'),
     ('sy', 'SY (Syria)'),
     ('sz', 'SZ (Swaziland)'),
     ('tc', 'TC (Turks and Caicos Islands)'),

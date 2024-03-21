@@ -1,3 +1,13 @@
+:root {
+    --ts-color-bg: #F2F2F2;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --ts-color-bg: #383838;
+    }
+}
+
 .config_table_form table {
     width: 100%;
 }
@@ -40,7 +50,7 @@ body.dragging, body.dragging * {
 }
 
 #selected li {
-    background: #F2F2F2;
+    background: var(--ts-color-bg);
     margin: 5px;
     margin-right: 0;
     padding: 5px;

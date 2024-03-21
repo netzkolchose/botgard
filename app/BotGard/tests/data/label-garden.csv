@@ -1,5 +1,10 @@
+Address 1
 {{obj.address_lines.0|safe}}
+Address 2
 {{obj.address_lines.1|safe}}
+Address 3
 {{obj.address_lines.2|safe}}
+Nothing
 ----
+Address 4
 {{obj.address_lines.3|safe}}

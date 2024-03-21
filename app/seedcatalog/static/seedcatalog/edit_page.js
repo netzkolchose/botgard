@@ -45,6 +45,7 @@ $(function() {
             .then(function(text) {
                 $container.html(text);
                 hook_add_remove_click();
+                hook_confirm_link();
             })
             .catch(function(error) {
                 alert(`${error}`);
@@ -52,5 +53,17 @@ $(function() {
         ;
     }
 
+    function hook_confirm_link() {
+        $('a[data-confirm]').on("click", function (e) {
+            const message = e.target.getAttribute("data-confirm");
+            const do_it = window.confirm(message);
+            if (!do_it) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        });
+    }
+
     hook_add_remove_click();
+    hook_confirm_link();
 });

@@ -7,6 +7,7 @@ from django.utils.html import format_html
 
 from labels.models import LabelDefinition, LABEL_FORMAT_TO_FILE_FORMAT
 from individuals.models import Individual
+from entrybook.models import Entry
 from botman.models import BotanicGarden
 from tools.permissions import login_required
 
@@ -24,6 +25,12 @@ def label_individual(request, label_pk, indi_pk):
 
 
 @login_required
+def label_entry(request, label_pk, entry_pk):
+    """View to render garden address label"""
+    return _render_label_entry(request, label_pk, entry_pk)
+
+
+@login_required
 def label_random(request, label_pk):
     """view to render a random label"""
     try:
@@ -35,6 +42,8 @@ def label_random(request, label_pk):
         return label_random_garden(request, label_pk)
     if label.type == "individual":
         return label_random_individual(request, label_pk)
+    if label.type == "entry":
+        return label_random_entry(request, label_pk)
 
     return HttpResponse(_("Invalid label type '%s'") % label.type, status=404)
 
@@ -61,6 +70,18 @@ def label_random_garden(request, label_pk):
     garden = qset[random.randrange(qset.count())]
 
     return _render_label_garden(request, label_pk, garden.pk)
+
+
+@login_required
+def label_random_entry(request, label_pk):
+    """View to render random entry label"""
+    qset = Entry.objects.all()
+    if not qset.exists():
+        return HttpResponse(_("No entries defined"), status=404)
+
+    entry = qset[random.randrange(qset.count())]
+
+    return _render_label_entry(request, label_pk, entry.pk)
 
 
 def _render_label_individual(request, label_pk, indi_pk):
@@ -108,6 +129,30 @@ def _render_label_garden(request, label_pk, garden_pk):
         request, label, context,
         garden.name.replace(" ", "_"),
         reverse("labels:garden", args=(label_pk, garden_pk))
+    )
+
+
+def _render_label_entry(request, label_pk, entry_pk):
+    """View implementation to render label for Entry"""
+    try:
+        label = LabelDefinition.objects.get(pk=label_pk)
+    except LabelDefinition.DoesNotExist:
+        return HttpResponse(_("Invalid label id"), status=404)
+
+    if label.type != "entry":
+        return HttpResponse(_("Invalid label type"), status=404)
+
+    try:
+        entry = Entry.objects.get(pk=entry_pk)
+    except Entry.DoesNotExist:
+        return HttpResponse(_("Invalid entry id"), status=404)
+
+    context = label.get_entry_context(entry)
+
+    return _render_impl(
+        request, label, context,
+        "%s" % (entry.ipen_generated or entry.accession_number),
+        reverse("labels:entry", args=(label_pk, entry_pk))
     )
 
 

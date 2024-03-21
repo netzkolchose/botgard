@@ -68,6 +68,19 @@ def remove_seed_from_catalog(request, seedId, catalogId):
 
 
 @write_permission_required
+def remove_all_seeds_from_catalog(request, catalogId):
+    try:
+        catalog = SeedCatalog.objects.get(id=catalogId)
+    except SeedCatalog.DoesNotExist:
+        return HttpResponse(_('Seed catalog not found'), status=404)
+
+    catalog.seed.clear()
+    catalog.save()
+
+    return HttpResponseRedirect(reverse("seedcatalog:edit_seeds", args=(catalog.pk, )))
+
+
+@write_permission_required
 def add_seed_to_current_catalog(request, seedId):
     try:
         seed = Individual.objects.get(id=seedId)

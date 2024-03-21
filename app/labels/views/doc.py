@@ -6,6 +6,7 @@ from django.utils.translation import gettext_lazy as _
 from django.urls import reverse
 from django.shortcuts import render
 from django.db import models
+from django.contrib.auth import get_user_model
 
 from tools.admin_extensions import minimal_admin_context
 
@@ -14,6 +15,7 @@ from labels.models import (
 )
 from individuals.models import Individual
 from botman.models import BotanicGarden
+from entrybook.models import Entry
 from tools.permissions import login_required
 
 
@@ -50,6 +52,9 @@ def get_template_doc_context(request) -> dict:
     elif label_type == "individual":
         model = Individual
         id_field_name = Individual._id_field
+    elif label_type == "entry":
+        model = Entry
+        id_field_name = Entry._id_field
     else:
         raise ValueError(f"Invalid label type '{label_type}'")
 
@@ -60,7 +65,7 @@ def get_template_doc_context(request) -> dict:
         instance_id = ""
 
     return {
-        "docs": get_template_doc_from_model(model, instance),
+        "docs": sorted(get_template_doc_from_model(model, instance), key=lambda e: e["name"]),
         "has_example": instance is not None,
         "instance_id": instance_id,
         "instance_field": {
@@ -82,11 +87,19 @@ def get_template_doc_from_model(
         if isinstance(field, models.ForeignKey):
             related_model = field.related_model
             if related_model not in models_parsed:
-                sub_docs = get_template_doc_from_model(related_model, None, models_parsed)
+                sub_docs = get_template_doc_from_model(
+                    model=related_model,
+                    instance=getattr(instance, field.name) if instance is not None else None,
+                    models_parsed=models_parsed,
+                )
                 for d in sub_docs:
                     d["name"] = f"{related_model._meta.model_name}.{d['name']}"
                     docs.append(d)
         else:
+            if issubclass(model, get_user_model()):
+                if field.name not in ("username", "first_name", "last_name"):
+                    continue
+
             desc = {
                 "name": field.name,
                 "verbose_name": field.verbose_name,
@@ -109,6 +122,7 @@ def get_template_doc_from_model(
                 }
                 if instance:
                     desc["example"] = getattr(instance, attr_name)()
+                    print("X", desc)
                 docs.append(desc)
 
     return docs

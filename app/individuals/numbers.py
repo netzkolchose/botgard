@@ -1,7 +1,9 @@
 import datetime
 import random
+from typing import Union, Type, List
 
 from django.utils.translation import gettext_lazy as _
+from django.db import models
 
 import config_app
 
@@ -41,7 +43,16 @@ config_app.register_key(
 )
 
 
-def _get_new_number(Model, fieldname, method):
+def _get_new_number(
+        Model: Union[Type[models.Model], List[Type[models.Model]]],
+        fieldname: str,
+        method: dict,
+):
+    if isinstance(Model, list):
+        model_classes = Model
+    else:
+        model_classes = [Model]
+
     if method["method"] == "random_range":
         start_time = datetime.datetime.now()
 
@@ -50,7 +61,13 @@ def _get_new_number(Model, fieldname, method):
             candidate = random.randint(method["min"], method["max"])
 
             # make sure there is no individual with that accession number
-            if not Model.objects.filter(**{fieldname: candidate}).exists():
+            is_unused = True
+            for Model in model_classes:
+                if Model.objects.filter(**{fieldname: candidate}).exists():
+                    is_unused = False
+                    break
+
+            if is_unused:
                 return candidate
 
             if (datetime.datetime.now() - start_time).total_seconds() > 5:
@@ -59,54 +76,80 @@ def _get_new_number(Model, fieldname, method):
     # fast version - will pick the highest + 1
     elif method["method"] == "incremental":
 
-        qset = Model.objects.all()
-        if not qset.exists():
+        is_empty = True
+        for Model in model_classes:
+            qset = Model.objects.all()
+            if qset.exists():
+                is_empty = False
+                break
+
+        if is_empty:
             return method["min"]
 
-        return getattr(qset.order_by("-%s" % fieldname)[0], fieldname) + 1
+        max_num = method["min"]
+        for Model in model_classes:
+            qset = Model.objects.all().order_by("-%s" % fieldname)
+            if qset.exists():
+                max_num = max(max_num, qset.values_list(fieldname, flat=True)[0] + 1)
+
+        return max_num
 
     # slow version - will also pick free numbers in between
     elif method["method"] == "incremental_tight":
 
-        qset = Model.objects.all()
-        if not qset.exists():
+        is_empty = True
+        for Model in model_classes:
+            qset = Model.objects.all()
+            if qset.exists():
+                is_empty = False
+                break
+
+        if is_empty:
             return method["min"]
 
-        qset = qset.filter(**{"%s__gte" % fieldname: method["min"]})
-        if not qset.exists():
+        used_numbers = set()
+        for Model in model_classes:
+            used_numbers |= set(Model.objects.all().values_list(fieldname, flat=True))
+        used_numbers = sorted(filter(lambda n: n >= method["min"], used_numbers))
+        if not used_numbers:
             return method["min"]
-        nums = sorted(qset.values_list(fieldname, flat=True))
-        prev = nums[0]
-        for n in nums:
-            if n > prev+1:
-                return prev+1
-            prev = n
-        return nums[-1] + 1
 
+        if used_numbers[0] > method["min"]:
+            return method["min"]
+
+        # all tightly packed?
+        unused_numbers = set(range(used_numbers[0], used_numbers[-1] + 1)) - set(used_numbers)
+        if not unused_numbers:
+            return used_numbers[-1] + 1
+        else:
+            return sorted(unused_numbers)[0]
 
     raise ValueError("Unknown number generation method '%s'" % method["method"])
 
 
 def get_new_accession_number():
-    '''
+    """
     get an available accession_number for new individuals
-    '''
+    """
     from individuals.models import Individual
+    from entrybook.models import Entry
+
     method = config_app.get_value('accession_generation')
-    num = _get_new_number(Individual, "accession_number", method)
+    num = _get_new_number([Individual, Entry], "accession_number", method)
     if num is None:
         raise RuntimeError(_('Could not find a free accession_number in time, sorry'))
     return num
 
 
 def get_new_order_number():
-    '''
+    """
     get an available order_number for seeds of new individuals
-    '''
+    """
     from individuals.models import Individual
+    from entrybook.models import Entry
+
     method = config_app.get_value('order_number_generation')
-    num = _get_new_number(Individual, "order_number", method)
+    num = _get_new_number([Individual, Entry], "order_number", method)
     if num is None:
         raise RuntimeError(_('Could not find a free order_number in time, sorry'))
     return num
-

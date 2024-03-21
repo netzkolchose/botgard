@@ -26,7 +26,7 @@ $(function () {
 
         // attach handler to all enter-presses on fields
         $this.find('.filter-form-element').on('keypress', function (e) {
-            if (e.keyCode == 13) {
+            if (e.keyCode === 13) {
                 e.preventDefault();
                 build_submit_form($(this).closest('form'));
             }

@@ -1,16 +1,21 @@
-from .models import *
 from django.contrib import admin
 from config_tables.admin import ConfigurableTable, configurable, ForeignKeyFilter
 from django.utils.translation import gettext_lazy as _
+from django.db.models import QuerySet
 
 from tools import readOnlyAdmin
+from tools.search_fields import search_fields_compatible
+
+from .models import *
 
 
 class FamilyAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
     form = FamilyForm
     list_display = ('change_link_decorator', 'family', 'genus', 'genus_author', 'subfamily', 'tribus', 'subtribus',
                     'delete_link_decorator')
-    search_fields = ('family', 'genus', 'genus_author', 'subfamily', 'tribus', 'subtribus')
+    search_fields = search_fields_compatible(
+        ('family', 'genus', 'genus_author', 'subfamily', 'tribus', 'subtribus')
+    )
     fieldsets = (
         (None, {
             'fields': ('family', ('subfamily', 'tribus', 'subtribus'), ('genus', 'genus_author')),
@@ -28,25 +33,55 @@ class FamilyAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
         )
 
 
+class AliveIndividualsListFilter(admin.SimpleListFilter):
+    title = _("alive individuals")
+
+    # Parameter for the filter that will be used in the URL query.
+    parameter_name = "individuals_exist"
+
+    def lookups(self, request, model_admin):
+        return [
+            ("1", _("Exist")),
+            ("0", _("Don't exist")),
+        ]
+
+    def queryset(self, request, queryset: QuerySet):
+        if self.value() == "1":
+            return queryset.filter(
+                individual__is_alive_generated=True,
+            ).distinct()
+        elif self.value() == "0":
+            return queryset.exclude(
+                individual__is_alive_generated=True,
+            ).distinct()
+        else:
+            return queryset
+
 
 class SpeciesAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
     form = SpeciesForm
     list_display = (
-    'change_link_decorator', #'full_name_generated', '__str__',
-    'genus_single', 'family_single',
-    'species',
-    'deutscher_name', 'synonyme',
-    'area_of_distribution_etikettxt',
-    'search_individuals_link_decorator', 'search_seeds_link_decorator', 'availability_decorator',
-    'delete_link_decorator')
+        'change_link_decorator', #'full_name_generated', '__str__',
+        'genus_single', 'family_single',
+        'species',
+        'deutscher_name', 'synonyme',
+        'area_of_distribution_etikettxt',
+        'search_individuals_link_decorator', 'search_seeds_link_decorator', 'availability_decorator',
+        'alive_individuals_decorator',
+        'delete_link_decorator',
+    )
     blacklist = ("id", "__str__")
-    list_filter = (#'nomenclature_checked', 'poisonous_plant',
-                   ('family__full_name_generated', ForeignKeyFilter),
-                   ('family__family', ForeignKeyFilter),
-                   ('family__genus', ForeignKeyFilter),
-                   )
-    search_fields = ['@family__family', '@family__genus', '@species', '@variety', 'synonyme', '@family__subfamily',
-                     '@family__tribus', '@family__subtribus', 'deutscher_name', 'cultivar', ]
+    list_filter = (
+        #'nomenclature_checked', 'poisonous_plant',
+        ('family__full_name_generated', ForeignKeyFilter),
+        ('family__family', ForeignKeyFilter),
+        ('family__genus', ForeignKeyFilter),
+        AliveIndividualsListFilter,
+    )
+    search_fields = search_fields_compatible(
+        ['@family__family', '@family__genus', '@species', '@variety', 'synonyme', '@family__subfamily',
+         '@family__tribus', '@family__subtribus', 'deutscher_name', 'cultivar', ]
+    )
     save_on_top = True
 
     fieldsets = (

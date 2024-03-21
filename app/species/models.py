@@ -90,12 +90,13 @@ class Species(models.Model, Configurable):
         verbose_name = ungettext_lazy('species', 'species', 1)
         verbose_name_plural = ungettext_lazy('species', 'species', 2)
         ordering = ('family__genus', 'species', 'subspecies',)
-        unique_together = ("family", "species", "species_author", "subspecies", "variety", "form", "cultivar")
+        unique_together = (
+            "family", "species", "species_author", "subspecies", "variety", "form", "cultivar",
+            "deutscher_name",
+        )
         permissions = (("can_check_nomenclature", _("can check nomenclature of a species")),)
 
     _id_field = 'full_name_generated'
-
-    # SQL:    ALTER TABLE species_species ADD UNIQUE (family, species, species_author, subspecies, variety);
 
     family = models.ForeignKey(Family, verbose_name=_('genus & family'), on_delete=models.CASCADE)
     species = models.CharField(verbose_name=_('species'), max_length=100, blank=False)
@@ -154,6 +155,7 @@ class Species(models.Model, Configurable):
             if author:
                 return_string += " %s" % author
         return return_string
+    full_name.template_doc = _("Full species name (with author)")
 
     def full_name_each_author_list(self):
         ret_list = [{"name": '%s %s' % (self.family.genus, self.species)}]
@@ -177,9 +179,14 @@ class Species(models.Model, Configurable):
 
     def full_name_no_author(self):
         return self.full_name(with_author=False)
+    full_name_no_author.template_doc = _("Full species name (without author)")
 
     def distribution_lines(self):
         return self.area_of_distribution_etikettxt.split("\n")
+    distribution_lines.template_doc = _(
+        "Area of distribution (each line separate, access with {{obj.species.distribution_lines.0}}"
+        ", {{obj.species.distribution_lines.0}}, aso...)"
+    )
 
     @configurable
     def family_single(self):
@@ -233,6 +240,18 @@ class Species(models.Model, Configurable):
         ))
     search_seeds_link_decorator.short_description = _('seeds')
     search_seeds_link_decorator.exclude_csv = True
+
+    @configurable
+    def alive_individuals_decorator(self):
+        has_individuals = (
+            self.__class__.objects
+                .filter(pk=self.pk, individual__is_alive_generated=True)
+                .exists()
+        )
+        return mark_safe('<span class="icon-%s"></span>' % (
+            "yes" if has_individuals else "no",
+        ))
+    alive_individuals_decorator.short_description = _('alive individuals')
 
     def save(self, *args, **kawrgs):
         if hasattr(self, "full_name_generated"):

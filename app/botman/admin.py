@@ -4,7 +4,9 @@ from django.utils.translation import gettext_lazy as _
 
 from config_tables.admin import ConfigurableTable, configurable, ForeignKeyFilter
 from tools import readOnlyAdmin
+from tools.search_fields import search_fields_compatible
 from .models import *
+from .utils import move_catalogs_to_archive
 from labels.mass_action import add_label_mass_actions
 
 
@@ -43,7 +45,7 @@ class BotanicGardenAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTab
                     'delete_link_decorator')
     blacklist = ("id", "__str__", "website", "email")
 
-    search_fields = ['number', 'name', 'code', 'address']
+    search_fields = search_fields_compatible(['number', 'name', 'code', 'address'])
 
     fieldsets = (
         (None, {
@@ -68,7 +70,10 @@ class BotanicGardenAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTab
             for obj in formset.deleted_objects:
                 obj.delete()
             for instance in instances:
-                instance.user = request.user
+                try:
+                    instance.user
+                except OutgoingOrder.user.RelatedObjectDoesNotExist:
+                    instance.user = request.user
                 instance.save()
             formset.save_m2m()
         else:
@@ -95,8 +100,39 @@ class ExternalCatalogAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableT
     )
     ordering = ("-date_uploaded", )
     blacklist = ("garden", )
+    actions = ("move_catalogs_action", )
+
+    @admin.action(
+        description=_("Move catalogs to archive"),
+        permissions=("move_catalogs", ),
+    )
+    def move_catalogs_action(self, request, queryset):
+        move_catalogs_to_archive(self, request, queryset)
+
+    def has_move_catalogs_permission(self, request):
+        # Only catalog maintainers can move catalogs
+        return request.user.has_perm("botman.add_externalcatalog")
+
 
 admin.site.register(ExternalCatalog, ExternalCatalogAdmin)
+
+
+class ExternalCatalogArchiveAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
+    form = ExternalCatalogArchiveForm
+    list_display = (
+        "__str__",
+        "garden_link_decorator",
+        "date_uploaded", "date_outgoing", "file",
+        #"delete_link_decorator"
+    )
+    list_filter = (
+        ("garden__full_name_generated", ForeignKeyFilter),
+    )
+    ordering = ("-date_uploaded", )
+    blacklist = ("garden", )
+
+
+admin.site.register(ExternalCatalogArchive, ExternalCatalogArchiveAdmin)
 
 
 class OutgoingOrderAdmin(ConfigurableTable):
@@ -144,6 +180,7 @@ class OutgoingOrderAdmin(ConfigurableTable):
 
 
 admin.site.register(OutgoingOrder, OutgoingOrderAdmin)
+
 
 
 # TODO-3: maybe override AdminSite and use in each app

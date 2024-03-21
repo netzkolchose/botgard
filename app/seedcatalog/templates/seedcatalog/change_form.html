@@ -10,11 +10,11 @@
             {% if can_finalize %}
                 {% if original.is_finalized %}
                     <a class="catalog-button" href="{% url 'seedcatalog:finalize_catalog' original.id %}"
-                       title="{% trans "De-finalize the catalog to change it's contents" %}"
+                       title="{% trans 'De-finalize the catalog to change it\'s contents' %}"
                     >{% trans 'Reopen catalog' %}</a>
                 {% else %}
                     <a class="catalog-button" href="{% url 'seedcatalog:finalize_catalog' original.id %}"
-                       title="{% trans "Finalize the catalog to make it's contents immutable" %}"
+                       title="{% trans 'Finalize the catalog to make it\'s contents immutable' %}"
                     >{% trans 'Finalize catalog' %}</a>
                 {% endif %}
             {% endif %}

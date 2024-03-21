@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Type, Iterable
 
 from django import forms
 from django.contrib.admin.widgets import ForeignKeyRawIdWidget
@@ -7,6 +7,7 @@ from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
 from django.utils.html import format_html
 from django.urls import reverse
+from django.db import models
 
 
 class AutoFieldMixin:
@@ -151,7 +152,6 @@ class AutoCharField(AutoFieldMixin, forms.CharField):
         return self.autofield_to_python(value)
 
 
-
 class AutoModelWidget(forms.TextInput):
     """Form field for ForeignKey"""
     def __init__(self, attrs=None):
@@ -217,12 +217,38 @@ def field_attrs(field):
     }
 
 
-def AutoCompleteForm(model_class, widgets: Optional[dict] = None):
+def AutoCompleteForm(
+        model_class: Type[models.Model],
+        widgets: Optional[dict] = None,
+        autocomplete_mapping: Optional[dict] = None,
+):
     """
-    Function to be used as Form class
-    e.g.
-    > class MyForm(AutoCompleteForm(MyModel)):
-    >     pass
+    Function to create a ModelForm class that supports
+    autocompletion for all:
+
+        - forms.CharField
+        - forms.ChoiceField
+        - forms.ModelChoiceField
+
+    ```
+    class MyForm(AutoCompleteForm(MyModel)):
+        exclude_autocomplete = ["not_this_field"]
+    ```
+
+    :param model_class: class of Model for which the ModelForm is created
+    :param widgets: dict of field-name -> Widget instance
+    :param autocomplete_mapping:
+        optional dict to support autocompletion for any CharField:
+        ```
+            {
+                "<field name>": {
+                    "model": ModelClass
+                    "field": "<field name of ModelClass>",
+                },
+                ...
+            }
+        ```
+    :return: patched ModelForm class
     """
     param_widgets = widgets
 
@@ -248,13 +274,18 @@ def AutoCompleteForm(model_class, widgets: Optional[dict] = None):
                 if hasattr(self, "exclude_autocomplete"):
                     if key in self.exclude_autocomplete:
                         continue
+                field_name = key
+                field_model = model_class
                 field = self.fields[key]
                 attrs = field_attrs(field)
+                if autocomplete_mapping and autocomplete_mapping.get(key):
+                    field_model = autocomplete_mapping[key]["model"]
+                    field_name = autocomplete_mapping[key]["field"]
+
                 if isinstance(field, forms.CharField):
-                    self.fields[key] = AutoCharField(model_class, key, **attrs)
+                    self.fields[key] = AutoCharField(field_model, field_name, **attrs)
                 elif isinstance(field, forms.ModelChoiceField):
                     self.fields[key] = AutoModelField(model_class, key, **attrs)
                 elif isinstance(field, forms.ChoiceField) and len(field.choices) > 30:
                     self.fields[key] = AutoCharField(model_class, key, **attrs)
-
     return Form
