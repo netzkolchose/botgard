@@ -54,7 +54,7 @@ def get_nomenclature_user():
                 candis.add(u)
     if not candis:
         return None
-    candis = sorted(candis)
+    candis = sorted(candis, key=lambda u: u.username)
     return candis[0]
 
 

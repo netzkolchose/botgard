@@ -253,7 +253,7 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
         Note: This can only get decorator function defined at model level for sub treeparts
         since we have no knowledge about any model associated ModelAdmin class definition.
         """
-        # create a dummy model instance to trigger correct function assiciation
+        # create a dummy model instance to trigger correct function association
         model()
         settings = settings or []
 

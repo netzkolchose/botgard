@@ -16,6 +16,7 @@ from django.utils.html import format_html
 LABEL_TYPE_CHOICES = (
     ('garden', _("Botanic Garden")),
     ('individual', _("Individual")),
+    ('entry', _("Entry")),
 )
 
 LABEL_ID_VALIDATOR = RegexValidator(
@@ -96,9 +97,11 @@ class LabelDefinition(models.Model):
     def render_markup(self, context):
         try:
             if self.format == "csv":
+                header_row = self.render_csv_row(context, header=True)
                 row = self.render_csv_row(context)
                 fp = StringIO()
                 writer = csv_lib.writer(fp)
+                writer.writerow(header_row)
                 writer.writerow(row)
                 fp.seek(0)
                 return fp.read().strip()
@@ -130,9 +133,21 @@ class LabelDefinition(models.Model):
 
         return markup
 
-    def render_csv_row(self, context: dict) -> List[str]:
+    def render_csv_row(self, context: dict, header: bool = False) -> List[str]:
+        """
+        Render a single row of CSV data.
+
+        :param context: dict, the template context
+        :param header: bool, if True, render the header fields, if False render the content
+        :return: list of str
+        """
         row = []
         template_lines = self.svg_markup.splitlines()
+        if header:
+            template_lines = template_lines[::2]
+        else:
+            template_lines = template_lines[1::2]
+
         for line in template_lines:
             before = '{% load i18n %}'
             t = Template(before + line)
@@ -168,6 +183,9 @@ class LabelDefinition(models.Model):
             filename: str = _("label.pdf"),
             format: str = "pdf",
     ) -> HttpResponse:
+        if format == "auto":
+            format = LABEL_FORMAT_TO_FILE_FORMAT[self.format][0]
+
         filename, format, content = self.render_file(
             template_context=template_context, filename=filename, format=format,
         )
@@ -195,6 +213,17 @@ class LabelDefinition(models.Model):
             garden = BotanicGarden.objects.get(pk=garden_or_pk)
         context = _get_default_context()
         context["obj"] = garden
+        return context
+
+    @classmethod
+    def get_entry_context(cls, entry_or_pk):
+        from entrybook.models import Entry
+        if isinstance(entry_or_pk, Entry):
+            indi = entry_or_pk
+        else:
+            indi = Entry.objects.get(pk=entry_or_pk)
+        context = _get_default_context()
+        context["obj"] = indi
         return context
 
 

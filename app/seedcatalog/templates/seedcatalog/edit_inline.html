@@ -3,7 +3,7 @@
 <h1>{{catalog}}</h1>
 <div style="margin-bottom: 20px;">
     <a href="{% url 'admin:individuals_seed_changelist' %}">Zu den Samen</a>&nbsp;&nbsp;&nbsp;
-    <a href="{% url 'admin:seedcatalog_seedcatalog_changelist' %}}">Zu den Katalogen</a>
+    <a href="{% url 'admin:seedcatalog_seedcatalog_changelist' %}">Zu den Katalogen</a>
 </div>
 
 {% if catalog_message %}
@@ -12,7 +12,18 @@
     </div>
 {% endif %}
 
-<div style="margin-bottom: 20px;"><a href="#samenvorhanden">Zu den Samen, die in diesem Katalog fehlen</a></div>
+<div style="display: flex; justify-content: space-between;">
+    <div style="margin-bottom: 20px;"><a href="#samenvorhanden">Zu den Samen, die in diesem Katalog fehlen</a></div>
+
+    <div style="margin-bottom: 20px;">
+        <a
+            href="/seedcatalog/remove-all-seeds/{{catalog.pk}}/"
+            style="color: red;"
+            data-confirm="Wirklich alle Samen aus dem Katalog entfernen?"
+        >Alle Samen aus dem Katalog entfernen</a>
+    </div>
+</div>
+
 
 <table style="border-collapse:collapse;">
     <tr style="background-color: #EEE;">

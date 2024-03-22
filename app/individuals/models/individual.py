@@ -1,59 +1,11 @@
-from django.db import models, OperationalError
-from django import forms
-from django.forms import widgets
-from django.forms.utils import ErrorList
 from django.utils.translation import gettext_lazy as _
-from django.utils.translation import ungettext_lazy as __
-from django.urls import reverse
-from django.templatetags.static import static
-from django.utils.html import format_html, escape
-from django.utils.safestring import mark_safe
-#from django.db.models.signals import post_save
-#from django.dispatch import receiver
-from django.conf import settings
+from django.utils.translation import ngettext_lazy as __
 
-from picklefield.fields import PickledObjectField
-
-#from botman.models import BotanicGarden
-from seedcatalog.models import SeedCatalog
-from tools.countries import ISO_COUNTRY_CHOICES
-from tools.global_request import get_current_request
-from ajax.autocomplete import AutoCompleteForm
-
-from configuration.accession_extensions import ACCESSION_EXTENSION_CHOICES
-from config_tables.admin import configurable, Configurable
-#from geolocation.models import undefined_geolocation, undefined_osmlocation
-from individuals.numbers import get_new_accession_number, get_new_order_number
+from species.models import Species
+from .individual_base import *
 
 
-IPEN_TRANSFER_RESTRICTIONS = (
-    ('1', _('1 (transfer restricted)')),
-    ('0', _('0 (transfer unrestriced)')),
-)
-
-CAME_IN_AS_CHOICES = (
-    ('PF', _('Plant')),
-    ('SA', _('Seed')),
-    ('ST', _('Scion')),
-    ('UN', _('unknown')),
-)
-
-GENDER_CHOICES = (
-    ('M', _('male')),
-    ('W', _('female')),
-    ('Z', _('hermaphrodite')),
-    ('X', _('unknown'))
-)
-
-NOTE_CHOICES = (
-    ('W', _('wild seed')),
-    ('KW', _('cultivated wild plant')),
-    ('KG', _('cultivated plant')),
-)
-
-
-
-class Individual(models.Model, Configurable):
+class Individual(IndividualBase):
 
     class Meta:
         verbose_name = _("individual")
@@ -62,75 +14,38 @@ class Individual(models.Model, Configurable):
 
     _id_field = "id_name_generated"
 
-    #def __init__(self, *arg, **kwargs):
-    #    super(Individual, self).__init__(*arg, **kwargs)
-    #    self.register_generated_field("ipen_generated", ("ipen_garden_code",))
-
-    accession_number = models.IntegerField(verbose_name=_("accession #"), blank=False, null=True, db_index=True,
-                                           default=get_new_accession_number, unique=True)
-    accession_extension = models.CharField(max_length=2, verbose_name=_("code of origin"),
-                                           choices=ACCESSION_EXTENSION_CHOICES, blank=True, null=True)
-    species = models.ForeignKey('species.Species', verbose_name=_("genus & Species"), blank=False,
-                                on_delete=models.CASCADE)
-
-    id_name_generated = models.CharField(max_length=100, verbose_name=_("name"),
-                                         default="", editable=False)
-
-    species_checked_by = models.CharField(max_length=100, verbose_name=_("plant categorized by"), blank=True)
-
-    came_as_species = models.CharField(max_length=100, verbose_name=_("received as species"), blank=True)
-
-    ipen_country = models.CharField(max_length=3, choices=ISO_COUNTRY_CHOICES, verbose_name="IPEN", db_index=True)
-    ipen_transfer_restricted = models.CharField(max_length=1, choices=IPEN_TRANSFER_RESTRICTIONS, verbose_name="-")
     ipen_garden_code = models.ForeignKey('botman.BotanicGarden', verbose_name="-", on_delete=models.CASCADE)
-    ipen_accession_number = models.CharField(max_length=50, verbose_name="-")
-
-    source = models.ForeignKey('botman.BotanicGarden', related_name="source_key", verbose_name=_("source"), blank=True,
-                               null=True, on_delete=models.CASCADE)
-    source_date = models.DateField(verbose_name=_("date of receipt"), blank=True, null=True)
-    came_in_as = models.CharField(max_length=2, choices=CAME_IN_AS_CHOICES, verbose_name=_("received as"), blank=True,
-                                  db_index=True)
-
-    found_country = models.CharField(max_length=3, choices=ISO_COUNTRY_CHOICES, verbose_name=_("collecting country"),
-                                     blank=False, db_index=True)
-    found_text = models.TextField(max_length=10000, verbose_name=_("collecting place description"), blank=True)
-    collector_name = models.CharField(max_length=100, verbose_name=_("collector's name"), blank=True, null=False)
-    collector_number = models.CharField(max_length=100, verbose_name=_("collection number"), blank=True)
-    collector_date = models.DateField(verbose_name=_("collection date"), blank=True, null=True)
-
-    gender = models.CharField(max_length=1, choices=GENDER_CHOICES, verbose_name=_("gender"), blank=True)
-    comment = models.TextField(max_length=10000, verbose_name=_("comment"), blank=True)
-
-    ipen_generated = models.CharField(max_length=200, editable=False, null=True,
-                                      verbose_name="IPEN")  # help field for searching and sorting for ipen
-
-    seed_available = models.BooleanField(verbose_name=_("seed available"))
-    order_number = models.IntegerField(verbose_name=_("order number"), unique=True, default=get_new_order_number)
-
-    seed_collector_date = models.DateField(verbose_name=_("seed's collection date"), blank=True, null=True)
-    seed_in_stock = models.BooleanField(verbose_name=_("seed in stock"))
+    species = models.ForeignKey(
+        'species.Species', verbose_name=_("genus & Species"), blank=False,
+        on_delete=models.CASCADE
+    )
+    source = models.ForeignKey(
+        'botman.BotanicGarden', related_name="source_key", verbose_name=_("source"), blank=True,
+        null=True, on_delete=models.CASCADE
+    )
 
     # list of PKs of Outplanting
-    alive_outplantings_generated = PickledObjectField(verbose_name=_("alive_outplantings_generated"),
-                                                      default=None, blank=True, null=True)
-    outplantings_generated = PickledObjectField(verbose_name=_("outplantings_generated"),
-                                                default=None, blank=True, null=True)
+    alive_outplantings_generated = PickledObjectField(
+        verbose_name=_("alive_outplantings_generated"),
+        default=None, blank=True, null=True
+    )
+    outplantings_generated = PickledObjectField(
+        verbose_name=_("outplantings_generated"),
+        default=None, blank=True, null=True
+    )
 
     # department codes as text
     departments_generated = models.CharField(max_length=1000, verbose_name=_("departments"), blank=True)
     # territory codes as text
     territories_generated = models.CharField(max_length=1000, verbose_name=_("territories"), blank=True)
-
-    sowing_number = models.CharField(verbose_name=_("sowing number"), max_length=100, blank=True)
+    # is any of the outplantings alive?
     is_alive_generated = models.BooleanField(verbose_name=_("is alive"), editable=False, default=False)
 
-    # geo_location = models.ForeignKey("geolocation.GeoLocation", verbose_name=_("location (geonames)"),
-    #                                  default=undefined_geolocation,
-    #                                  on_delete=models.SET_DEFAULT)
-
-    # osm_location = models.ForeignKey("geolocation.OsmLocation", verbose_name=_("location (osm)"),
-    #                                  default=undefined_osmlocation,
-    #                                  on_delete=models.SET_DEFAULT)
+    @configurable
+    def __str__(self):
+        return self.id_name_generated
+    __str__.admin_order_field = 'id_name_generated'
+    __str__.short_description = _('Individual')
 
     def calc_outplantings(self, do_save=True):
         """
@@ -150,7 +65,7 @@ class Individual(models.Model, Configurable):
         self.departments_generated = " ".join(sorted(set(
             l.department.full_code for l in locations if l.department)))
         self.territories_generated = " ".join("(%s)" % i for i in
-            sorted(set(l.department.territory.code for l in locations if l.department and l.department.territory)))
+                                              sorted(set(l.department.territory.code for l in locations if l.department and l.department.territory)))
         self.is_alive_generated = locations_alive.count() > 0
         if do_save:
             self.save()
@@ -195,19 +110,6 @@ class Individual(models.Model, Configurable):
         return mark_safe("<br/>\n".join(links))
 
     @configurable
-    def __str__(self):
-        return self.id_name_generated
-    __str__.admin_order_field = 'id_name_generated'
-    __str__.short_description = _('Individual')
-
-    @configurable
-    def change_link_decorator(self):
-        return _("show")
-
-    change_link_decorator.short_description = _("show")
-    change_link_decorator.exclude_csv = True
-
-    @configurable
     def species_link_decorator(self):
         url = reverse("admin:species_species_change", args=(self.species.pk,))
         return mark_safe('<a href="%s">%s</a>' % (url, self.species))
@@ -236,24 +138,6 @@ class Individual(models.Model, Configurable):
     endangering_decorator.short_description = _("endangering")
     endangering_decorator.admin_order_field = "species__protection_of_species"
     endangering_decorator.searchable_field = "species__protection_of_species"
-
-    @configurable
-    def delete_link_decorator(self):
-        url = reverse("admin:individuals_individual_delete", args=(self.pk,))
-        return mark_safe('<a href="%s" class="deletelink">%s</a>' % (url, _("delete")))
-
-    delete_link_decorator.short_description = _("delete")
-    delete_link_decorator.exclude_csv = True
-
-    @configurable
-    def etikett_link_decorator(self):
-        from labels import label_link_decorator
-        return label_link_decorator(
-            "individual", self.pk, self.ipen_generated
-        )
-
-    etikett_link_decorator.short_description = _("create label")
-    etikett_link_decorator.exclude_csv = True
 
     @configurable
     def departments_decorator(self):
@@ -315,17 +199,6 @@ class Individual(models.Model, Configurable):
     image_decorator.short_description = _("image")
     image_decorator.exclude_csv = True
 
-    def country_decorator(self):
-        """Only needed by geolocation template"""
-        cc = self.found_country
-        for i in ISO_COUNTRY_CHOICES:
-            if i[0] == cc:
-                return i[1]
-        return cc.upper()
-
-    def found_text_lines(self):
-        return self.found_text.split("\n")
-
     def species_lines(self):
         """Special function to output a multiline string for use with labels"""
         spec_name = self.species.full_name(with_author=False)
@@ -358,17 +231,19 @@ class Individual(models.Model, Configurable):
         #    line2 = ""
         return line1, line2
 
+
     def save(self, *args, **kwargs):
-        # order number: TODO: XXX Do not change order numbers on save !!
-        # self.order_number = Individual.objects.all().order_by('-order_number')[0].order_number + 1 | 0
-        # self.order_number = Individual.objects.all().aggregate(models.Max('order_number')).values()[0] or 1000
         # -- update generated fields --
-        self.ipen_generated = str.upper(self.ipen_country) + "-" + str.upper(self.ipen_transfer_restricted) + "-" + str.upper(
-            self.ipen_garden_code.code) + "-" + str(self.ipen_accession_number)
+        self.ipen_generated = (
+            str.upper(self.ipen_country) + "-" + str.upper(self.ipen_transfer_restricted)
+            + "-" + str.upper(self.ipen_garden_code.code) + "-" + str(self.ipen_accession_number)
+        )
+
         # -- update id_name_generated --
-        self.id_name_generated = ("%s (%s)" % (self.accession_number,
-                                               self.species.full_name(with_author=False))
-                                  )[:100]
+        self.id_name_generated = (
+            "%s (%s)" % (self.accession_number, self.species.full_name(with_author=False))
+        )[:100]
+
         # -- save Individual --
         super(Individual, self).save(*args, **kwargs)
 
@@ -383,7 +258,8 @@ class IndividualValidateMixin(object):
         Adjust the kwargs["initial"] before passing to ModelForm constructor
         """
         # create same random accession number in two fields when creating a new individual
-        if not kwargs.get("instance"):
+        initialize_accession = not kwargs.pop("do_not_initialize_accession", False)
+        if not kwargs.get("instance") and initialize_accession:
             kwargs.setdefault("initial", {})
             kwargs["initial"]["accession_number"] = kwargs["initial"]["ipen_accession_number"] = (
                 get_new_accession_number()
@@ -424,9 +300,15 @@ class IndividualValidateMixin(object):
 
 class IndividualForm(
     IndividualValidateMixin,
-    AutoCompleteForm(Individual, widgets={
-        "accession_number": widgets.NumberInput()  # don't need a spinbox for the accession number
-    })
+    AutoCompleteForm(
+        Individual,
+        widgets={
+            "accession_number": widgets.NumberInput()  # don't need a spinbox for the accession number
+        },
+        autocomplete_mapping={
+            "came_as_species": {"model": Species, "field": "full_name_generated"},
+        }
+    )
 ):
     def __init__(self, *args, **kwargs):
         self._update_initial(kwargs)

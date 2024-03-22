@@ -37,7 +37,7 @@ def convert_svg_to_format(svg_markup, format):
 
     err = proc.stderr.read()
     if err:
-        raise RuntimeError("rsvg failed\n" + err)
+        raise RuntimeError("rsvg failed\n" + err.decode())
 
     return proc.stdout.read()
 

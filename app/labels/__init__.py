@@ -41,7 +41,8 @@ def label_link_decorator(
 
     :param label_class: str
         - "individual" maps to individuals.models.Individual
-        - "address" maps to botman.models.BotanicGarden
+        - "garden" maps to botman.models.BotanicGarden
+        - "entry" mps to emtrybook.models.Entry
 
     :param object_pk: str|int
         - primary key of the individual / seed / botanic garden
@@ -80,7 +81,7 @@ def label_link_decorator(
             reverse("labels:%s" % label_class, args=(qset[0].pk, object_pk)),
             filename,
             format,
-            format,
+            qset[0].display_name,
         ))
 
     labels = list(qset)

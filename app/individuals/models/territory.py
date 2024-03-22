@@ -199,13 +199,15 @@ class Department(CalcOutplantingsMixin, models.Model, Configurable):
 
     full_code = models.CharField(max_length=30, default="", editable=False)
 
+    _id_field = "full_code"
+
     def _get_outplanting_filter(self):
         return dict(department=self.pk)
 
     @configurable
     def __str__(self):
         return "%s (%s)" % (self.full_code, self.name)
-    __str__.admin_order_field = 'code'
+    __str__.admin_order_field = 'full_code'
 
     @configurable
     def change_link_decorator(self):

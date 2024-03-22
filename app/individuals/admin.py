@@ -1,5 +1,5 @@
 import re
-from typing import List
+from typing import List, Type
 
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
@@ -9,9 +9,9 @@ from django.db import transaction
 
 from .models import *
 from plantimages.admin import PlantImageInline
-# from seedcatalog.models import SeedCatalog
 
 from tools import readOnlyAdmin
+from tools.search_fields import search_fields_compatible
 from config_tables.admin import ConfigurableTable, ForeignKeyFilter
 from ajax.autocomplete import AutoCompleteForm
 from labels.mass_action import add_label_mass_actions
@@ -26,7 +26,7 @@ class DepartmentAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable)
     list_display_links = ()
     list_filter = (('territory__name_generated', ForeignKeyFilter),
                    )
-    search_fields = ('code', 'name')
+    search_fields = search_fields_compatible(('code', 'name'))
     ordering = ("territory__code", 'code')
     admin_order_field = ("territory__code", "code")
     blacklist = ("id", "__str__", 'full_code',)
@@ -43,7 +43,7 @@ class TerritoryAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
                     'num_individuals_alive', 'num_species_alive',
                     'delete_link_decorator')
     list_display_links = ()
-    search_fields = ('code', 'name')
+    search_fields = search_fields_compatible(('code', 'name'))
     ordering = ('code',)
     blacklist = ("id", "name_generated", )
 
@@ -80,8 +80,10 @@ class SeedAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
                  'ipen_country', 'departments_generated', 'territories_generated', 'species',
                  'alive_outplantings_generated')
 
-    search_fields = ['order_number', '@species__species', 'accession_number', '@species__family__genus',
-                     '@species__family__family', 'ipen_generated', '@source__name', '@species__deutscher_name']
+    search_fields = search_fields_compatible([
+        'order_number', '@species__species', 'accession_number', '@species__family__genus',
+        '@species__family__family', 'ipen_generated', '@source__name', '@species__deutscher_name'
+    ])
     ordering = ('accession_number',)
     list_editable = ('seed_available', 'seed_in_stock')
     fieldsets = (
@@ -159,7 +161,7 @@ class IndividualAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable)
                  'outplantings_generated', 'alive_outplantings_generated', 'is_alive_generated')
 
     list_display_links = ()
-    search_fields = ('accession_number', 'ipen_generated',
+    search_fields = search_fields_compatible(('accession_number', 'ipen_generated',
                      '@species__species',
                      '@species__subspecies',
                      '@species__variety',
@@ -169,7 +171,7 @@ class IndividualAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable)
                      '@species__full_name_generated',
                      '@species__deutscher_name',
                      '@source__name',
-                     )
+                     ))
     ordering = ('accession_number',)
     fieldsets = (
         (None, {
@@ -209,6 +211,96 @@ admin.site.register(Individual, IndividualAdmin)
 admin.site.register(Seed, SeedAdmin)
 admin.site.register(Department, DepartmentAdmin)
 admin.site.register(Territory, TerritoryAdmin)
+
+
+# ------- below is for transfer from entrybook.Entry to inidividuals.Individual and Outplanting ------
+
+
+class OutplantingAlwaysChangedForm(forms.ModelForm):
+    """
+    ModelForm for Outplanting inline to mark
+    the initial data from entrybook.Entry as changed.
+    """
+    class Meta:
+        model = Outplanting
+        fields = '__all__'
+
+    def has_changed(self):
+        return bool(self.initial.get("department"))
+
+
+class OutplantingAlwaysChangedInline(OutplantingInline):
+    form = OutplantingAlwaysChangedForm
+
+
+class IndividualFromEntryAdmin(IndividualAdmin):
+    """
+    Special ModelAdmin that creates an
+    Individual form and formsets
+    from an entrybook.models.Entry instance
+    """
+    inlines = [OutplantingAlwaysChangedInline, PlantImageInline]
+
+    def __init__(self, model, admin_class, entry_pk):
+        from entrybook.models import Entry
+
+        super().__init__(model, admin_class)
+        self._entry_pk = entry_pk
+        self._entry = Entry.objects.get(pk=self._entry_pk)
+
+    def get_changeform_initial_data(self, request):
+        """
+        Set the initial values for Individual Form from the Entry instance.
+        (not including inline FormSets)
+        """
+        entry_values = {
+            field.name: getattr(self._entry, field.name)
+            for field in self._entry._meta.fields
+            if hasattr(Individual, field.name)
+        }
+        return entry_values
+
+    def get_form(self, request, obj=None, change=False, **kwargs):
+        """
+        Return a Form class that does NOT initialize the
+        accession number. It's already stored in the Entry instance
+        """
+        Form = super().get_form(request, obj, change, **kwargs)
+
+        class PatchedForm(Form):
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs, do_not_initialize_accession=True)
+
+        return PatchedForm
+
+    def get_formsets_with_inlines(self, request, obj=None):
+        """
+        Replace the FormSet class for the OutplantingInline
+        with a class that initializes all values
+        """
+        from django.forms import BaseModelFormSet
+
+        for form_set_class, inline_instance in super().get_formsets_with_inlines(request, obj):
+            form_set_class: Type[BaseModelFormSet]
+
+            if isinstance(inline_instance, OutplantingInline):
+                entry = self._entry
+
+                class PatchedFormSet(form_set_class):
+                    def __init__(self, *args, **kwargs):
+                        kwargs["initial"] = [{
+                            "department": str(entry.department.pk) if entry.department else None,
+                            "seeded_date": entry.seeded_date,
+                            "date": entry.bed_out_date,
+                        }]
+                        super().__init__(*args, **kwargs)
+
+                    def has_changed(self):
+                        return True
+
+                form_set_class = PatchedFormSet
+
+            yield form_set_class, inline_instance
 
 
 # TODO: Outplantings can be part of admin but should be read-only!

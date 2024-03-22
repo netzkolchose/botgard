@@ -31,6 +31,7 @@ def get_value(key):
                 return json.loads(val.value_json)
             return val.value_json
         raise ValueError('Invalid type \'%s\' in KeyValue \'%s\'' % (val.type, val.key))
+
     except KeyValue.DoesNotExist:
         return _defaults[key][0]
 

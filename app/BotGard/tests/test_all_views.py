@@ -113,9 +113,23 @@ class TestAllViews(TestCase):
                 print(f"ERROR IN VIEW {url_name}: {type(e).__name__}: {e}")
                 raise
 
+            # test all search boxes
+
+            if url_name.startswith("admin:") and url_name.endswith("_changelist"):
+                try:
+                    url = reverse(url_name) + "?q=e"
+                    print("testing", url_name, url)
+                    response = self.client.get(url)
+
+                    self.assertStatus(200, response, f"in {url_name} {url}")
+
+                except Exception as e:
+                    print(f"ERROR IN VIEW {url_name}: {type(e).__name__}: {e}")
+                    raise
+
     def test_GET_params_no_admin(self):
         """
-        HTTP GET against all views than require url parameters.
+        HTTP GET against all views that require url parameters.
 
         PARAM_MAPPING is a dict with key
             url-name (that can be used with django.urls.reverse)

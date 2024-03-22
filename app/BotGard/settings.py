@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     'config_tables.apps.ConfigTablesConfig',
     'species.apps.SpeciesConfig',
     'individuals.apps.IndividualsConfig',
+    'entrybook.apps.EntryBookConfig',
     'plantimages.apps.PlantimagesConfig',
     'seedcatalog.apps.SeedcatalogConfig',
     'tickets.apps.TicketsConfig',
@@ -190,3 +191,5 @@ STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'static'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / "media"
+
+IS_POSTGRES = "postgres" in DATABASES.get("default", {}).get("ENGINE", "")

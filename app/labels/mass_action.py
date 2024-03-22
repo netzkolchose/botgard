@@ -18,6 +18,7 @@ from .models import (
 )
 from botman.models import BotanicGarden
 from individuals.models import Individual, Seed
+from entrybook.models import Entry
 
 
 def add_label_mass_actions(request, actions: dict, label_type: str):
@@ -33,7 +34,7 @@ def add_label_mass_actions(request, actions: dict, label_type: str):
             actions[action_name] = (
                 partial(render_mass_labels_action, label_pk=pk),
                 action_name,
-                _("Label: %s") % display_name
+                _("Label: %(name)s") % {"name": display_name}
             )
 
         else:
@@ -42,7 +43,7 @@ def add_label_mass_actions(request, actions: dict, label_type: str):
                 actions[action_name] = (
                     partial(render_mass_labels_action, label_pk=pk, format=format),
                     action_name,
-                    _("Label: %s (%s)") % (display_name, format.upper())
+                    _("Label: %(name)s (%(format)s)") % {"name": display_name, "format": format.upper()}
                 )
 
     return actions
@@ -65,7 +66,7 @@ def render_mass_labels_action(admin: ModelAdmin, request, queryset, label_pk, fo
     except Exception as e:
         admin.message_user(
             request,
-            _("Error creating labels: %s: %s") % (type(e).__name__, e),
+            _("Error creating labels: %s") % f"{type(e).__name__}: {e}",
             level=messages.ERROR,
         )
 
@@ -99,6 +100,10 @@ def _render_mass_labels_csv(label: LabelDefinition, pks: List[int], format: str 
     for pk in pks:
         context = getattr(label, f"get_{label.type}_context")(pk)
 
+        if not rows:
+            header_row = label.render_csv_row(context, header=True)
+            rows.append(header_row)
+
         row = label.render_csv_row(context)
         rows.append(row)
 
@@ -130,6 +135,8 @@ def _render_mass_labels_svg(label: LabelDefinition, pks: List[int], format: str 
                 filename = Individual.objects.get(pk=pk).id_name_generated
             elif label.type == "garden":
                 filename = BotanicGarden.objects.get(pk=pk).full_name_generated
+            elif label.type == "entry":
+                filename = Entry.objects.get(pk=pk).id_name_generated
 
             filename, real_format, content = label.render_file(context, filename, format)
             zip_file.writestr(filename, content)

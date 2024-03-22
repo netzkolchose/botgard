@@ -72,7 +72,7 @@ class BotanicGarden(Configurable, models.Model):
         else:
             return []
     address_lines.template_doc = _(
-        "Each line in the address is available separately, e.g. {{address_lines.0}}, {{address_lines.1}}, aso. "
+        "Each line in the address is available separately, e.g. {{obj.botanicgarden.address_lines.0}}, {{obj.botanicgarden.address_lines.1}}, aso. "
     )
 
     @configurable
@@ -131,11 +131,9 @@ class BotanicGardenForm(AutoCompleteForm(BotanicGarden)):
     pass
 
 
-class ExternalCatalog(Configurable, models.Model):
+class ExternalCatalogBase(Configurable, models.Model):
     class Meta:
-        verbose_name = _('external catalog')
-        verbose_name_plural = _('external catalogs')
-        ordering = ('date_uploaded',)
+        abstract = True
 
     garden = models.ForeignKey(
         verbose_name=_("Botanic garden"),
@@ -200,7 +198,32 @@ class ExternalCatalog(Configurable, models.Model):
     garden_link_decorator.short_description = _('Botanic garden')
 
 
+class ExternalCatalog(ExternalCatalogBase):
+    class Meta:
+        verbose_name = _('external catalog')
+        verbose_name_plural = _('external catalogs')
+        ordering = ('date_uploaded',)
+
+
+class ExternalCatalogArchive(ExternalCatalogBase):
+    class Meta:
+        verbose_name = _('external catalog (archived)')
+        verbose_name_plural = _('external catalogs (archived)')
+        ordering = ('date_uploaded',)
+
+    garden = models.ForeignKey(
+        verbose_name=_("Botanic garden"),
+        to=BotanicGarden,
+        on_delete=models.CASCADE,
+        related_name="catalogs_archived",
+    )
+
+
 class ExternalCatalogForm(AutoCompleteForm(ExternalCatalog)):
+    pass
+
+
+class ExternalCatalogArchiveForm(AutoCompleteForm(ExternalCatalogArchive)):
     pass
 
 
@@ -239,12 +262,17 @@ class OutgoingOrder(Configurable, models.Model):
     )
 
     def __str__(self):
-        if self.garden and self.user:
-            return _("outgoing order/%(garden)s/%(user)s") % {
-                "garden": self.garden,
-                "user": self.user,
-            }
-        return _("outgoing order")
+        try:
+            garden, user = self.garden, self.user
+        except:
+            garden, user = None, None
+
+        if garden and user:
+            return str(_("outgoing order/%(garden)s/%(user)s") % {
+                "garden": garden,
+                "user": user,
+            })
+        return str(_("outgoing order"))
 
     @configurable
     def garden_link_decorator(self):
