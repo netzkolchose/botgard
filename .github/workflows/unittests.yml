@@ -28,8 +28,7 @@ jobs:
       - name: Install packages
         run: |
           sudo apt-get update
-          sudo apt-get install jpeg-dev zlib-dev freetype-dev lcms2-dev openjpeg-dev tiff-dev tk-dev tcl-dev \
-            libxslt-dev libxml2-dev librsvg rsvg-convert texmf-dist texlive ttf-liberation ttf-linux-libertine
+          sudo apt-get install librsvg2-bin texlive
 
       - name: Install python dependencies
         run: |
