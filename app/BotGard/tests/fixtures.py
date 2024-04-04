@@ -54,7 +54,9 @@ INDIVIDUALS = [
 OUTPLANTINGS = [
     {"department": "D1", "individual": 1000},
     {"department": "D1", "individual": 1001},
-    {"department": "D2", "individual": 1002},
+    {"department": "D2", "individual": 1002, "date": "2000-01-01"},
+    {"department": None, "individual": 1002},
+    {"department": None, "individual": 1001, "date": "2000-01-01"},
 ]
 
 LABELS = [
@@ -198,10 +200,13 @@ def create_test_fixtures():
     log("creating Outplanting")
     for data in OUTPLANTINGS:
         Outplanting.objects.create(
-            department=Department.objects.get(code=data["department"]),
+            department=(
+                Department.objects.get(code=data["department"])
+                if data.get("department") else None
+            ),
             individual=Individual.objects.get(accession_number=data["individual"]),
             seeded_date=None,
-            date=None,
+            date=data.get("date"),
             plant_died=None,
         )
 

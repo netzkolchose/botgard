@@ -24,16 +24,14 @@ class Outplanting(models.Model, Configurable):
 
     def __str__(self):
         if self.department is None:
-            if self.date is None:
-                return 'xx %s' % (self.territory.code)
-            else:
-                return '%d-%d-%d %s illegal data set' % (
-                self.date.year, self.date.month, self.date.day, self.territory.code)
+            name = _("Outplanting") + f" {self.pk}"
         else:
-            if self.date is None:
-                return 'xx %s' % (self.department.code)
-            else:
-                return '%d-%d-%d %s' % (self.date.year, self.date.month, self.date.day, self.department.code)
+            name = self.department.full_code
+
+        if self.date is None:
+            return 'xx %s' % name
+        else:
+            return '%d-%d-%d %s' % (self.date.year, self.date.month, self.date.day, name)
 
     def is_alive(self, strong=False):
         """Runtime (non-DB) check for 'aliveness'"""
