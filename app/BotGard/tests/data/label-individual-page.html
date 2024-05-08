@@ -1,0 +1,38 @@
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>{{title}}</title>
+    <style type="text/css">
+        @page {
+            margin: 2cm 1.5cm 4cm 2cm;
+            width: 21cm;
+            height: 27cm;
+
+            @bottom-left {
+                padding-top: 7mm;
+                padding-bottom: 7mm;
+                content: "{% block page-bottom-left-content %}{% endblock %}";
+                text-align: center;
+                vertical-align: bottom;
+                font-size: 8pt;
+            }
+            @bottom-right {
+                padding-top: 7mm;
+                padding-bottom: 7mm;
+                content: "{% trans 'page' %} " counter(page) "/" counter(pages);
+                vertical-align: bottom;
+                font-size: 10px;
+            }
+        }
+
+        {% block extra_style %}{% endblock %}
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+{{ content }}
+
+</body>

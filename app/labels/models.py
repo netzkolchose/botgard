@@ -25,16 +25,19 @@ LABEL_ID_VALIDATOR = RegexValidator(
 LABEL_FORMAT_CHOICES = (
     ('svg', _("SVG (Vector Graphics)")),
     ('csv', _("CSV (Table)")),
+    ('html', _("HTML (Page)")),
 )
 
 # Mapping of LabelDefinition.format to the possible file formats
 LABEL_FORMAT_TO_FILE_FORMAT = {
     "svg": ["pdf", "png", "svg"],
     "csv": ["csv", "xls"],
+    "html": ["pdf", "html"],
 }
 
 FORMAT_CONTENT_TYPES = {
     "csv": "text/csv",
+    "html": "text/html",
     "xls": "application/vnd.ms-excel",
     "pdf": "application/pdf",
     "png": "image/png",
@@ -71,8 +74,15 @@ class LabelDefinition(models.Model):
         default="svg",
     )
 
-    svg_markup = models.TextField(
+    markup = models.TextField(
         verbose_name=_("markup"),
+        help_text=_("The template for SVG, CSV or HTML"),
+    )
+
+    page_markup = models.TextField(
+        verbose_name=_("page markup"),
+        help_text=_("The outer template for HTML. The rendered markup from above is available as {{content}}"),
+        null=True, blank=True,
     )
 
     def __str__(self):
@@ -107,7 +117,7 @@ class LabelDefinition(models.Model):
                 return fp.read().strip()
             else:
                 before = '{% load i18n %}'
-                t = Template(before + self.svg_markup)
+                t = Template(before + self.markup)
                 return t.render(Context(context))
         except Exception as e:
             return f"ERROR: {type(e).__name__}: {e}"
@@ -142,7 +152,7 @@ class LabelDefinition(models.Model):
         :return: list of str
         """
         row = []
-        template_lines = self.svg_markup.splitlines()
+        template_lines = self.markup.splitlines()
         if header:
             template_lines = template_lines[::2]
         else:

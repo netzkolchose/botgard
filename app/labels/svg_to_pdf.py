@@ -13,14 +13,6 @@ def convert_svg_to_pdf(svg_markup):
 
 def convert_svg_to_format(svg_markup, format):
 
-    # if svg_markup contains non-ascii characters
-    # we need to pass data through files, because Popen pipes won't do in python 2:
-    # https://bugs.python.org/issue6135
-    try:
-        svg_markup
-    except UnicodeEncodeError:
-        return _convert_svg_to_format_tmpfile(svg_markup, format)
-
     proc = subprocess.Popen(
         ["rsvg-convert", "--format", format, "--zoom", "0.24", "--dpi-x", "300", "--dpi-y", "300"],
         stdin=subprocess.PIPE,

@@ -6,10 +6,10 @@
         {{ widget }}
     </div>
 
-    <input id="import-file" type="file" style="display: none"/>
+    <input class="import-file-{{ widget_name }}" type="file" style="display: none"/>
 
     <div>
-        <input id="import-button" type="button" value="{% trans 'import markup file' %}" />
-        <input id="export-button" type="button" value="{% trans 'export markup file' %}" />
+        <input class="import-button-{{ widget_name }}" type="button" value="{% trans 'import markup file' %}" />
+        <input class="export-button-{{ widget_name }}" type="button" value="{% trans 'export markup file' %}" />
     </div>
 </div>

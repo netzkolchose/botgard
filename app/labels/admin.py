@@ -10,13 +10,17 @@ class SvgWidget(forms.Textarea):
     def render(self, name, value, attrs=None, renderer=None):
         context = {
             "widget": super(SvgWidget, self).render(name, value, attrs, renderer),
+            "widget_name": name,
         }
         return render_to_string("labels/svg-widget.html", context)
 
 
 class LabelDefinitionForm(forms.ModelForm):
     class Meta:
-        widgets = {"svg_markup": SvgWidget}
+        widgets = {
+            "markup": SvgWidget,
+            "page_markup": SvgWidget
+        }
     exclude = ()
 
 
@@ -40,7 +44,7 @@ class LabelDefinitionAdmin(admin.ModelAdmin):
         try:
             label = LabelDefinition.objects.get(pk=object_id)
             extra_context = extra_context or {}
-            extra_context["svg_markup_plain"] = label.svg_markup
+            extra_context["markup_plain"] = label.markup
         except LabelDefinition.DoesNotExist:
             pass
         return super(LabelDefinitionAdmin, self).change_view(request, object_id, form_url, extra_context)

@@ -60,10 +60,10 @@ OUTPLANTINGS = [
 ]
 
 LABELS = [
-    {"id_name": "A1", "display_name": "Address Label 1", "type": "garden", "svg_markup": "label-garden.svg"},
-    {"id_name": "I1", "display_name": "Individual Label 1", "type": "individual", "svg_markup": "label-individual.svg"},
-    {"id_name": "A2", "format": "csv", "display_name": "Address Label 2", "type": "garden", "svg_markup": "label-garden.csv"},
-    #{"id_name": "I2", "format": "csv", "display_name": "Individual Label 2", "type": "individual", "svg_markup": "label-individual.csv"},
+    {"id_name": "A1", "format": "svg", "display_name": "Address Label 1", "type": "garden", "markup": "label-garden.svg"},
+    {"id_name": "I1", "format": "svg", "display_name": "Individual Label 1", "type": "individual", "markup": "label-individual.svg"},
+    {"id_name": "A2", "format": "csv", "display_name": "Address Label 2", "type": "garden", "markup": "label-garden.csv"},
+    {"id_name": "I2", "format": "html", "display_name": "Individual Label 2", "type": "individual", "markup": "label-individual.html", "page_markup": "label-individual-page.html"},
 ]
 
 BASIC_TICKETS = [
@@ -216,7 +216,8 @@ def create_test_fixtures():
             id_name=data["id_name"],
             display_name=data["display_name"],
             type=data["type"],
-            svg_markup=DATA_PATH.joinpath(data["svg_markup"]).open().read(),
+            markup=(DATA_PATH / data["markup"]).read_text(),
+            page_markup=(DATA_PATH / data["page_markup"]).read_text() if data.get("page_markup") else None,
             format=data.get("format", "svg"),
         )
 
