@@ -2,6 +2,7 @@
 .~lock*.o*
 
 settings_local.py
+local_config.sh
 
 *.pdf
 

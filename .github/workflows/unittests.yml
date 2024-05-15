@@ -28,7 +28,7 @@ jobs:
       - name: Install packages
         run: |
           sudo apt-get update
-          sudo apt-get install librsvg2-bin texlive
+          sudo apt-get install librsvg2-bin texlive poppler-utils
 
       - name: Install python dependencies
         run: |

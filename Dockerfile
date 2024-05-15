@@ -8,6 +8,7 @@ RUN apk add libxslt-dev libxml2-dev
 RUN apk add librsvg rsvg-convert
 RUN apk add texmf-dist texlive
 RUN apk add ttf-liberation ttf-linux-libertine
+RUN apk add poppler-utils  # for `pdfinfo`
 
 RUN adduser appuser -D -u 9999
 
