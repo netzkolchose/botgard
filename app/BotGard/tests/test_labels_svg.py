@@ -36,7 +36,7 @@ class TestLabelsSVG(TestCase):
         )
         self.assert_pdf_size(response.content, [252, 102])
 
-    def assert_pdf_size(self, pdf_data: bytes, expected_size: List[Union[int, float]]):
+    def assert_pdf_size(self, pdf_data: bytes, expected_size: List[int]):
         with tempfile.TemporaryDirectory() as path:
             filename = Path(path) / "label.pdf"
             filename.write_bytes(pdf_data)
@@ -44,7 +44,7 @@ class TestLabelsSVG(TestCase):
             match = re.match(r".*Page size:\s+(\d+\.?\d*)\sx\s(\d+.?\d*).*", result.replace("\n", " "))
             if not match:
                 raise AssertionError(f"Page size not found in pdfinfo result: {result}")
-            page_size = [float(g) for g in match.groups()]
+            page_size = [int(float(g)) for g in match.groups()]
             self.assertEqual(list(expected_size), page_size, "PDF page size does not match")
 
     def get_label_response(self, label_model: LabelDefinition, object_type: str, object_model, format: str):

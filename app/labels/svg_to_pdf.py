@@ -1,5 +1,6 @@
 import subprocess
 import os
+import re
 import codecs
 import random
 
@@ -21,8 +22,18 @@ def convert_svg_to_format(svg_markup, format):
     except UnicodeEncodeError:
         return _convert_svg_to_format_tmpfile(svg_markup, format)
 
+    version = subprocess.check_output(["rsvg-convert", "--version"]).decode()
+    version = tuple(int(g) for g in re.match(r".*(\d+)\.(\d+)\.(\d+).*", version).groups())
+
+    command_args = ["rsvg-convert", "--format", format, "--dpi-x", "300", "--dpi-y", "300"]
+
+    if version <= (2, 45, 0):
+        # fix dpi setting for rsvg-convert below version 2.46
+        # https://gitlab.gnome.org/GNOME/librsvg/-/issues/514
+        command_args += ["--zoom", "0.24"]
+
     proc = subprocess.Popen(
-        ["rsvg-convert", "--format", format, "--zoom", "0.24", "--dpi-x", "300", "--dpi-y", "300"],
+        command_args,
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
