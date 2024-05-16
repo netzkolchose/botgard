@@ -1,4 +1,4 @@
-name: unittests
+name: tests-ubuntu
 
 on:
   push:
@@ -44,3 +44,17 @@ jobs:
           ./manage.py migrate
           ./manage.py collectstatic          
           ./manage.py test
+
+  test-dockerimage:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Build & Test
+        run: |
+          docker build --tag botgard-dev .
+          docker run --env BOTGARD_RUN_TESTS=1 botgard-dev
