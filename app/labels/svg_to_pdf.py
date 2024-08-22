@@ -1,5 +1,7 @@
 import subprocess
 import os
+import re
+import sys
 import codecs
 import random
 
@@ -11,10 +13,29 @@ def convert_svg_to_pdf(svg_markup):
     return convert_svg_to_format(svg_markup, "pdf")
 
 
-def convert_svg_to_format(svg_markup, format):
+def convert_svg_to_format(svg_markup: str, format: str):
+
+    # if svg_markup contains non-ascii characters
+    # we need to pass data through files, because Popen pipes won't do in python 2:
+    # https://bugs.python.org/issue6135
+    if sys.version_info[0] < 3:
+        try:
+            svg_markup.encode("ascii")
+        except UnicodeEncodeError:
+            return _convert_svg_to_format_tmpfile(svg_markup, format)
+
+    version = subprocess.check_output(["rsvg-convert", "--version"]).decode()
+    version = tuple(int(g) for g in re.match(r".*(\d+)\.(\d+)\.(\d+).*", version).groups())
+
+    command_args = ["rsvg-convert", "--format", format, "--dpi-x", "300", "--dpi-y", "300"]
+
+    if version <= (2, 45, 0):
+        # fix dpi setting for rsvg-convert below version 2.46
+        # https://gitlab.gnome.org/GNOME/librsvg/-/issues/514
+        command_args += ["--zoom", "0.24"]
 
     proc = subprocess.Popen(
-        ["rsvg-convert", "--format", format, "--zoom", "0.24", "--dpi-x", "300", "--dpi-y", "300"],
+        command_args,
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
@@ -54,7 +75,7 @@ def _convert_svg_to_format_tmpfile(svg_markup, format):
     err = proc.stderr.read()
     if err:
         os.remove(outfilename)
-        raise RuntimeError("rsvg failed\n" + err)
+        raise RuntimeError(f"rsvg failed\n{err}")
 
     with open(outfilename) as f:
         outp = f.read()
