@@ -1,5 +1,7 @@
-import csv
-from io import StringIO, BytesIO
+import re
+from pathlib import Path
+import tempfile
+import subprocess
 from typing import List
 
 from django.test import TestCase, Client
@@ -31,22 +33,51 @@ class TestLabelsHTML(TestCase):
         label_model = LabelDefinition.objects.get(id_name="I2")
 
         response = self.get_label_response(label_model, "individual", Individual.objects.get(accession_number=1000), "html")
-        print(response.content)
+        # print(response.content)
+        self.assertIn(b"""<div class="page-break-after">IPEN: AU-0-GARD1-1000</div>""", response.content)
 
-    def get_label_response(self, label_model: LabelDefinition, object_type: str, object_model, format: str):
+        response = self.get_label_response(label_model, "individual", list(Individual.objects.all()), "html")
+        # print(response.content)
+        self.assertIn(b"""<div class="page-break-after">IPEN: IT-0-GARD2-1001</div>""", response.content)
+        self.assertIn(b"""<div class="page-break-after">IPEN: CZ-0-GARD1-1002</div>""", response.content)
+
+        response = self.get_label_response(label_model, "individual", list(Individual.objects.all()), "pdf")
+        # print(response)
+
+        # check at leats number of pages in PDF
+        with tempfile.TemporaryDirectory() as path:
+            filename = Path(path) / "label.pdf"
+            filename.write_bytes(response.content)
+            result = subprocess.check_output(["pdfinfo", str(filename)]).decode()
+            match = re.match(r".*Pages:\s+(\d+).*", result.replace("\n", " "))
+            if not match:
+                raise AssertionError(f"'Pages' not found in pdfinfo result: {result}")
+
+    def get_label_response(self, label_model: LabelDefinition, object_type: str, object_model, format):
         if isinstance(object_model, list):
             if object_type == "garden":
                 url = reverse("admin:botman_botanicgarden_changelist")
             else:
                 url = reverse("admin:individuals_individual_changelist")
-            return self.client.post(
+            response = self.client.post(
                 url,
                 data={
                     "action": f"label_{label_model.id_name}_{format}",
                     "_selected_action": [str(o.pk) for o in object_model],
-                }
+                },
+                follow=True,
             )
         else:
-            return self.client.get(
-                reverse(f"labels:{object_type}", args=(label_model.pk, object_model.pk)) + f"?format={format}",
+            response = self.client.get(
+                reverse(f"labels:{object_type}", args=(label_model.pk, object_model.pk)),
             )
+
+        self.assertLess(response.status_code, 400)
+
+        err_msg = "Error creating labels"
+        if err_msg.encode() in response.content:
+            idx = response.content.find(err_msg.encode())
+            raise AssertionError(f"{err_msg}: {response.content[idx:idx + 5000]}")
+
+        return response
+

@@ -15,9 +15,9 @@ USERS = [
 
 
 BOTANIC_GARDENS = [
-    {"name": "Garden 1", "address": "Line 1\nLine 2\nLine 3\nLine 4"},
-    {"name": "Garden 2", "address": "Linä 1\nLine,2\nLine\\n'3\nLine\"4"},
-    {"name": "Garden 3"}
+    {"name": "Garden 1", "code": "GARD1", "address": "Line 1\nLine 2\nLine 3\nLine 4"},
+    {"name": "Garden 2", "code": "GARD2", "address": "Linä 1\nLine,2\nLine\\n'3\nLine\"4"},
+    {"name": "Garden 3", "code": "GARD3"}
 ]
 
 FAMILIES = [

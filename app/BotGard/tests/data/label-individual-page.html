@@ -27,6 +27,34 @@
             }
         }
 
+        body {
+            font-size: 9pt;
+            font-family: sans-serif;
+        }
+        .flex-row {
+            display: flex;
+            padding: -.5rem -.5rem -.5rem 0;
+        }
+        .flex-row > div {
+            margin: .5rem .5rem .5rem 0;
+        }
+        .flex-row.space-between {
+            justify-content: space-between;
+        }
+        .indent {
+            margin-left: 1rem;
+        }
+        .value {
+            font-weight: bold;
+        }
+        .item {
+            margin-bottom: .5rem;
+        }
+
+        .page-break-after {
+            page-break-after: always;
+        }
+
         {% block extra_style %}{% endblock %}
     </style>
     {% block extra_head %}{% endblock %}

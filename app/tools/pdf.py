@@ -1,4 +1,8 @@
+from io import BytesIO
+
 from django.http import HttpResponse
+
+import weasyprint
 
 
 def create_pdf_response(filename):
@@ -12,3 +16,13 @@ def create_pdf_response(filename):
     response['Content-Disposition'] = 'attachment; filename="%s"' % filename
 
     return response
+
+
+def render_html_to_pdf(markup: str) -> bytes:
+    renderer = weasyprint.HTML(string=markup)
+
+    fp = BytesIO()
+    renderer.write_pdf(fp)
+    fp.seek(0)
+
+    return fp.read()
