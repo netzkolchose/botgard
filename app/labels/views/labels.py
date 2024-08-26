@@ -151,8 +151,8 @@ def _render_label_entry(request, label_pk, entry_pk):
 
     return _render_impl(
         request, label, context,
-        "%s" % (entry.ipen_generated or entry.accession_number),
-        reverse("labels:entry", args=(label_pk, entry_pk))
+        filename="%s" % (entry.ipen_generated or entry.accession_number),
+        label_url=reverse("labels:entry", args=(label_pk, entry_pk))
     )
 
 

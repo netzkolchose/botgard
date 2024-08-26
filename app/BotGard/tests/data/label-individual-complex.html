@@ -1,0 +1,61 @@
+<div class="page-break-after">
+    <h2>{{obj}}</h2>
+    <div class="flex-row space-between">
+        <div style="flex-grow: 10;">
+            <div class="item">{% trans "genus & Species" %}:<div class="indent value">{{obj.species.full_name_generated}}</div></div>
+            <div class="item">{% trans "IPEN" %}: <span class="value">{{obj.ipen_generated}}</span></div>
+            <!-- <div class="item">{% trans "collecting country" %}: <span class="value">{{obj.found_country}}</span></div> -->
+            {% if obj.found_text %}
+                <div class="item">{% trans "collecting place description" %}:<div class="indent value">{{obj.found_text}}</div></div>
+            {% endif %}
+            <div class="flex-row item">
+                {% if obj.collector_name %}
+                    <div>{% trans "collector's name" %}:<div class="indent value">{{obj.collector_name}}</div></div>
+                {% endif %}
+                {% if obj.collector_number %}
+                    <div>{% trans "collection number" %}:<div class="indent value">{{obj.collector_number}}</div></div>
+                {% endif %}
+                {% if obj.collector_date %}
+                    <div>{% trans "collection date" %}:<div class="indent value">{{obj.collector_date}}</div></div>
+                {% endif %}
+            </div>
+            <div class="flex-row item">
+                {% if obj.source %}
+                    <div>{% trans "source" %}:<div class="indent value">{{obj.source}}</div></div>
+                {% endif %}
+                {% if obj.source_date %}
+                    <div>{% trans "date of receipt" %}:<div class="indent value">{{obj.source_date}}</div></div>
+                {% endif %}
+                {% if obj.came_in_as %}
+                    <div>{% trans "received as" %}:<div class="indent value">{{obj.came_in_as}}</div></div>
+                {% endif %}
+            </div>
+            {% if obj.gender %}
+                <div class="item">{% trans "gender" %}: <span class="value">{{obj.gender}}</span></div>
+            {% endif %}
+            {% if obj.comment %}
+                <div class="item">{% trans "comment" %}:<div class="indent value">{{obj.comment}}</div></div>
+            {% endif %}
+            <div class="flex-row item">
+                <div>{% trans "order number" %}:<div class="indent value">{% if obj.order_number %}{{obj.order_number}}{% else %}-{% endif %}</div></div>
+                <div>{% trans "sowing number" %}:<div class="indent value">{% if obj.sowing_number %}{{obj.sowing_number}}{% else %}-{% endif %}</div></div>
+                <div>{% trans "seed available" %}:<div class="indent value">{%if obj.seed_available %}{% trans "yes" %}{% else %}{% trans "no" %}{% endif %}</div></div>
+                <div>{% trans "seed in stock" %}:<div class="indent value">{%if obj.seed_in_stock %}{% trans "yes" %}{% else %}{% trans "no" %}{% endif %}</div></div>
+            </div>
+        </div>
+        <div class="flex-grow"></div>
+        <div class="plant-passport">
+            <div>
+                <img
+                        alt="EU plant passport logo"
+                        src="data:image/png;base64,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"
+                >
+            </div>
+            <div>A: {{obj.species.full_name_no_author}}</div>
+            <div>B: DE-XXX 012345</div>
+            <div>C: {{obj.accession_number}}</div>
+            <div>D: DE</div>
+            <div>E: Plant Passport</div>
+        </div>
+    </div>
+</div>

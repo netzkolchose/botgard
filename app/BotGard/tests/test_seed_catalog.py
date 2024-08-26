@@ -50,4 +50,4 @@ class TestSeedCatalog(TestCase):
         catalog.refresh_from_db()
 
         pdf_link = catalog.pdf_file_decorator()
-        self.assertIn(".pdf", pdf_link)
+        self.assertIn(".pdf", pdf_link, f"Debug output: {catalog.debug_output}")

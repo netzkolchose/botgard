@@ -25,16 +25,20 @@ LABEL_ID_VALIDATOR = RegexValidator(
 LABEL_FORMAT_CHOICES = (
     ('svg', _("SVG (Vector Graphics)")),
     ('csv', _("CSV (Table)")),
+    ('html', _("HTML (Page)")),
 )
 
 # Mapping of LabelDefinition.format to the possible file formats
+# first file format is default (when using format="auto")
 LABEL_FORMAT_TO_FILE_FORMAT = {
     "svg": ["pdf", "png", "svg"],
     "csv": ["csv", "xls"],
+    "html": ["pdf", "html"],
 }
 
 FORMAT_CONTENT_TYPES = {
     "csv": "text/csv",
+    "html": "text/html",
     "xls": "application/vnd.ms-excel",
     "pdf": "application/pdf",
     "png": "image/png",
@@ -71,8 +75,15 @@ class LabelDefinition(models.Model):
         default="svg",
     )
 
-    svg_markup = models.TextField(
+    markup = models.TextField(
         verbose_name=_("markup"),
+        help_text=_("The template for SVG, CSV or HTML"),
+    )
+
+    page_markup = models.TextField(
+        verbose_name=_("page markup"),
+        help_text=_("The outer template for HTML. The rendered markup from above is available as {{content}}"),
+        null=True, blank=True,
     )
 
     def __str__(self):
@@ -94,7 +105,14 @@ class LabelDefinition(models.Model):
         return ""
     preview_decorator.short_description = _("preview")
 
-    def render_markup(self, context):
+    def render_markup(self, context: dict, without_page_markup: bool = False) -> str:
+        """
+        Render the label's markup template using the template context.
+
+        :param context: dict, provided context
+        :param without_page_markup: bool, for label of format `html`, only render using `markup` and without `page_markup`
+        :return: rendered markup string
+        """
         try:
             if self.format == "csv":
                 header_row = self.render_csv_row(context, header=True)
@@ -106,15 +124,25 @@ class LabelDefinition(models.Model):
                 fp.seek(0)
                 return fp.read().strip()
             else:
-                before = '{% load i18n %}'
-                t = Template(before + self.svg_markup)
-                return t.render(Context(context))
+                t = Template(f"{{% load i18n %}}{self.markup}")
+                markup = t.render(Context(context))
+
+                if not self.format == "html" or not self.page_markup or not self.page_markup.strip():
+                    return markup
+                else:
+                    t = Template(f"{{% load i18n %}}{self.page_markup}")
+                    return t.render(Context({"content": mark_safe(markup)}))
+
         except Exception as e:
             return f"ERROR: {type(e).__name__}: {e}"
 
     def render(self, template_context: dict, format: str = "auto") -> Union[str, bytes]:
+        """
+        Renders the label in desired format, returns str/bytes
+        """
         from labels.svg_to_pdf import convert_svg_to_format
         from labels.csv_to_xls import convert_csv_to_xls
+        from tools.pdf import render_html_to_pdf
 
         if format == "auto":
             format = LABEL_FORMAT_TO_FILE_FORMAT[self.format][0]
@@ -131,6 +159,9 @@ class LabelDefinition(models.Model):
         if self.format == "csv" and format == "xls":
             return convert_csv_to_xls(markup)
 
+        if self.format == "html" and format == "pdf":
+            return render_html_to_pdf(markup)
+
         return markup
 
     def render_csv_row(self, context: dict, header: bool = False) -> List[str]:
@@ -142,7 +173,7 @@ class LabelDefinition(models.Model):
         :return: list of str
         """
         row = []
-        template_lines = self.svg_markup.splitlines()
+        template_lines = self.markup.splitlines()
         if header:
             template_lines = template_lines[::2]
         else:
@@ -161,6 +192,12 @@ class LabelDefinition(models.Model):
             filename: str = _("label.pdf"),
             format: str = "pdf",
     ) -> Tuple[str, str, Union[str, bytes]]:
+        """
+        Calls `self.render()` and returns
+            - adjusted filename
+            - output format (in case format was "auto")
+            - content (html, pdf bytes, etc...)
+        """
         from labels import valid_filename
 
         filename = valid_filename(filename)

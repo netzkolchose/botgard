@@ -1,3 +1,4 @@
+import traceback
 from functools import partial
 import csv as csv_lib
 from io import StringIO, BytesIO
@@ -8,6 +9,8 @@ from django.utils.translation import gettext_lazy as _
 from django.http import HttpResponse
 from django.contrib.admin import ModelAdmin
 from django.contrib import messages
+from django.template import Template, Context
+from django.utils.safestring import mark_safe
 
 from labels.csv_to_xls import convert_csv_to_xls
 from .models import (
@@ -19,6 +22,7 @@ from .models import (
 from botman.models import BotanicGarden
 from individuals.models import Individual, Seed
 from entrybook.models import Entry
+from tools.pdf import render_html_to_pdf
 
 
 def add_label_mass_actions(request, actions: dict, label_type: str):
@@ -29,7 +33,7 @@ def add_label_mass_actions(request, actions: dict, label_type: str):
             "pk", "id_name", "display_name", "format"
     ):
 
-        if format != "csv":
+        if format not in ("csv", "html"):
             action_name = f"label_{id_name}"
             actions[action_name] = (
                 partial(render_mass_labels_action, label_pk=pk),
@@ -38,7 +42,8 @@ def add_label_mass_actions(request, actions: dict, label_type: str):
             )
 
         else:
-            for format in ("csv", "xls"):
+            formats = ("csv", "xls") if format == "csv" else ("pdf", "html")
+            for format in formats:
                 action_name = f"label_{id_name}_{format}"
                 actions[action_name] = (
                     partial(render_mass_labels_action, label_pk=pk, format=format),
@@ -58,15 +63,16 @@ def render_mass_labels_action(admin: ModelAdmin, request, queryset, label_pk, fo
         file_format, content = render_mass_labels(label, pks, format=format)
 
         response = HttpResponse(content, content_type=FORMAT_CONTENT_TYPES[file_format])
-        response['Content-Disposition'] = 'attachment; filename="%s.%s"' % (
-            _("labels"), file_format
-        )
+        if file_format != "html":
+            response['Content-Disposition'] = 'attachment; filename="%s.%s"' % (
+                _("labels"), file_format
+            )
         return response
 
     except Exception as e:
         admin.message_user(
             request,
-            _("Error creating labels: %s") % f"{type(e).__name__}: {e}",
+            _("Error creating labels: %s") % f"{type(e).__name__}: {e} | {traceback.format_exc()}",
             level=messages.ERROR,
         )
 
@@ -88,6 +94,10 @@ def render_mass_labels(
     elif label.format == "svg":
         return "zip", _render_mass_labels_svg(label, pks, format)
 
+    elif label.format == "html":
+        if format == "auto":
+            format = "html"
+        return format, _render_mass_labels_html(label, pks, format)
     else:
         raise AssertionError(f"Invalid format '{label.format}' on label '{label.id_name}'")
 
@@ -143,4 +153,30 @@ def _render_mass_labels_svg(label: LabelDefinition, pks: List[int], format: str 
 
     zip_file_io.seek(0)
     return zip_file_io.read()
+
+
+def _render_mass_labels_html(label: LabelDefinition, pks: List[int], format: str = "auto") -> Union[str, bytes]:
+    """
+    Renders all labels and returns HTML or PDF file data
+    """
+    markups_per_object = []
+
+    for pk in pks:
+        context = getattr(label, f"get_{label.type}_context")(pk)
+
+        markup = label.render_markup(context, without_page_markup=True)
+        markups_per_object.append(markup)
+
+    if not label.page_markup or not label.page_markup.strip():
+        final_markup = "\n".join(markups_per_object)
+
+    else:
+        context = {"content": mark_safe("\n".join(markups_per_object))}
+        final_markup = Template(label.page_markup).render(Context(context))
+
+    if format in ("auto", "html"):
+        return final_markup
+
+    elif format == "pdf":
+        return render_html_to_pdf(final_markup)
 

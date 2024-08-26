@@ -113,7 +113,8 @@ class TestLabelsCSV(TestCase):
                 url = reverse("admin:botman_botanicgarden_changelist")
             else:
                 url = reverse("admin:individuals_individual_changelist")
-            return self.client.post(
+
+            response = self.client.post(
                 url,
                 data={
                     "action": f"label_{label_model.id_name}_{format}",
@@ -121,6 +122,15 @@ class TestLabelsCSV(TestCase):
                 }
             )
         else:
-            return self.client.get(
+            response = self.client.get(
                 reverse(f"labels:{object_type}", args=(label_model.pk, object_model.pk)) + f"?format={format}",
             )
+
+        self.assertLess(response.status_code, 400)
+
+        err_msg = "Error creating labels"
+        if err_msg.encode() in response.content:
+            idx = response.content.find(err_msg.encode())
+            raise AssertionError(f"{err_msg}: {response.content[idx:idx + 1000]}")
+
+        return response

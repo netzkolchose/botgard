@@ -1,6 +1,7 @@
 import subprocess
 import os
 import re
+import sys
 import codecs
 import random
 
@@ -12,15 +13,16 @@ def convert_svg_to_pdf(svg_markup):
     return convert_svg_to_format(svg_markup, "pdf")
 
 
-def convert_svg_to_format(svg_markup, format):
+def convert_svg_to_format(svg_markup: str, format: str):
 
     # if svg_markup contains non-ascii characters
     # we need to pass data through files, because Popen pipes won't do in python 2:
     # https://bugs.python.org/issue6135
-    try:
-        svg_markup
-    except UnicodeEncodeError:
-        return _convert_svg_to_format_tmpfile(svg_markup, format)
+    if sys.version_info[0] < 3:
+        try:
+            svg_markup.encode("ascii")
+        except UnicodeEncodeError:
+            return _convert_svg_to_format_tmpfile(svg_markup, format)
 
     version = subprocess.check_output(["rsvg-convert", "--version"]).decode()
     version = tuple(int(g) for g in re.match(r".*(\d+)\.(\d+)\.(\d+).*", version).groups())
@@ -73,7 +75,7 @@ def _convert_svg_to_format_tmpfile(svg_markup, format):
     err = proc.stderr.read()
     if err:
         os.remove(outfilename)
-        raise RuntimeError("rsvg failed\n" + err)
+        raise RuntimeError(f"rsvg failed\n{err}")
 
     with open(outfilename) as f:
         outp = f.read()
