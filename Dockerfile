@@ -1,13 +1,10 @@
-FROM python:3.9-alpine
+FROM python:3.11-alpine
 
 # --- install packages ---
 
 RUN apk add bash gcc musl-dev libffi-dev openssl-dev python3-dev postgresql-dev gettext
-RUN apk add jpeg-dev zlib-dev freetype-dev lcms2-dev openjpeg-dev tiff-dev tk-dev tcl-dev
-RUN apk add libxslt-dev libxml2-dev
-RUN apk add librsvg rsvg-convert
-RUN apk add texmf-dist texlive
-RUN apk add ttf-liberation ttf-linux-libertine
+RUN apk add jpeg-dev zlib-dev freetype-dev lcms2-dev openjpeg-dev tiff-dev tk-dev tcl-dev libxslt-dev libxml2-dev librsvg rsvg-convert
+RUN apk add texmf-dist texlive ttf-liberation ttf-linux-libertine texmf-dist-fontsrecommended texmf-dist-latexrecommended
 RUN apk add poppler-utils  # for `pdfinfo`
 
 RUN adduser appuser -D -u 9999
