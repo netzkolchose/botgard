@@ -1,0 +1,21 @@
+id,accession_number,accession_extension,species_checked_by,came_as_species,ipen_country,ipen_transfer_restricted,ipen_accession_number,source_date,came_in_as,found_country,found_text,collector_name,collector_number,collector_date,gender,comment,seed_available,order_number,seed_collector_date,seed_in_stock,sowing_number,ipen_garden_code,species,source
+150,10729,10,,,ro,0,10729,2010-05-05,SA,ro,"Rumänien, Distr. Constanta, Hagieni",T. Müller,,,Z,,False,1144,,False,,49,147,49
+167,14185,40,,,ch,0,14185,2010-03-04,SA,ch,"ex: Schweiz, Vaud, Le Lieu, Vallée de Joux, 110m",Z. Schmidt,,,Z,,False,1161,,False,,51,165,51
+168,10648,40,,,ge,0,10648,2010-02-12,SA,ge,"ex: Georgien, Region Ratscha, zw. Paracheti und M'Tiscalta, 1400-1850m, 42°32'N, 43°20,4'O",O. Schmidt,,2000-08-20,Z,,False,1162,,False,,62,165,62
+171,14484,40,,,fr,0,14484,2010-03-04,SA,fr,"ex: Frankreich, Vosges, Le Rouge-Gazon, 1250m",X. Müller,,,Z,,False,1165,,False,,51,3,51
+176,16844,10,,,de,0,16844,2010-02-08,SA,de,"Deutschland, Thüringen, Jena, Schottplatz",G. Müller,,2009-09-15,Z,,False,1170,,False,,1,172,1
+234,16735,00,,,xx,0,16735,,,xx,,R. Schmidt,,,M,,False,1226,,False,,1,127,1
+266,19350,00,,,xx,0,19350,2009-06-04,SA,xx,,N. Krause,,,Z,,False,1258,,False,,1,261,1
+267,18578,10,,,de,0,18578,,,de,"spontan: Deutschland, Thüringen, Jena",P. Schmidt,,,Z,,False,1259,,False,,1,262,1
+276,18986,70,,,xx,0,18986,1986-01-01,SA,xx,,Y. Schmidt,,,Z,,False,1268,,False,,1,269,49
+296,10218,70,,,xx,0,10218,1995-03-03,SA,xx,,Y. Müller,,,Z,,False,1288,,False,,1,285,51
+299,12347,10,,,de,0,12347,2010-02-08,SA,de,"Deutschland, Thüringen, Jena, Schottplatz",D. Krause,,2009-09-15,Z,,False,1291,,False,,1,287,1
+300,14037,10,,,de,0,14037,2010-02-08,SA,de,"Deutschland, Thüringen, Jena, Schottplatz",[. Schmidt,,2009-09-15,Z,,True,1292,,False,,1,288,1
+302,13955,20,,,nl,0,13955,2009-08-03,PF,nl,"Niederlande, Ameland, Dünen",X. Schmidt,,2009-08-01,Z,,False,1294,,False,,1,290,1
+303,16915,20,,,nl,0,16915,2009-08-03,PF,nl,"Niederlande, Ameland, Dünen",Q. Krause,,2009-08-01,Z,,False,1295,,False,,1,291,1
+313,13221,10,,,nl,0,13221,2009-08-03,PF,nl,"Niederlande, Ameland, Dünen",R. Müller,2009-08-01,,Z,,False,1305,,False,,1,301,1
+365,19762,10,,,de,0,19762,2010-02-08,SA,de,"Deutschland, Thüringen, Jena, Schottplatz",F. Müller,,2009-09-20,Z,,True,1357,,False,,1,234,1
+366,12398,10,,,de,0,12398,2012-04-17,SA,de,"DE: Kahla, Rheinstädt",O. Krause,,2011-09-15,Z,,False,1358,,False,,1,288,1
+371,12103,70,,,xx,0,12103,,,xx,,Q. Müller,,,Z,,False,1363,,False,,1,325,1
+373,10599,20,,,de,0,10599,2010-05-25,PF,de,"Deutschland, Thüringen, Isserstedt",S. Müller,,2010-05-24,Z,,False,1365,,False,,1,351,1
+374,10004,20,,,de,0,10004,2010-05-25,PF,de,"Deutschland, Jena, spontan im Botanischen Garten",G. Müller,,2010-05-25,Z,,False,1366,,False,,1,352,1
