@@ -159,27 +159,19 @@ def _render_mass_labels_html(label: LabelDefinition, pks: List[int], format: str
     """
     Renders all labels and returns HTML or PDF file data
     """
-    content_markups = []
+    markups_per_object = []
 
     for pk in pks:
         context = getattr(label, f"get_{label.type}_context")(pk)
 
-        filename = str(pk)
-        if label.type == "individual":
-            filename = Individual.objects.get(pk=pk).id_name_generated
-        elif label.type == "garden":
-            filename = BotanicGarden.objects.get(pk=pk).full_name_generated
-        elif label.type == "entry":
-            filename = Entry.objects.get(pk=pk).id_name_generated
+        markup = label.render_markup(context, without_page_markup=True)
+        markups_per_object.append(markup)
 
-        filename, real_format, content = label.render_file(context, filename, format)
-        content_markups.append(content)
-
-    if not label.page_markup:
-        final_markup = "\n".join(content_markups)
+    if not label.page_markup or not label.page_markup.strip():
+        final_markup = "\n".join(markups_per_object)
 
     else:
-        context = {"content": mark_safe("\n".join(content_markups))}
+        context = {"content": mark_safe("\n".join(markups_per_object))}
         final_markup = Template(label.page_markup).render(Context(context))
 
     if format in ("auto", "html"):
