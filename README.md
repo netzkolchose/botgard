@@ -1,5 +1,7 @@
 # BotGard 3.0
 
+[![tests-ubuntu](https://github.com/netzkolchose/botgard/actions/workflows/unittests.yml/badge.svg)](https://github.com/netzkolchose/botgard/actions/workflows/unittests.yml)
+
 Open Source Management System for Botanic Garden Collections
 built and maintained by [netzkolchose.de](https://netzkolchose.de/) in cooperation with
 the [Botanical Garden of the Friedrich Schiller Universität Jena](https://www.botanischergarten.uni-jena.de) and the
