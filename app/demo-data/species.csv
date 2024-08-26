@@ -1,0 +1,37 @@
+id,family,species,species_author,subspecies,subspecies_author,variety,variety_author,form,form_author,cultivar,deutscher_name,synonyme,area_of_distribution_etikettxt,area_of_distribution_background,protection_of_species,poisonous_plant,lifeform,nomenclature_checked,comment,picture
+287,195,eupatoria,L.,,,,,,,,Odermennig,,"Eurasien, N-Afrika",,,False,H,True,,
+234,162,ramosum,L.,,,,,,,,Ästige Graslilie,,"Europa, N-Türkei, N-Kaukasus",,,False,H,True,,
+288,196,vulneraria,L.,,,,,,,,Wund-Klee,,"Europa, N-Afrika, W-Asien, Kaukasus",,,False,H,True,,
+172,131,pinnatum,(L.) P. Beauv.,,,,,,,,Fieder-Zwenke,,"Eurasien, Algerien, Marokko",,,False,H,True,,
+165,1758,alpina,(L.) Roem & Schult.,,,,,,,,Alpen-Schuppenkopf,,"Österreich, Schweiz, Italien, Frankreich",,,False,H,True,,
+3,3,plumieri,Kirschl.,,,,,,,,Französischer Milchlattich,,M- u. S-Europa,,,False,H,True,,
+261,182,cheiri,(L.) Crantz,,,,,,,,Goldlack,,Ursprung Griechenland,,,True,H,True,,
+325,219,vesca,L.,,,,,,,,Gewöhnliche Wald-Erdbeere,,"Eurasien, N-Amerika",,,False,H,True,,
+290,198,verum,L.,,,,,,,,Echtes Labkraut,,"Eurasien, N-Afrika","* AFRICA
+      Northern Africa: Algeria [n.]; Morocco; Tunisia
+    * ASIA-TEMPERATE
+      Western Asia: Afghanistan; Iran; Iraq; Lebanon; Syria; Turkey
+      Caucasus: Armenia; Azerbaijan; Georgia; Russian Federation - Ciscaucasia, Dagestan
+      Siberia: Russian Federation - Eastern Siberia, Western Siberia
+      Middle Asia: Kazakhstan; Kyrgyzstan
+      Russian Far East: Russian Federation - Far East
+      Mongolia: Mongolia
+      China: China [n.]
+      Eastern Asia: Japan; Korea
+    * ASIA-TROPICAL
+      Indian Subcontinent: Pakistan
+    * EUROPE
+      Northern Europe: Denmark; Finland; Ireland; Norway; Sweden; United Kingdom
+      Middle Europe: Austria; Belgium; Czechoslovakia; Germany; Hungary; Poland; Switzerland
+      East Europe: Belarus; Estonia; Latvia; Lithuania; Moldova; Russian Federation - European part; Ukraine [incl. Krym]
+      Southeastern Europe: Albania; Bulgaria; Former Yugoslavia; Greece; Italy; Romania
+      Southwestern Europe: France; Portugal; Spain",,False,H,True,,
+351,233,urbanum,L.,,,,,,,,Echte Nelkenwurz,,"Europa, N-Afrika, W- u. M-Asien",,,False,H,True,,
+291,199,maritima,L.,,,,,,,,Milchkraut,,"Eurasien, N-Amerika",,,False,H,True,,
+352,234,hederacea,L.,,,,,,,,Gewöhnlicher Gundermann,,"Europa, M-Asien, Kaukasus, Sibirien",,,True,H,True,,
+285,49,americana,L.,,,,,,,,Hohes Purpurglöckchen,,östl. N-Amerika,,,False,H,True,,
+301,205,vulgare,Mill.,,,,,,,,Gewöhnlicher Strandflieder,,Europa,,,False,H,True,,
+269,186,persica,C. A. Mey.,,,,,,,,"Persischer Eisenholzbaum, Parrotie",,"Iran, Aserbaidschan",,,False,P,True,,
+127,103,baccata,L.,,,,,,,,Gewöhnliche Eibe,,"Europa, W-Asien, N-Afrika, N-Kaukasus",,,True,P,True,,
+147,114,banaticum,Schrad.,,,,,,,,,,SO-Europa,,,False,H,True,,
+262,176,lantana,L.,,,,,,,,Wolliger Schneeball,,M- u. S-Europa,,,True,P,True,,

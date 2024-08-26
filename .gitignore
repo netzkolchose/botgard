@@ -3,6 +3,7 @@
 
 settings_local.py
 local_config.sh
+scratchpad/
 
 *.pdf
 

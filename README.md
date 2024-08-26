@@ -45,6 +45,18 @@ After that you can just run the development server with:
 ./manage.py runserver
 ```
 
+#### Demo data
+
+To create some demo gardens, species and individuals in your database run
+
+```shell
+./manage.py botgard_demo_data
+```
+
+The data is taken from CSV files in [app/demo-data/](app/demo-data).
+
+#### Setting up postgres database
+
 Postgres is required for proper text search in Django's admin views.
 If you do not need fulltext search, sqlite will work too.
 
