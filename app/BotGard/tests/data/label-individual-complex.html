@@ -1,9 +1,12 @@
-<div class="page-break-after">
-    <h2>{{obj}}</h2>
+<div class="page-break">
+    <h2>{{obj.species.full_name_no_author}} {{obj.ipen_generated}}</h2>
     <div class="flex-row space-between">
         <div style="flex-grow: 10;">
-            <div class="item">{% trans "genus & Species" %}:<div class="indent value">{{obj.species.full_name_generated}}</div></div>
-            <div class="item">{% trans "IPEN" %}: <span class="value">{{obj.ipen_generated}}</span></div>
+            <div class="item">{% trans "genus & Species" %}:
+                <div class="indent value">{{obj.species.family.family}}</div>
+                <div class="indent value">{{obj.species.species}} {{obj.species.get_author_name}}</div>
+            </div>
+
             <!-- <div class="item">{% trans "collecting country" %}: <span class="value">{{obj.found_country}}</span></div> -->
             {% if obj.found_text %}
                 <div class="item">{% trans "collecting place description" %}:<div class="indent value">{{obj.found_text}}</div></div>
@@ -19,28 +22,24 @@
                     <div>{% trans "collection date" %}:<div class="indent value">{{obj.collector_date}}</div></div>
                 {% endif %}
             </div>
+            {% if obj.species.area_of_distribution_etikettxt %}
+                <div class="item">{% trans "distribution" %}:
+                    <div class="indent value">{{obj.species.area_of_distribution_etikettxt}}</div>
+                    {% if obj.species.area_of_distribution_background %}
+                        <div class="indent value">{{obj.species.area_of_distribution_background}}</div>
+                    {% endif %}
+                </div>
+            {% endif %}
             <div class="flex-row item">
                 {% if obj.source %}
-                    <div>{% trans "source" %}:<div class="indent value">{{obj.source}}</div></div>
+                    <div style="max-width: 15rem">{% trans "source" %}:<div class="indent value">{{obj.source}}</div></div>
                 {% endif %}
                 {% if obj.source_date %}
                     <div>{% trans "date of receipt" %}:<div class="indent value">{{obj.source_date}}</div></div>
                 {% endif %}
                 {% if obj.came_in_as %}
-                    <div>{% trans "received as" %}:<div class="indent value">{{obj.came_in_as}}</div></div>
+                    <div>{% trans "received as" %}:<div class="indent value">{{obj.came_in_as_text}}</div></div>
                 {% endif %}
-            </div>
-            {% if obj.gender %}
-                <div class="item">{% trans "gender" %}: <span class="value">{{obj.gender}}</span></div>
-            {% endif %}
-            {% if obj.comment %}
-                <div class="item">{% trans "comment" %}:<div class="indent value">{{obj.comment}}</div></div>
-            {% endif %}
-            <div class="flex-row item">
-                <div>{% trans "order number" %}:<div class="indent value">{% if obj.order_number %}{{obj.order_number}}{% else %}-{% endif %}</div></div>
-                <div>{% trans "sowing number" %}:<div class="indent value">{% if obj.sowing_number %}{{obj.sowing_number}}{% else %}-{% endif %}</div></div>
-                <div>{% trans "seed available" %}:<div class="indent value">{%if obj.seed_available %}{% trans "yes" %}{% else %}{% trans "no" %}{% endif %}</div></div>
-                <div>{% trans "seed in stock" %}:<div class="indent value">{%if obj.seed_in_stock %}{% trans "yes" %}{% else %}{% trans "no" %}{% endif %}</div></div>
             </div>
         </div>
         <div class="flex-grow"></div>
