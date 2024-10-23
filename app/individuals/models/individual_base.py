@@ -167,3 +167,9 @@ class IndividualBase(models.Model, Configurable):
 
     def found_text_lines(self):
         return self.found_text.split("\n")
+
+    def came_in_as_text(self):
+        for key, text in CAME_IN_AS_CHOICES:
+            if self.came_in_as == key:
+                return text
+        return _('unknown')
