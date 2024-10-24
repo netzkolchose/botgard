@@ -5,7 +5,7 @@ from species.models import Species
 from .individual_base import *
 
 
-class Individual(IndividualBase):
+class Individual(IndividualBase, Configurable):
 
     class Meta:
         verbose_name = _("individual")
@@ -108,6 +108,31 @@ class Individual(IndividualBase):
             links.append('<a href="%s" title="%s">%s</a> ' % (
                 url, territory.name, territory.code.replace(" ", "&nbsp;")))
         return mark_safe("<br/>\n".join(links))
+
+    @configurable
+    def change_link_decorator(self):
+        return _("show")
+
+    change_link_decorator.short_description = _("show")
+    change_link_decorator.exclude_csv = True
+
+    @configurable
+    def delete_link_decorator(self):
+        url = reverse("admin:individuals_individual_delete", args=(self.pk,))
+        return mark_safe('<a href="%s" class="deletelink">%s</a>' % (url, _("delete")))
+
+    delete_link_decorator.short_description = _("delete")
+    delete_link_decorator.exclude_csv = True
+
+    @configurable
+    def etikett_link_decorator(self):
+        from labels import label_link_decorator
+        return label_link_decorator(
+            "individual", self.pk, self.ipen_generated
+        )
+
+    etikett_link_decorator.short_description = _("create label")
+    etikett_link_decorator.exclude_csv = True
 
     @configurable
     def species_link_decorator(self):

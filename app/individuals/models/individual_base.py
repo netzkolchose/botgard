@@ -52,7 +52,7 @@ NOTE_CHOICES = (
 )
 
 
-class IndividualBase(models.Model, Configurable):
+class IndividualBase(models.Model):
     """
     Base class for
         - individuals.models.Individual
@@ -131,31 +131,6 @@ class IndividualBase(models.Model, Configurable):
     # osm_location = models.ForeignKey("geolocation.OsmLocation", verbose_name=_("location (osm)"),
     #                                  default=undefined_osmlocation,
     #                                  on_delete=models.SET_DEFAULT)
-
-    @configurable
-    def change_link_decorator(self):
-        return _("show")
-
-    change_link_decorator.short_description = _("show")
-    change_link_decorator.exclude_csv = True
-
-    @configurable
-    def delete_link_decorator(self):
-        url = reverse("admin:individuals_individual_delete", args=(self.pk,))
-        return mark_safe('<a href="%s" class="deletelink">%s</a>' % (url, _("delete")))
-
-    delete_link_decorator.short_description = _("delete")
-    delete_link_decorator.exclude_csv = True
-
-    @configurable
-    def etikett_link_decorator(self):
-        from labels import label_link_decorator
-        return label_link_decorator(
-            "individual", self.pk, self.ipen_generated
-        )
-
-    etikett_link_decorator.short_description = _("create label")
-    etikett_link_decorator.exclude_csv = True
 
     def country_decorator(self):
         """Only needed by geolocation template"""

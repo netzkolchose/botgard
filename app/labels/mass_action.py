@@ -57,6 +57,13 @@ def add_label_mass_actions(request, actions: dict, label_type: str):
 def render_mass_labels_action(admin: ModelAdmin, request, queryset, label_pk, format: str = "auto"):
     try:
         pks = list(queryset.values_list("pk", flat=True))
+        if not pks:
+            admin.message_user(
+                request,
+                _("No objects have been selected"),
+                level=messages.ERROR,
+            )
+            return
 
         label = LabelDefinition.objects.get(pk=label_pk)
 
@@ -92,7 +99,10 @@ def render_mass_labels(
         return ret_format, _render_mass_labels_csv(label, pks, format)
 
     elif label.format == "svg":
-        return "zip", _render_mass_labels_svg(label, pks, format)
+        if len(pks) >= 2:
+            return "zip", _render_mass_labels_svg(label, pks, format)
+        else:
+            return _render_single_label_svg(label, pks[0], format)
 
     elif label.format == "html":
         if format == "auto":
@@ -153,6 +163,24 @@ def _render_mass_labels_svg(label: LabelDefinition, pks: List[int], format: str 
 
     zip_file_io.seek(0)
     return zip_file_io.read()
+
+
+def _render_single_label_svg(label: LabelDefinition, pk: int, format: str = "auto"):
+    """
+    Renders all labels and returns zip file data
+    """
+    context = getattr(label, f"get_{label.type}_context")(pk)
+
+    filename = str(pk)
+    if label.type == "individual":
+        filename = Individual.objects.get(pk=pk).id_name_generated
+    elif label.type == "garden":
+        filename = BotanicGarden.objects.get(pk=pk).full_name_generated
+    elif label.type == "entry":
+        filename = Entry.objects.get(pk=pk).id_name_generated
+
+    filename, real_format, content = label.render_file(context, filename, format)
+    return real_format, content
 
 
 def _render_mass_labels_html(label: LabelDefinition, pks: List[int], format: str = "auto") -> Union[str, bytes]:

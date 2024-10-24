@@ -1,13 +1,11 @@
 <div class="page-break">
-    <h2>{{obj.species.full_name_no_author}} {{obj.ipen_generated}}</h2>
+    <h2>{{obj.species.full_name}} {{obj.ipen_generated}}</h2>
     <div class="flex-row space-between">
         <div style="flex-grow: 10;">
-            <div class="item">{% trans "genus & Species" %}:
+            <div class="item">{% trans "genus" %}:
                 <div class="indent value">{{obj.species.family.family}}</div>
-                <div class="indent value">{{obj.species.species}} {{obj.species.get_author_name}}</div>
             </div>
 
-            <!-- <div class="item">{% trans "collecting country" %}: <span class="value">{{obj.found_country}}</span></div> -->
             {% if obj.found_text %}
                 <div class="item">{% trans "collecting place description" %}:<div class="indent value">{{obj.found_text}}</div></div>
             {% endif %}
@@ -25,9 +23,6 @@
             {% if obj.species.area_of_distribution_etikettxt %}
                 <div class="item">{% trans "distribution" %}:
                     <div class="indent value">{{obj.species.area_of_distribution_etikettxt}}</div>
-                    {% if obj.species.area_of_distribution_background %}
-                        <div class="indent value">{{obj.species.area_of_distribution_background}}</div>
-                    {% endif %}
                 </div>
             {% endif %}
             <div class="flex-row item">
