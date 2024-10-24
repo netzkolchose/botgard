@@ -9,7 +9,7 @@ from individuals.models.individual_base import *
 from individuals.models.territory import Department
 
 
-class Entry(IndividualBase):
+class Entry(IndividualBase, Configurable):
 
     class Meta:
         verbose_name = _("Seed/individual entry")
@@ -109,6 +109,31 @@ class Entry(IndividualBase):
         return self.id_name_generated
     __str__.admin_order_field = 'id_name_generated'
     __str__.short_description = _('Seed/individual entry')
+
+    @configurable
+    def change_link_decorator(self):
+        return _("show")
+
+    change_link_decorator.short_description = _("show")
+    change_link_decorator.exclude_csv = True
+
+    @configurable
+    def delete_link_decorator(self):
+        url = reverse("admin:entrybook_entry_delete", args=(self.pk,))
+        return mark_safe('<a href="%s" class="deletelink">%s</a>' % (url, _("delete")))
+
+    delete_link_decorator.short_description = _("delete")
+    delete_link_decorator.exclude_csv = True
+
+    @configurable
+    def etikett_link_decorator(self):
+        from labels import label_link_decorator
+        return label_link_decorator(
+            "entry", self.pk, filename=self.ipen_generated
+        )
+
+    etikett_link_decorator.short_description = _("create label")
+    etikett_link_decorator.exclude_csv = True
 
     @configurable
     def etikett_link_decorator(self):
