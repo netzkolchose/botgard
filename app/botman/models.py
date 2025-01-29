@@ -268,9 +268,10 @@ class OutgoingOrder(Configurable, models.Model):
             garden, user = None, None
 
         if garden and user:
-            return str(_("outgoing order/%(garden)s/%(user)s") % {
+            return str(_("outgoing order/%(garden)s/%(user)s %(date)s") % {
                 "garden": garden,
                 "user": user,
+                "date": self.date_created,
             })
         return str(_("outgoing order"))
 
