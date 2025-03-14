@@ -9,16 +9,15 @@ from tools.search_fields import search_fields_compatible
 from .models import *
 
 
-class FamilyAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
-    form = FamilyForm
-    list_display = ('change_link_decorator', 'family', 'genus', 'genus_author', 'subfamily', 'tribus', 'subtribus',
-                    'delete_link_decorator')
+class CategoryAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
+    form = CategoryForm
+    list_display = ('change_link_decorator', 'category', 'delete_link_decorator')
     search_fields = search_fields_compatible(
-        ('family', 'genus', 'genus_author', 'subfamily', 'tribus', 'subtribus')
+        ('category')
     )
     fieldsets = (
         (None, {
-            'fields': ('family', ('subfamily', 'tribus', 'subtribus'), ('genus', 'genus_author')),
+            'fields': ('category',),
         }),
     )
 
@@ -62,10 +61,9 @@ class SpeciesAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
     form = SpeciesForm
     list_display = (
         'change_link_decorator', #'full_name_generated', '__str__',
-        'genus_single', 'family_single',
+        'category_single',
         'species',
         'deutscher_name', 'synonyme',
-        'area_of_distribution_etikettxt',
         'search_individuals_link_decorator', 'search_seeds_link_decorator', 'availability_decorator',
         'alive_individuals_decorator',
         'delete_link_decorator',
@@ -73,21 +71,19 @@ class SpeciesAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
     blacklist = ("id", "__str__")
     list_filter = (
         #'nomenclature_checked', 'poisonous_plant',
-        ('family__full_name_generated', ForeignKeyFilter),
-        ('family__family', ForeignKeyFilter),
-        ('family__genus', ForeignKeyFilter),
+        ('category__full_name_generated', ForeignKeyFilter),
+        ('category__category', ForeignKeyFilter),
         AliveIndividualsListFilter,
     )
     search_fields = search_fields_compatible(
-        ['@family__family', '@family__genus', '@species', '@variety', 'synonyme', '@family__subfamily',
-         '@family__tribus', '@family__subtribus', 'deutscher_name', 'cultivar', ]
+        ['@category__category', '@species', '@variety', 'synonyme', 'deutscher_name', 'cultivar', ]
     )
     save_on_top = True
 
     fieldsets = (
         (None, {
             'fields': (
-            'family',
+            'category',
             ('species', 'species_author'),
             ('subspecies', 'subspecies_author'),
             ('variety', 'variety_author'),
@@ -98,10 +94,6 @@ class SpeciesAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
         #           	'classes' : 'collapse',
         #           	'fields' : ('subfamily', 'tribus', 'subtribus'),
         #          }),
-        (_('distribution'), {
-            'classes': 'collapse',
-            'fields': ('area_of_distribution_etikettxt', 'area_of_distribution_background')
-        }),
         (_('additional'), {
             'classes': 'collapse',
             'fields': (
@@ -116,4 +108,4 @@ class SpeciesAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
 
 
 admin.site.register(Species, SpeciesAdmin)
-admin.site.register(Family, FamilyAdmin)
+admin.site.register(Category, CategoryAdmin)

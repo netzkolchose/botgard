@@ -70,8 +70,6 @@ class SeedAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
     list_filter = (# 'seed_available', 'seed_in_stock', 'source__name',
                    ('species__full_name_generated', ForeignKeyFilter),
                    ('species__nomenclature_checked', ForeignKeyFilter),
-                   ('species__area_of_distribution_etikettxt', ForeignKeyFilter),
-                   ('species__area_of_distribution_background', ForeignKeyFilter),
                    ('species__family__family', ForeignKeyFilter),
                    ('species__family__genus', ForeignKeyFilter),
                    )
@@ -148,8 +146,6 @@ class IndividualAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable)
                    ('species__full_name_generated', ForeignKeyFilter),
                    ('species__nomenclature_checked', ForeignKeyFilter),
                    ('species__protection_of_species', ForeignKeyFilter),
-                   ('species__area_of_distribution_etikettxt', ForeignKeyFilter),
-                   ('species__area_of_distribution_background', ForeignKeyFilter),
                    ('species__family__family', ForeignKeyFilter),
                    ('species__family__genus', ForeignKeyFilter),
                    # ('geo_location__geo_name', ForeignKeyFilter),

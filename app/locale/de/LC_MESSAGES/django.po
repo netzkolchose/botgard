@@ -1007,7 +1007,7 @@ msgstr "Familie"
 #: individuals/models/outplanting.py:72 map/views.py:37 species/models.py:33
 #: species/models.py:44 species/models.py:200
 msgid "genus"
-msgstr "Gattung"
+msgstr "Kategorie"
 
 #: individuals/models/individual.py:138 species/models.py:118
 msgid "endangering"
@@ -1215,7 +1215,7 @@ msgstr "# Arten"
 
 #: individuals/models/territory.py:29
 msgid "# genera"
-msgstr "# Gattungen"
+msgstr "# Kategorien"
 
 #: individuals/models/territory.py:31
 msgid "# outplantings alive"
@@ -1231,7 +1231,7 @@ msgstr "# lebende Arten"
 
 #: individuals/models/territory.py:34
 msgid "# genera alive"
-msgstr "# lebende Gattungen"
+msgstr "# lebende Kategorien"
 
 #: individuals/models/territory.py:98
 msgid "territory code"
@@ -1378,19 +1378,19 @@ msgstr "Verhältnis lebender/gepflanzter Arten"
 
 #: individuals/templates/individuals/change_form_plant_stats.html:47
 msgid "Number of genera"
-msgstr "Anzahl der Gattungen"
+msgstr "Anzahl der Kategorien"
 
 #: individuals/templates/individuals/change_form_plant_stats.html:49
 msgid "Ratio of genera/individuals"
-msgstr "Verhältnis der Gattungen/Individuen"
+msgstr "Verhältnis der Kategorien/Individuen"
 
 #: individuals/templates/individuals/change_form_plant_stats.html:53
 msgid "Number of alive genera"
-msgstr "Anzahl lebender Gattungen"
+msgstr "Anzahl lebender Kategorien"
 
 #: individuals/templates/individuals/change_form_plant_stats.html:55
 msgid "Ratio of alive/planted genera"
-msgstr "Verhältnis lebender/gepflanzter Gattungen"
+msgstr "Verhältnis lebender/gepflanzter Kategorien"
 
 #: individuals/templates/individuals/checklist.html:13
 msgid "CSV-Export"
@@ -1873,7 +1873,7 @@ msgstr "Zusätzliches"
 
 #: species/models.py:34
 msgid "genera"
-msgstr "Gattungen"
+msgstr "Kategorien"
 
 #: species/models.py:41
 msgid "subfamily"
@@ -1895,9 +1895,9 @@ msgstr "Autor"
 msgid "can check nomenclature of a species"
 msgstr "Kann Nomenklatur prüfen"
 
-#: species/models.py:101
-msgid "genus & family"
-msgstr "Gattung & Familie"
+#: species/models.py:92
+msgid "category"
+msgstr "Kategorie"
 
 #: species/models.py:103
 msgid "author species"
@@ -2254,8 +2254,8 @@ msgstr "Ticket anzeigen: "
 #~ msgid "Department code must begin with territory code"
 #~ msgstr "Abteilungs-code muß mit dem Revier-code beginnen"
 
-#~ msgid "family & genus"
-#~ msgstr "Art & Gattung"
+#~ msgid "category"
+#~ msgstr "Kategorie"
 
 #, fuzzy
 #~| msgid "territory"

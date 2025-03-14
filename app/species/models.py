@@ -28,21 +28,15 @@ LIFEFORM_CHOICES = (
 )
 
 
-class Family(models.Model, Configurable):
+class Category(models.Model, Configurable):
     class Meta:
-        verbose_name = _('genus')
-        verbose_name_plural = _('genera')
-        ordering = ('genus', 'family',)
-        unique_together = ('family', 'subfamily', 'tribus', 'subtribus', 'genus', 'genus_author')
+        verbose_name = _('category')
+        verbose_name_plural = _('categories')
+        ordering = ('category',)
 
     _id_field = "full_name_generated"
 
-    family = models.CharField(verbose_name=_('family'), max_length=50, blank=False)
-    subfamily = models.CharField(verbose_name=_('subfamily'), max_length=50, blank=True)
-    tribus = models.CharField(verbose_name=_('tribus'), max_length=50, blank=True)
-    subtribus = models.CharField(verbose_name=_('subtribus'), max_length=50, blank=True)
-    genus = models.CharField(verbose_name=_('genus'), max_length=50, blank=False)
-    genus_author = models.CharField(verbose_name=_('author'), max_length=100, blank=True)
+    category = models.CharField(verbose_name=_('category'), max_length=50, blank=False)
     full_name_generated = models.CharField(verbose_name=_('full name'), max_length=350, blank=True)
 
     # @configurable
@@ -50,11 +44,7 @@ class Family(models.Model, Configurable):
         return self.get_full_name()
 
     def get_full_name(self):
-        if self.family.upper() == 'ASTERACEAE':
-            return '%s %s - %s %s %s %s' % (self.genus, self.genus_author, self.family,
-                                             self.subfamily, self.tribus, self.subtribus)
-        else:
-            return '%s %s - %s' % (self.genus, self.genus_author, self.family)
+        return self.category
 
     @configurable
     def change_link_decorator(self):
@@ -73,14 +63,14 @@ class Family(models.Model, Configurable):
     def save(self, *args, **kwargs):
         if hasattr(self, "full_name_generated"):
             self.full_name_generated = self.get_full_name()
-        super(Family, self).save(*args, **kwargs)
+        super(Category, self).save(*args, **kwargs)
         # update coresponding Species.full_name_generated
         if hasattr(Species, "full_name_generated"):
-            for i in Species.objects.filter(family=self):
+            for i in Species.objects.filter(category=self):
                 i.save()
 
 
-class FamilyForm(AutoCompleteForm(Family)):
+class CategoryForm(AutoCompleteForm(Category)):
     pass
 
 
@@ -89,16 +79,16 @@ class Species(models.Model, Configurable):
     class Meta:
         verbose_name = ungettext_lazy('species', 'species', 1)
         verbose_name_plural = ungettext_lazy('species', 'species', 2)
-        ordering = ('family__genus', 'species', 'subspecies',)
+        ordering = ('category', 'species', 'subspecies',)
         unique_together = (
-            "family", "species", "species_author", "subspecies", "variety", "form", "cultivar",
+            "category", "species", "species_author", "subspecies", "variety", "form", "cultivar",
             "deutscher_name",
         )
         permissions = (("can_check_nomenclature", _("can check nomenclature of a species")),)
 
     _id_field = 'full_name_generated'
 
-    family = models.ForeignKey(Family, verbose_name=_('genus & family'), on_delete=models.CASCADE)
+    category = models.ForeignKey(Category, verbose_name=_('category'), on_delete=models.CASCADE)
     species = models.CharField(verbose_name=_('species'), max_length=100, blank=False)
     species_author = models.CharField(verbose_name=_('author species'), max_length=100, blank=True)
     subspecies = models.CharField(verbose_name=_('subspecies'), max_length=100, blank=True)
@@ -112,9 +102,6 @@ class Species(models.Model, Configurable):
     full_name_generated = models.CharField(max_length=200, verbose_name=_("full name"), blank=True)
     deutscher_name = models.CharField(max_length=200, verbose_name=_('german name'), blank=True)
     synonyme = models.TextField(verbose_name=_('synonyms'), blank=True, null=True)
-    area_of_distribution_etikettxt = models.CharField(verbose_name=_('label text'), max_length=200, blank=True,
-                                                      help_text="%")
-    area_of_distribution_background = models.TextField(verbose_name=_('detailed'), blank=True)
     protection_of_species = models.CharField(verbose_name=_('endangering'), max_length=2,
                                              choices=PROTECTION_OF_SPECIES_CHOICES, blank=True)
     poisonous_plant = models.BooleanField(verbose_name=_('poisonous plant'), blank=True, null=True)
@@ -141,7 +128,7 @@ class Species(models.Model, Configurable):
         return self.full_name()
 
     def full_name(self, with_author=True):
-        return_string = '%s %s' % (self.family.genus, self.species)
+        return_string = '%s %s' % (self.category, self.species)
         if self.subspecies:
             return_string += " subsp. " + self.subspecies
         if self.variety:
@@ -158,7 +145,7 @@ class Species(models.Model, Configurable):
     full_name.template_doc = _("Full species name (with author)")
 
     def full_name_each_author_list(self):
-        ret_list = [{"name": '%s %s' % (self.family.genus, self.species)}]
+        ret_list = [{"name": '%s %s' % (self.category, self.species)}]
         if self.species_author:
             ret_list.append({"author": self.species_author})
         if self.subspecies:
@@ -181,24 +168,11 @@ class Species(models.Model, Configurable):
         return self.full_name(with_author=False)
     full_name_no_author.template_doc = _("Full species name (without author)")
 
-    def distribution_lines(self):
-        return self.area_of_distribution_etikettxt.split("\n")
-    distribution_lines.template_doc = _(
-        "Area of distribution (each line separate, access with {{obj.species.distribution_lines.0}}"
-        ", {{obj.species.distribution_lines.0}}, aso...)"
-    )
-
     @configurable
-    def family_single(self):
-        return self.family.family
-    family_single.short_description = _('family')
-    family_single.admin_order_field = "family__family"
-
-    @configurable
-    def genus_single(self):
-        return self.family.genus
-    genus_single.short_description = _('genus')
-    genus_single.admin_order_field = "family__genus"
+    def category_single(self):
+        return self.category
+    category_single.short_description = _('category')
+    category_single.admin_order_field = "category__category"
 
     @configurable
     def change_link_decorator(self):
