@@ -2,7 +2,7 @@ from typing import Optional, Type, Iterable
 
 from django import forms
 from django.contrib.admin.widgets import ForeignKeyRawIdWidget
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
 from django.utils.html import format_html

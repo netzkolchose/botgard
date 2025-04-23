@@ -1,9 +1,9 @@
-from django.conf.urls import url
+from django.urls import re_path
 
 from . import views
 
 app_name = "ajax"
 urlpatterns = [
-    url(r'^model/model.json/?$',            views.model_fieldvalues_json, name='model_json'),
-    url(r'^model/choices.json/?$',          views.choice_fieldvalues_json, name='choices_json'),
+    re_path(r'^model/model.json/?$',            views.model_fieldvalues_json, name='model_json'),
+    re_path(r'^model/choices.json/?$',          views.choice_fieldvalues_json, name='choices_json'),
 ]

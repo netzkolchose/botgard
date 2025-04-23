@@ -2,13 +2,13 @@ import types
 
 from django.db import models
 from django.contrib import admin
-from django.conf.urls import url
+from django.urls import re_path
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import render, redirect
 from django.http import QueryDict
 from django.utils.text import capfirst
-from django.utils.encoding import force_text
-from django.utils.translation import ugettext as _
+from django.utils.encoding import force_str
+from django.utils.translation import gettext as _
 from django.http import HttpResponse
 from django.urls import reverse
 from operator import itemgetter
@@ -123,10 +123,10 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
         opts = self.model._meta
         info = opts.app_label, opts.model_name
         configtable_urls = [
-            url(r"^configuretable/$", admin_site.admin_view(self.configuretable_view), name='%s_%s_configuretable' % info),
-            url(r"^configuretable/tree/$", admin_site.admin_view(self.tree_view), name='%s_%s_configuretable_tree' % info),
-            url(r"^csv/$",   admin_site.admin_view(self.csv_view), name='%s_%s_csv' % info),
-            url(r"^print/$", admin_site.admin_view(self.print_view), name='%s_%s_print' % info),
+            re_path(r"^configuretable/$", admin_site.admin_view(self.configuretable_view), name='%s_%s_configuretable' % info),
+            re_path(r"^configuretable/tree/$", admin_site.admin_view(self.tree_view), name='%s_%s_configuretable_tree' % info),
+            re_path(r"^csv/$",   admin_site.admin_view(self.csv_view), name='%s_%s_csv' % info),
+            re_path(r"^print/$", admin_site.admin_view(self.print_view), name='%s_%s_print' % info),
         ]
         return configtable_urls + urls
 
@@ -197,7 +197,7 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
                     opts=opts,
                     app_label=opts.app_label,
                     module_name=capfirst(opts.verbose_name),
-                    title=_("Configure table %(name)s") % {"name": force_text(opts.verbose_name_plural)},
+                    title=_("Configure table %(name)s") % {"name": force_str(opts.verbose_name_plural)},
                     form=form,
                     media=form.media
                 )
@@ -229,7 +229,7 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
             opts=opts,
             app_label=opts.app_label,
             module_name=capfirst(opts.verbose_name),
-            title=_("Configure table %(name)s") % {"name": force_text(opts.verbose_name_plural)},
+            title=_("Configure table %(name)s") % {"name": force_str(opts.verbose_name_plural)},
             form=form,
             media=form.media,
         )

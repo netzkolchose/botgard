@@ -6,7 +6,7 @@ from django.utils.translation import gettext_lazy as _
 from django.contrib.admin import SimpleListFilter
 from django import forms
 from django.db import transaction
-from django.conf.urls import url
+from django.urls import re_path
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.template.response import TemplateResponse
@@ -111,7 +111,7 @@ class EntryAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
         opts = self.model._meta
         info = opts.app_label, opts.model_name
         return urls + [
-            url(
+            re_path(
                 r"^save-as-individual/(?P<pk>\d+)/?$",
                 admin_site.admin_view(self.save_as_individual_view),
                 name='%s_%s_save_as_individual' % info,
