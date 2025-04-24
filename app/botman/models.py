@@ -120,10 +120,12 @@ class BotanicGarden(Configurable, models.Model):
         # fix django-admin bug and save NULL instead of an empty string
         self.code = self.code.upper() if self.code else None
         self.full_name_generated = self.get_full_name()
-        self.num_orders_generated = self.outgoing_orders.filter(processed=False).count()
+        self.num_orders_generated = 0
         self.catalog_date_generated = None
-        if self.catalogs.exists():
-            self.catalog_date_generated = self.catalogs.order_by("-date_uploaded")[0].date_uploaded
+        if self.pk is not None:
+            self.num_orders_generated = self.outgoing_orders.filter(processed=False).count()
+            if self.catalogs.exists():
+                self.catalog_date_generated = self.catalogs.order_by("-date_uploaded")[0].date_uploaded
         super(BotanicGarden, self).save(*args, **kawrgs)
 
 

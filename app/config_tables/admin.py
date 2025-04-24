@@ -601,10 +601,20 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
         ChangeList = self.get_changelist(request)
         try:
             cl = ChangeList(
-                request, self.model, list_display,
-                list_display_links, list_filter, self.date_hierarchy,
-                search_fields, list_select_related, 10000000,
-                10000000, self.list_editable, self, sortable_by=sortable_by
+                request=request,
+                model=self.model,
+                list_display=list_display,
+                list_display_links=list_display_links,
+                list_filter=list_filter,
+                date_hierarchy=self.date_hierarchy,
+                search_fields=search_fields,
+                list_select_related=list_select_related,
+                list_per_page=10000000,
+                list_max_show_all=10000000,
+                list_editable=self.list_editable,
+                model_admin=self,
+                sortable_by=sortable_by,
+                search_help_text=None,
             )
             cl.formset = None
             return cl
@@ -642,19 +652,20 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
         ChangeList = self.get_changelist(request)
         try:
             cl = ChangeList(
-                request,
-                self.model,
-                list_display,
-                list_display_links,
-                list_filter,
-                self.date_hierarchy,
-                search_fields,
-                list_select_related,
-                10000000,   # self.list_per_page,
-                10000000,   # self.list_max_show_all,
-                False,      # self.list_editable,
-                self,
-                sortable_by=sortable_by
+                request=request,
+                model=self.model,
+                list_display=list_display,
+                list_display_links=list_display_links,
+                list_filter=list_filter,
+                date_hierarchy=self.date_hierarchy,
+                search_fields=search_fields,
+                list_select_related=list_select_related,
+                list_per_page=10000000,       # self.list_per_page,
+                list_max_show_all=10000000,   # self.list_max_show_all,
+                list_editable=[False],        # self.list_editable,
+                model_admin=self,
+                sortable_by=sortable_by,
+                search_help_text=None,
             )
             cl.formset = None
         except IncorrectLookupParameters:

@@ -76,8 +76,9 @@ RANDOM_AUTHORS = ["A. Cunn.", "Baill.", "C. Morren"]
 
 
 def log(*args, **kwargs):
-    kwargs["file"] = sys.stderr
-    print(*args, **kwargs)
+    if 0:
+        kwargs["file"] = sys.stderr
+        print(*args, **kwargs)
 
 
 def create_test_fixtures():
