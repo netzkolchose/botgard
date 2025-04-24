@@ -17,7 +17,7 @@ See [Features wiki page](https://github.com/netzkolchose/botgard/wiki/Features-(
 
 To run the System in production mode you'll need:
 - Linux or FreeBSD 
-- Python 3
+- Python 3.10
 - PostgreSQL (recommended)
 - nginx
 - latex live
