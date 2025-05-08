@@ -9,7 +9,7 @@
     <div class="selected">
         <h2>{% trans 'Order' %}</h2>
         <i>{% trans 'Drag items to change their order.' %}</i>
-        <ul id="selected">
+        <ul id="selected" data-testid="draggable-column-items">
             {% for elem in selected %}
             <li value="{{ elem.0 }}"><b>{{ elem.1|capfirst }}</b> ({{ elem.0 }})</li>
             {% endfor %}
