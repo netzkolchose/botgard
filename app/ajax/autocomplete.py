@@ -2,7 +2,7 @@ from typing import Optional, Type, Iterable
 
 from django import forms
 from django.contrib.admin.widgets import ForeignKeyRawIdWidget
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
 from django.utils.html import format_html
@@ -167,7 +167,6 @@ class AutoModelWidget(forms.TextInput):
                        current_app=self.af.af_appname, args=args)
 
     def render(self, name, value, *args, **kwargs):
-        # print("RENDER", name, value, args, kwargs)
         rel_opts = self.af.af_model._meta
         info = (rel_opts.app_label, rel_opts.model_name)
         url_params = ""
@@ -286,6 +285,6 @@ def AutoCompleteForm(
                     self.fields[key] = AutoCharField(field_model, field_name, **attrs)
                 elif isinstance(field, forms.ModelChoiceField):
                     self.fields[key] = AutoModelField(model_class, key, **attrs)
-                elif isinstance(field, forms.ChoiceField) and len(field.choices) > 30:
+                elif isinstance(field, forms.ChoiceField) and len(list(field.choices)) > 30:
                     self.fields[key] = AutoCharField(model_class, key, **attrs)
     return Form

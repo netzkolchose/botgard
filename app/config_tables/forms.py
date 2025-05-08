@@ -3,7 +3,7 @@ from .models import TableSettings
 from django.template import loader, Context
 from json import dumps, loads
 from django.forms.widgets import TextInput
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from django.core.serializers.json import DjangoJSONEncoder
 
 

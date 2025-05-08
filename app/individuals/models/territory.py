@@ -1,10 +1,9 @@
 from django.db import models, OperationalError
 from django.utils.translation import gettext_lazy as _
-from django.utils.translation import ungettext_lazy as __
+from django.utils.translation import ngettext_lazy as __
 from django.utils.safestring import mark_safe
 from django.urls import reverse
 from django import forms
-from picklefield.fields import PickledObjectField
 
 from ajax.autocomplete import AutoCompleteForm
 from config_tables.admin import configurable, Configurable

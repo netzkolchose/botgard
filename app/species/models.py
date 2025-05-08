@@ -1,6 +1,6 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-from django.utils.translation import ungettext_lazy
+from django.utils.translation import ngettext_lazy
 from django.utils.safestring import mark_safe
 from django.urls import reverse
 from django import forms
@@ -87,8 +87,8 @@ class FamilyForm(AutoCompleteForm(Family)):
 class Species(models.Model, Configurable):
 
     class Meta:
-        verbose_name = ungettext_lazy('species', 'species', 1)
-        verbose_name_plural = ungettext_lazy('species', 'species', 2)
+        verbose_name = ngettext_lazy('species', 'species', 1)
+        verbose_name_plural = ngettext_lazy('species', 'species', 2)
         ordering = ('family__genus', 'species', 'subspecies',)
         unique_together = (
             "family", "species", "species_author", "subspecies", "variety", "form", "cultivar",

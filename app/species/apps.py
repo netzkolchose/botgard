@@ -1,5 +1,5 @@
 from django.apps import AppConfig
-from django.utils.translation import ungettext_lazy as _
+from django.utils.translation import ngettext_lazy as _
 
 
 class SpeciesConfig(AppConfig):
