@@ -25,6 +25,27 @@ To run the System in production mode you'll need:
 
 ### Development
 
+The following **environment variables** will be used by
+[app/BotGard/settings.py](app/BotGard/settings.py) if present.
+
+You can also define an `.env` or `ini' file to store these value 
+(See python-decouple [documentation](https://github.com/HBNetwork/python-decouple?tab=readme-ov-file#where-is-the-settings-data-stored))
+
+You can copy the [app/.env-example](app/.env-example) file to `app/.env` and adjust it to your needs. 
+
+- `POSTGRES_PASSWORD`: Password of the postgres user,
+  if specified the postgres database backend will be used.
+  Otherwise it falls back to sqlite3.
+- `POSTGRES_USER`: Name of the postgres user, defaults to `postgres`
+- `POSTGRES_DATABASE`: Name of the postgres database, defaults to `postgres`
+- `POSTGRES_HOST`: Name of the postgres host, defaults to `localhost`
+- `POSTGRES_PORT`: Name of the postgres host port, defaults to `5432`
+- `DJANGO_SECRET_KEY`: Overrides the `SECRET_KEY`, defaults to a fixed sequence
+- `DJANGO_TIME_ZONE`: The default timezone, defaults to `Europe/Berlin`
+- `DJANGO_ALLOWED_HOSTS`: A list of hosts separated by spaces, defaults to empty list
+- `DJANGO_DEBUG`: Set Django debug mode, defaults to `True`
+
+
 To initially set up the development server create a **virtual environment** using tools like
 [venv](https://docs.python.org/3/library/venv.html) 
 or [virtualenv](https://virtualenv.pypa.io/en/stable/) and then:
@@ -88,27 +109,15 @@ ALTER USER "botgard-user" CREATEDB;
 [Dockerfile](/Dockerfile) and [app/start-server.sh](app/start-server.sh) 
 are the entry points.
 
+Please note that `.env` files are not put into the docker container (ignored by the `.dockerignore` file). 
+For CI deployment, please use **environment variables** or generate an `.env` file during deployment. 
+
 #### run unittests in docker image
 
 ```shell script
 docker build --tag botgard-dev .
 docker run -ti --env BOTGARD_RUN_TESTS=1 botgard-dev
 ```
-
-The following **environment variables** will be used by 
-[app/BotGard/settings.py](app/BotGard/settings.py) if present:
-
-- `POSTGRES_PASSWORD`: Password of the postgres user, 
-  if specified the postgres database backend will be used. 
-  Otherwise it falls back to sqlite3.
-- `POSTGRES_DATABASE`: Name of the postgres database, defaults to `postgres`
-- `POSTGRES_USER`: Name of the postgres user, defaults to `postgres`
-- `POSTGRES_HOST`: Name of the postgres host, defaults to `localhost`
-- `POSTGRES_PORT`: Name of the postgres host port, defaults to `5432`
-- `DJANGO_SECRET_KEY`: Overrides the `SECRET_KEY`, defaults to a fixed sequence
-- `DJANGO_TIME_ZONE`: The default timezone, defaults to `Europe/Berlin`
-- `DJANGO_ALLOWED_HOSTS`: A list of hosts separated by spaces, defaults to empty list
-- `DJANGO_DEBUG`: Set Django debug mode, defaults to `True`
 
 
 ### Data migration

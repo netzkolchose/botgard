@@ -1,40 +1,39 @@
-import os
 from pathlib import Path
 
 # admin site overrides
 from django.utils.translation import gettext_lazy as _
+
+import decouple
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # --- CI variables --
 
-POSTGRES_PASSWORD = os.environ.get('POSTGRES_PASSWORD', '')
-POSTGRES_DATABASE = os.environ.get('POSTGRES_DATABASE', 'postgres')
-POSTGRES_USER = os.environ.get('POSTGRES_USER', 'postgres')
-POSTGRES_HOST = os.environ.get('POSTGRES_HOST', 'localhost')
-POSTGRES_PORT = os.environ.get('POSTGRES_PORT', '5432')
-
+POSTGRES_PASSWORD = decouple.config('POSTGRES_PASSWORD', default='')
+POSTGRES_DATABASE = decouple.config('POSTGRES_DATABASE', default='postgres')
+POSTGRES_USER = decouple.config('POSTGRES_USER', default='postgres')
+POSTGRES_HOST = decouple.config('POSTGRES_HOST', default='localhost')
+POSTGRES_PORT = decouple.config('POSTGRES_PORT', default='5432')
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get(
+SECRET_KEY = decouple.config(
     'DJANGO_SECRET_KEY',
-    'L3RFrJsYJco5PB-IW4I9T6Z-GMt_2RcW52zC-aiX85irpghG2QlHUhU5em8vwQGZ'
+    default='L3RFrJsYJco5PB-IW4I9T6Z-GMt_2RcW52zC-aiX85irpghG2QlHUhU5em8vwQGZ'
 )
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False if os.environ.get("DJANGO_DEBUG") == "False" else True
+DEBUG = decouple.config("DJANGO_DEBUG", default=True, cast=bool)
 
-if os.environ.get('DJANGO_ALLOWED_HOSTS'):
-    ALLOWED_HOSTS = os.environ['DJANGO_ALLOWED_HOSTS'].split()
-else:
-    ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = decouple.config('DJANGO_ALLOWED_HOSTS', default="*").split()
+CSRF_TRUSTED_ORIGINS = decouple.config("DJANGO_CSRF_TRUSTED_ORIGINS", default="").split()
 
-if os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS"):
-    CSRF_TRUSTED_ORIGINS = os.environ["DJANGO_CSRF_TRUSTED_ORIGINS"].split()
+TIME_ZONE = decouple.config('DJANGO_TIME_ZONE', default='Europe/Berlin')
+
+
+# ------------
 
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
-
 
 # Application definition
 
@@ -175,8 +174,6 @@ LOCALE_PATHS = [
     BASE_DIR / 'locale'
 ]
 
-
-TIME_ZONE = os.environ.get('DJANGO_TIME_ZONE', 'Europe/Berlin')
 
 USE_I18N = True
 
