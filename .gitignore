@@ -2,7 +2,8 @@
 .~lock*.o*
 
 settings_local.py
-local_config.sh
+local_config*.sh
+app/.env*
 scratchpad/
 
 *.pdf

@@ -2,3 +2,7 @@ env/
 app/media/
 app/scratchpad/
 app/static/
+app/.env*
+.env*
+Dockerfile
+
