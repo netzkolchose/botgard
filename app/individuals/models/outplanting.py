@@ -76,12 +76,23 @@ def _recalc_outplanting_fields(outplanting, exclude_outplanting=None):
     Recalculate statistics for all Territories and Departments
     use `exclude_outplanting` to exclude an Outplanting instance from being counted
     """
-    if outplanting.department:
-        outplanting.department.calc_outplanting_fields(exclude_outplanting=exclude_outplanting)
-        if outplanting.department.territory:
-            outplanting.department.territory.calc_outplanting_fields(exclude_outplanting=exclude_outplanting)
-    if outplanting.individual:
-        outplanting.individual.calc_outplantings()
+    from individuals.models import Department, Territory, Individual
+    # catches DoesNotExists errors for `manage.py loaddata`
+    try:
+        if outplanting.department:
+            outplanting.department.calc_outplanting_fields(exclude_outplanting=exclude_outplanting)
+            try:
+                if outplanting.department.territory:
+                    outplanting.department.territory.calc_outplanting_fields(exclude_outplanting=exclude_outplanting)
+            except Territory.DoesNotExist:
+                pass
+    except Department.DoesNotExist:
+        pass
+    try:
+        if outplanting.individual:
+            outplanting.individual.calc_outplantings()
+    except Individual.DoesNotExist:
+        pass
 
 
 @receiver(post_save, sender=Outplanting)

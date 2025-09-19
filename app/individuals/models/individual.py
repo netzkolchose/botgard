@@ -57,15 +57,19 @@ class Individual(IndividualBase, Configurable):
         - is_alive_generated
         """
         from .outplanting import Outplanting
+        from .territory import Department
         locations = Outplanting.objects.filter(individual=self.pk)
         locations_alive = locations.filter(plant_died=None)
 
         self.outplantings_generated = [t[0] for t in locations.values_list("id")]
         self.alive_outplantings_generated = [t[0] for t in locations_alive.values_list("id")]
-        self.departments_generated = " ".join(sorted(set(
-            l.department.full_code for l in locations if l.department)))
-        self.territories_generated = " ".join("(%s)" % i for i in
-                                              sorted(set(l.department.territory.code for l in locations if l.department and l.department.territory)))
+        try:
+            self.departments_generated = " ".join(sorted(set(
+                l.department.full_code for l in locations if l.department)))
+            self.territories_generated = " ".join("(%s)" % i for i in
+                                                  sorted(set(l.department.territory.code for l in locations if l.department and l.department.territory)))
+        except Department.DoesNotExist:
+            pass
         self.is_alive_generated = locations_alive.count() > 0
         if do_save:
             self.save()
