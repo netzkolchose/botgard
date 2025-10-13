@@ -1,4 +1,5 @@
 import random
+from typing import Union
 
 from django.test import TestCase, Client
 from django.urls import reverse
@@ -22,7 +23,7 @@ class TestNumberGenerator(TestCase):
     def setUpTestData(cls):
         create_test_fixtures()
 
-    def create_entry(self, accession_number: int, order_number: int):
+    def create_entry(self, accession_number: Union[int, str], order_number: Union[int, str]):
         return Entry.objects.create(
             accession_number=accession_number,
             ipen_accession_number=accession_number,
@@ -31,7 +32,7 @@ class TestNumberGenerator(TestCase):
             seed_in_stock=False,
         )
 
-    def create_individual(self, accession_number: int, order_number: int):
+    def create_individual(self, accession_number: Union[int, str], order_number: Union[int, str]):
         species = random.choice(list(Species.objects.all()))
         garden = random.choice(list(BotanicGarden.objects.all()))
 
@@ -62,7 +63,7 @@ class TestNumberGenerator(TestCase):
             sowing_number="",
         )
 
-    def X_test_number_gen_random(self):
+    def test_number_gen_random(self):
         KeyValue.objects.create(
             type="j",
             key="accession_generation",
@@ -79,6 +80,10 @@ class TestNumberGenerator(TestCase):
                 "min": 3000, "max": 3009,
             },
         )
+
+        # create some text accession numbers as well
+        self.create_individual("test1", "test1")
+        self.create_individual("XY-1992", "XY-1992")
 
         acc_nums = []
         order_nums = []
@@ -147,6 +152,9 @@ class TestNumberGenerator(TestCase):
         self.assertEqual(3000, numbers.get_new_order_number())
 
         self.create_individual(2005, 3008)
+        # create some text accession numbers as well
+        self.create_individual("test1", "test1")
+        self.create_individual("XY-1992", "XY-1992")
 
         self.assertEqual(2006, numbers.get_new_accession_number())
         self.assertEqual(3009, numbers.get_new_order_number())
@@ -179,6 +187,9 @@ class TestNumberGenerator(TestCase):
         self.assertEqual(3000, numbers.get_new_order_number())
 
         self.create_individual(2002, 3003)
+        # create some text accession numbers as well
+        self.create_individual("test1", "test1")
+        self.create_individual("XY-1992", "XY-1992")
 
         # they are still free
         self.assertEqual(2000, numbers.get_new_accession_number())
@@ -186,6 +197,8 @@ class TestNumberGenerator(TestCase):
 
         self.create_individual(2000, 3000)
         self.create_entry(2001, 3002)
+        self.create_individual("ABC", "ABC")
+        self.create_entry("XY-1998", "XY-1998")
 
         # it's fitting tight!
         self.assertEqual(2003, numbers.get_new_accession_number())

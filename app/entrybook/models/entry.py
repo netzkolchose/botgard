@@ -181,9 +181,9 @@ class Entry(IndividualBase, Configurable):
 class EntryForm(
     AutoCompleteForm(
         Entry,
-        widgets={
-            "accession_number": widgets.NumberInput(),  # don't need a spinbox for the accession number
-        },
+        #widgets={
+        #    "accession_number": widgets.NumberInput(),  # don't need a spinbox for the accession number
+        #},
         autocomplete_mapping={
             "species": {"model": Species, "field": "full_name_generated"},
             "came_as_species": {"model": Species, "field": "full_name_generated"},

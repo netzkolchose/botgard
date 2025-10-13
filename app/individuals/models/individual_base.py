@@ -65,8 +65,9 @@ class IndividualBase(models.Model):
     class Meta:
         abstract = True
 
-    accession_number = models.IntegerField(
+    accession_number = models.CharField(
         verbose_name=_("accession #"), blank=False, null=True, db_index=True,
+        max_length=20,
         default=get_new_accession_number, unique=True
     )
 
@@ -117,7 +118,7 @@ class IndividualBase(models.Model):
     )
 
     seed_available = models.BooleanField(verbose_name=_("seed available"))
-    order_number = models.IntegerField(verbose_name=_("order number"), unique=True, default=get_new_order_number)
+    order_number = models.CharField(verbose_name=_("order number"), max_length=20, unique=True, default=get_new_order_number)
 
     seed_collector_date = models.DateField(verbose_name=_("seed's collection date"), blank=True, null=True)
     seed_in_stock = models.BooleanField(verbose_name=_("seed in stock"))

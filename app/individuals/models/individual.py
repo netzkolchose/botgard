@@ -331,9 +331,9 @@ class IndividualForm(
     IndividualValidateMixin,
     AutoCompleteForm(
         Individual,
-        widgets={
-            "accession_number": widgets.NumberInput()  # don't need a spinbox for the accession number
-        },
+        #widgets={
+        #    "accession_number": widgets.NumberInput()  # don't need a spinbox for the accession number
+        #},
         autocomplete_mapping={
             "came_as_species": {"model": Species, "field": "full_name_generated"},
         }
@@ -432,9 +432,12 @@ class Seed(Individual):
 
 class SeedForm(
     IndividualValidateMixin,
-    AutoCompleteForm(Seed, widgets={
-        "accession_number": widgets.Input()  # don't need a spinbox for the accession number
-    })
+    AutoCompleteForm(
+        Seed,
+        #widgets={
+        #    "accession_number": widgets.Input()  # don't need a spinbox for the accession number
+        #}
+    )
 ):
     def __init__(self, *args, **kwargs):
         self._update_initial(kwargs)

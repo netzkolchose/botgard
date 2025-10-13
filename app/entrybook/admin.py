@@ -88,6 +88,9 @@ class EntryAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
 
     class Media:
         css = {"screen": ('BotGard/css_dropdown/css_dropdown.css',)}
+        js = (
+            "individuals/change_form_tools.js",
+        )
 
     def get_actions(self, request):
         actions = super().get_actions(request)
