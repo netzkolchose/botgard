@@ -185,7 +185,7 @@ class IndividualAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable)
             'fields': (('found_country',), 'found_text', ('collector_name', 'collector_number', 'collector_date'),)
         }),
         (_('source'), {
-            'fields': (('source', 'source_date', 'came_in_as'),)
+            'fields': (('source', 'source_date', 'came_in_as', 'external_order_number'),)
         }),
         (_('miscellaneous'), {
             'classes': 'collapse',

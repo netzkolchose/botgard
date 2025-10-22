@@ -265,7 +265,7 @@ class Individual(IndividualBase, Configurable):
         # -- update generated fields --
         self.ipen_generated = (
             str.upper(self.ipen_country) + "-" + str.upper(self.ipen_transfer_restricted)
-            + "-" + str.upper(self.ipen_garden_code.code) + "-" + str(self.ipen_accession_number)
+            + "-" + str.upper(self.ipen_garden_code.code or "XX") + "-" + str(self.ipen_accession_number)
         )
 
         # -- update id_name_generated --

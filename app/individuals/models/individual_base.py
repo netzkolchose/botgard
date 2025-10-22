@@ -98,6 +98,11 @@ class IndividualBase(models.Model):
         max_length=2, choices=CAME_IN_AS_CHOICES, verbose_name=_("received as"), blank=True,
         db_index=True
     )
+    external_order_number = models.CharField(
+        verbose_name=_("External order number"),
+        max_length=64,
+        null=True, blank=True,
+    )
 
     found_country = models.CharField(
         max_length=3, choices=ISO_COUNTRY_CHOICES, verbose_name=_("collecting country"),

@@ -39,6 +39,8 @@ class BotanicGarden(Configurable, models.Model):
         verbose_name = _('botanic garden')
         verbose_name_plural = _('botanic gardens')
         ordering = ('number',)
+        # TODO: actually should have this:
+        # unique_together = ("number", "code", "name")
 
     _id_field = "full_name_generated"
 

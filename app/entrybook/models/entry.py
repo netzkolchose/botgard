@@ -79,12 +79,6 @@ class Entry(IndividualBase, Configurable):
         db_index=True,
     )
 
-    external_order_number = models.CharField(
-        verbose_name=_("External order number"),
-        max_length=64,
-        blank=True,
-    )
-
     # ----------- extra fields that are mapped to individuals.models.Outplanting -------------
 
     seeded_date = models.DateField(
