@@ -8,3 +8,4 @@ from .catalogs import (
     ExternalCatalogArchive, ExternalCatalogArchiveForm,
     OutgoingOrder, OutgoingOrderForm,
 )
+from .bgci_gardens import BGCIGarden, BGCIGardenForm

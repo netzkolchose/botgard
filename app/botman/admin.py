@@ -182,6 +182,21 @@ class OutgoingOrderAdmin(ConfigurableTable):
 admin.site.register(OutgoingOrder, OutgoingOrderAdmin)
 
 
+class BGCIGardenAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
+    form = BGCIGardenForm
+    list_display = (
+        'bgci_id', 'ipen_code', 'name', 'country', 'city', 'bgci_link_decorator'
+    )
+    blacklist = ("id", "__str__", "website", "email")
+
+    search_fields = search_fields_compatible([
+        'bgci_id', 'ipen_code', 'name', 'city', 'postal_code', 'address',
+    ])
+
+    ordering = ('bgci_id',)
+
+admin.site.register(BGCIGarden, BGCIGardenAdmin)
+
 
 # TODO-3: maybe override AdminSite and use in each app
 #   (https://docs.djangoproject.com/en/3.1/ref/contrib/admin/#customizing-the-adminsite-class)

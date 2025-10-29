@@ -9,6 +9,7 @@ from django.db.models.signals import post_save, pre_delete, post_delete, post_in
 
 from config_tables.admin import Configurable, configurable
 from ajax.autocomplete import AutoCompleteForm
+from tools.urls import full_url
 
 import config_app
 
@@ -80,7 +81,7 @@ class BotanicGarden(Configurable, models.Model):
     @configurable
     def website_link_decorator(self):
         if self.website:
-            return mark_safe('<a href="%s" target="_blank">%s</a>' % (self.website, self.website[0:40]))
+            return mark_safe('<a href="%s" target="_blank">%s</a>' % (full_url(self.website), self.website[0:40]))
         else:
             return "-"
     website_link_decorator.admin_order_field = 'website'

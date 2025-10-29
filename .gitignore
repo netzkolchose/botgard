@@ -5,6 +5,7 @@ settings_local.py
 local_config*.sh
 app/.env*
 scratchpad/
+.cache/
 
 *.pdf
 
