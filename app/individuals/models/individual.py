@@ -14,6 +14,16 @@ class Individual(IndividualBase, Configurable):
 
     _id_field = "id_name_generated"
 
+    user = models.ForeignKey(
+        verbose_name=_("Created by"),
+        to=get_user_model(),
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        db_index=True,
+        related_name="individuals",
+    )
+
     ipen_garden_code = models.ForeignKey('botman.BotanicGarden', verbose_name="-", on_delete=models.CASCADE)
     species = models.ForeignKey(
         'species.Species', verbose_name=_("genus & Species"), blank=False,

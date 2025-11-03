@@ -1,5 +1,6 @@
 from django.db import transaction, IntegrityError
 from django.db.models import CharField
+from tqdm import tqdm
 
 from botman.models import BotanicGarden
 from species.models import Species, Family
@@ -9,7 +10,7 @@ from tickets.models import LaserGravurTicket
 
 """
 
-Please add ALL dependencies here so we can arrange for re-generating the 
+Please add ALL field dependencies here so we can arrange for re-generating the 
 fields on changes to their source
 
     botman:
@@ -54,64 +55,52 @@ Things a user can change - which needs recalculation
 
 
 def calc_all():
-    strip_whitespace()
+    # strip_whitespace()
     assign_territory()
     assign_ticket_types()
     calc_botanic_gardens()
     calc_species()
     calc_outplantings()
     fix_country_code()
-    calc_individuals()
+    # calc_individuals()
 
 
 def calc_outplantings():
     with transaction.atomic():
-        print("calc territories")
-        count = Territory.objects.all().count()
-        for i, self in enumerate(Territory.objects.all()):
-            if i % 10 == 0:
-                print("%s/%s" % (i, count))
+        for self in tqdm(Territory.objects.all(), desc="calc outplantings Territory"):
             self.calc_outplanting_fields()
     with transaction.atomic():
-        print("calc departments")
-        count = Department.objects.all().count()
-        for i, self in enumerate(Department.objects.all()):
-            if i % 100 == 0:
-                print("%s/%s" % (i, count))
+        for self in tqdm(Department.objects.all(), desc="calc outplantings Department"):
             self.calc_outplanting_fields()
 
 
 def calc_individuals_outplantings():
     with transaction.atomic():
-        print("calc individuals")
-        count = Individual.objects.all().count()
-        for i, self in enumerate(Individual.objects.all()):
-            if i % 1000 == 0:
-                print("%s/%s" % (i, count))
+        for self in tqdm(Individual.objects.all(), desc="calc individuals outplantings"):
             self.calc_outplantings()
 
 
 def calc_botanic_gardens():
     with transaction.atomic():
-        for self in BotanicGarden.objects.all():
+        for self in tqdm(BotanicGarden.objects.all(), desc="calc botanic gardens"):
             self.save()
 
 
 def calc_species():
     with transaction.atomic():
-        for self in Family.objects.all():
+        for self in tqdm(Family.objects.all(), desc="calc families"):
             self.save()
     with transaction.atomic():
-        for self in Species.objects.all():
+        for self in tqdm(Species.objects.all(), desc="calc species"):
             self.save()
 
 
 def calc_individuals():
     with transaction.atomic():
-        for self in Territory.objects.all():
+        for self in tqdm(Territory.objects.all(), desc="calc territory"):
             self.save()
     with transaction.atomic():
-        for self in Individual.objects.all():
+        for self in tqdm(Individual.objects.all(), desc="calc individuals outplantings"):
             self.calc_outplantings(do_save=True)
 
 
@@ -150,7 +139,7 @@ def strip_whitespace():
     """Remove leading and trailing whitespace from all textfields"""
     Models = (Department, Territory, BotanicGarden, Family, Species, Individual, Seed)
     for Model in Models:
-        for model in Model.objects.all():
+        for model in tqdm(Model.objects.all(), desc="strip whitespace {Model}"):
             changes = []
             for field in model._meta.fields:
                 if "generated" not in field.name and hasattr(model, field.name):

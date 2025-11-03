@@ -49,7 +49,13 @@ class BotanicGardenAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTab
 
     fieldsets = (
         (None, {
-            'fields': ('number', ('name', 'code',), 'address', ('phone', 'website', 'email',), )
+            'fields': (
+                'number',
+                ('name', 'code',),
+                'address',
+                ('phone', 'website', 'email',),
+                'comment',
+            )
         }),
     )
     ordering = ('number',)

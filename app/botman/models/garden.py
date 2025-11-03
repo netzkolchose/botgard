@@ -52,6 +52,7 @@ class BotanicGarden(Configurable, models.Model):
     phone = models.CharField(verbose_name=_('phone'), max_length=80, blank=True, null=True)
     website = models.URLField(verbose_name=_('website'), blank=True, null=True)
     email = models.EmailField(verbose_name=_('email'), blank=True, null=True)
+    comment = models.CharField(verbose_name=_('comment'), max_length=256, blank=True, null=True)
 
     full_name_generated = models.CharField(verbose_name=_('full name'), max_length=150, blank=True)
     num_orders_generated = models.IntegerField(verbose_name=_('number of orders'), default=0)

@@ -14,13 +14,16 @@ class Outplanting(models.Model, Configurable):
         verbose_name = _("Outplanting")
         verbose_name_plural = _("Outplantings")
 
+    individual = models.ForeignKey(Individual, verbose_name=_("individual"), on_delete=models.CASCADE)
     department = models.ForeignKey('individuals.Department', verbose_name=_("department"),
                                    null=True, on_delete=models.SET_DEFAULT, default=None)
     seeded_date = models.DateField(verbose_name=_("sowing date"), blank=True, null=True)
     date = models.DateField(verbose_name=_("bed out date"), blank=True, null=True)
     plant_died = models.DateField(verbose_name=_("plant died on"), blank=True, null=True)
-
-    individual = models.ForeignKey(Individual, verbose_name=_("individual"), on_delete=models.CASCADE)
+    comment = models.CharField(
+        verbose_name=_("comment"),
+        max_length=256, null=True, blank=True,
+    )
 
     def __str__(self):
         if self.department is None:
@@ -40,14 +43,20 @@ class Outplanting(models.Model, Configurable):
         return self.plant_died is None and not (self.seeded_date is None or self.date is None)
 
     @configurable
+    def change_link_decorator(self):
+        return _("show")
+    change_link_decorator.short_description = _("show")
+    change_link_decorator.exclude_csv = True
+
+    @configurable
     def department_decorator(self):
-        return "%s" % self.department
+        return "%s" % self.department if self.department else "-"
     department_decorator.short_description = _("department")
     department_decorator.admin_order_field = "department__code"
 
     @configurable
     def territory_decorator(self):
-        return "%s" % self.department.territory
+        return "%s" % self.department.territory if self.department else "-"
     territory_decorator.short_description = _("territory")
     territory_decorator.admin_order_field = "department__territory__code"
 

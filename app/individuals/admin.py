@@ -29,7 +29,7 @@ class DepartmentAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable)
     search_fields = search_fields_compatible(('code', 'name'))
     ordering = ("territory__code", 'code')
     admin_order_field = ("territory__code", "code")
-    blacklist = ("id", "__str__", 'full_code',)
+    blacklist = ("id", "__str__",)
 
     change_form_template = "individuals/change_form_plant_stats.html"
 
@@ -158,7 +158,7 @@ class IndividualAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable)
 
     blacklist = ('id', '__str__', 'ipen_transfer_restricted', 'ipen_garden_code', 'ipen_accession_number',
                  'ipen_country', 'departments_generated', 'territories_generated', 'species',
-                 'outplantings_generated', 'alive_outplantings_generated', 'is_alive_generated')
+                 'outplantings_generated', 'alive_outplantings_generated', 'is_alive_generated',)
 
     list_display_links = ()
     search_fields = search_fields_compatible(('accession_number', 'ipen_generated',
@@ -176,7 +176,7 @@ class IndividualAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable)
     fieldsets = (
         (None, {
             'fields': (('accession_number', 'accession_extension', 'seed_available', 'seed_in_stock',),
-                       ('species', 'species_checked_by', 'came_as_species'),)
+                       ('species', 'species_checked_by', 'species_checked_date', 'came_as_species'),)
         }),
         ('IPEN', {
             'fields': (('ipen_country', 'ipen_transfer_restricted', 'ipen_garden_code', 'ipen_accession_number'),)
@@ -189,7 +189,7 @@ class IndividualAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable)
         }),
         (_('miscellaneous'), {
             'classes': 'collapse',
-            'fields': ('gender', 'comment',)
+            'fields': ('gender', 'comment', 'import_reference')
         }),
         (_('seeds'), {
             'fields': ('order_number', 'sowing_number')
@@ -306,17 +306,18 @@ class IndividualFromEntryAdmin(IndividualAdmin):
             yield form_set_class, inline_instance
 
 
-# TODO: Outplantings can be part of admin but should be read-only!
-if 0:
-    class OutplantingAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
-        form = AutoCompleteForm(Outplanting)
-        list_display = ('territory_decorator', 'department_decorator',
-                        'seeded_date', 'date', 'plant_died',
-                        'individual_link_decorator', 'family_single', 'genus_single')
-        list_filter = (
-            ('department__code', ForeignKeyFilter),
-            ('department__territory__code', ForeignKeyFilter),
-                       # ('individual__species', ForeignKeyFilter),
-        )
-        blacklist = ('id', 'individual', 'department')
-    admin.site.register(Outplanting, OutplantingAdmin)
+class OutplantingAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
+    form = AutoCompleteForm(Outplanting)
+    list_display = (
+        'change_link_decorator',
+        'territory_decorator', 'department_decorator',
+        'seeded_date', 'date', 'plant_died',
+        'individual_link_decorator', 'family_single', 'genus_single',
+    )
+    list_filter = (
+        ('department__code', ForeignKeyFilter),
+        ('department__territory__code', ForeignKeyFilter),
+        # ('individual__species', ForeignKeyFilter),
+    )
+    blacklist = ('id', 'individual', 'department')
+admin.site.register(Outplanting, OutplantingAdmin)

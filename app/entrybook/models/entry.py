@@ -68,8 +68,6 @@ class Entry(IndividualBase, Configurable):
         db_index=True,
     )
 
-    # ----------- extra fields which are not on Individual -------------
-
     user = models.ForeignKey(
         verbose_name=_("Created by"),
         to=get_user_model(),
@@ -77,6 +75,7 @@ class Entry(IndividualBase, Configurable):
         null=True,
         blank=True,
         db_index=True,
+        related_name="entries",
     )
 
     # ----------- extra fields that are mapped to individuals.models.Outplanting -------------
@@ -107,7 +106,6 @@ class Entry(IndividualBase, Configurable):
     @configurable
     def change_link_decorator(self):
         return _("show")
-
     change_link_decorator.short_description = _("show")
     change_link_decorator.exclude_csv = True
 
@@ -115,7 +113,6 @@ class Entry(IndividualBase, Configurable):
     def delete_link_decorator(self):
         url = reverse("admin:entrybook_entry_delete", args=(self.pk,))
         return mark_safe('<a href="%s" class="deletelink">%s</a>' % (url, _("delete")))
-
     delete_link_decorator.short_description = _("delete")
     delete_link_decorator.exclude_csv = True
 
