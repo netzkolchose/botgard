@@ -49,7 +49,13 @@ class BotanicGardenAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTab
 
     fieldsets = (
         (None, {
-            'fields': ('number', ('name', 'code',), 'address', ('phone', 'website', 'email',), )
+            'fields': (
+                'number',
+                ('name', 'code',),
+                'address',
+                ('phone', 'website', 'email',),
+                'comment',
+            )
         }),
     )
     ordering = ('number',)
@@ -181,6 +187,21 @@ class OutgoingOrderAdmin(ConfigurableTable):
 
 admin.site.register(OutgoingOrder, OutgoingOrderAdmin)
 
+
+class BGCIGardenAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
+    form = BGCIGardenForm
+    list_display = (
+        'bgci_id', 'ipen_code', 'name', 'country', 'city', 'bgci_link_decorator'
+    )
+    blacklist = ("id", "__str__", "website", "email")
+
+    search_fields = search_fields_compatible([
+        'bgci_id', 'ipen_code', 'name', 'city', 'postal_code', 'address',
+    ])
+
+    ordering = ('bgci_id',)
+
+admin.site.register(BGCIGarden, BGCIGardenAdmin)
 
 
 # TODO-3: maybe override AdminSite and use in each app

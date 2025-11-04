@@ -11,6 +11,7 @@ from django.utils.safestring import mark_safe
 #from django.db.models.signals import post_save
 #from django.dispatch import receiver
 from django.conf import settings
+from django.contrib.auth import get_user_model
 
 from picklefield.fields import PickledObjectField
 
@@ -33,8 +34,11 @@ IPEN_TRANSFER_RESTRICTIONS = (
 
 CAME_IN_AS_CHOICES = (
     ('PF', _('Plant')),
+    ('PT', _('Plant part')),
     ('SA', _('Seed')),
+    ('SÄ', _('Seedling')),
     ('ST', _('Scion')),
+    ('SP', _('Spores')),
     ('UN', _('unknown')),
 )
 
@@ -65,8 +69,9 @@ class IndividualBase(models.Model):
     class Meta:
         abstract = True
 
-    accession_number = models.IntegerField(
+    accession_number = models.CharField(
         verbose_name=_("accession #"), blank=False, null=True, db_index=True,
+        max_length=30,
         default=get_new_accession_number, unique=True
     )
 
@@ -83,6 +88,9 @@ class IndividualBase(models.Model):
     species_checked_by = models.CharField(
         max_length=100, verbose_name=_("plant categorized by"), blank=True
     )
+    species_checked_date = models.DateField(
+        verbose_name=_("categorized at"), null=True, blank=True,
+    )
 
     came_as_species = models.CharField(
         max_length=100, verbose_name=_("received as species"), blank=True
@@ -96,6 +104,11 @@ class IndividualBase(models.Model):
     came_in_as = models.CharField(
         max_length=2, choices=CAME_IN_AS_CHOICES, verbose_name=_("received as"), blank=True,
         db_index=True
+    )
+    external_order_number = models.CharField(
+        verbose_name=_("External order number"),
+        max_length=64,
+        null=True, blank=True,
     )
 
     found_country = models.CharField(
@@ -117,20 +130,22 @@ class IndividualBase(models.Model):
     )
 
     seed_available = models.BooleanField(verbose_name=_("seed available"))
-    order_number = models.IntegerField(verbose_name=_("order number"), unique=True, default=get_new_order_number)
+    order_number = models.CharField(verbose_name=_("order number"), max_length=20, unique=True, default=get_new_order_number)
 
     seed_collector_date = models.DateField(verbose_name=_("seed's collection date"), blank=True, null=True)
     seed_in_stock = models.BooleanField(verbose_name=_("seed in stock"))
 
     sowing_number = models.CharField(verbose_name=_("sowing number"), max_length=100, blank=True)
 
-    # geo_location = models.ForeignKey("geolocation.GeoLocation", verbose_name=_("location (geonames)"),
-    #                                  default=undefined_geolocation,
-    #                                  on_delete=models.SET_DEFAULT)
-
-    # osm_location = models.ForeignKey("geolocation.OsmLocation", verbose_name=_("location (osm)"),
-    #                                  default=undefined_osmlocation,
-    #                                  on_delete=models.SET_DEFAULT)
+    import_reference = models.CharField(
+        verbose_name=_("import reference"),
+        max_length=64, null=True, blank=True,
+        help_text=_("a reference number in an external data source")
+    )
+    status = models.CharField(
+        verbose_name=_("status"),
+        max_length=128, null=True, blank=True,
+    )
 
     def country_decorator(self):
         """Only needed by geolocation template"""

@@ -68,8 +68,6 @@ class Entry(IndividualBase, Configurable):
         db_index=True,
     )
 
-    # ----------- extra fields which are not on Individual -------------
-
     user = models.ForeignKey(
         verbose_name=_("Created by"),
         to=get_user_model(),
@@ -77,12 +75,7 @@ class Entry(IndividualBase, Configurable):
         null=True,
         blank=True,
         db_index=True,
-    )
-
-    external_order_number = models.CharField(
-        verbose_name=_("External order number"),
-        max_length=64,
-        blank=True,
+        related_name="entries",
     )
 
     # ----------- extra fields that are mapped to individuals.models.Outplanting -------------
@@ -113,7 +106,6 @@ class Entry(IndividualBase, Configurable):
     @configurable
     def change_link_decorator(self):
         return _("show")
-
     change_link_decorator.short_description = _("show")
     change_link_decorator.exclude_csv = True
 
@@ -121,7 +113,6 @@ class Entry(IndividualBase, Configurable):
     def delete_link_decorator(self):
         url = reverse("admin:entrybook_entry_delete", args=(self.pk,))
         return mark_safe('<a href="%s" class="deletelink">%s</a>' % (url, _("delete")))
-
     delete_link_decorator.short_description = _("delete")
     delete_link_decorator.exclude_csv = True
 
@@ -181,9 +172,9 @@ class Entry(IndividualBase, Configurable):
 class EntryForm(
     AutoCompleteForm(
         Entry,
-        widgets={
-            "accession_number": widgets.NumberInput(),  # don't need a spinbox for the accession number
-        },
+        #widgets={
+        #    "accession_number": widgets.NumberInput(),  # don't need a spinbox for the accession number
+        #},
         autocomplete_mapping={
             "species": {"model": Species, "field": "full_name_generated"},
             "came_as_species": {"model": Species, "field": "full_name_generated"},

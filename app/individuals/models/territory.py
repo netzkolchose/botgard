@@ -94,10 +94,10 @@ class Territory(CalcOutplantingsMixin, models.Model, Configurable):
         verbose_name_plural = _("territories")
         ordering = ['code']
 
-    code = models.CharField(max_length=3, unique=True, verbose_name=_("territory code"))
-    name = models.CharField(max_length=50, unique=True, verbose_name=_("territory name"))
+    code = models.CharField(max_length=10, unique=True, verbose_name=_("territory code"))
+    name = models.CharField(max_length=100, unique=True, verbose_name=_("territory name"))
 
-    name_generated = models.CharField(max_length=70, verbose_name=_("display name"), default="", editable=False)
+    name_generated = models.CharField(max_length=120, verbose_name=_("display name"), default="", editable=False)
 
     _id_field = "name_generated"
 
@@ -164,7 +164,7 @@ def _department_full_code_validator(val):
         raise ValidationError(_('A list is expected.'))
     if len(val) < 1:
         raise ValidationError(_('The list must contain at least two values.'))
-    if ('department' not in val):
+    if 'department' not in val:
         raise ValidationError(_('The list must contain "department".'))
 
 config_app.register_key(
@@ -194,7 +194,7 @@ class Department(CalcOutplantingsMixin, models.Model, Configurable):
         null=True, default=None,
     )
     code = models.CharField(max_length=10)
-    name = models.CharField(max_length=50, unique=True)
+    name = models.CharField(max_length=100, unique=True)
 
     full_code = models.CharField(max_length=30, default="", editable=False)
 

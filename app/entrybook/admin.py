@@ -58,7 +58,7 @@ class EntryAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
         (None, {
             'fields': (
                 ('accession_number', 'accession_extension', 'seed_available', 'seed_in_stock',),
-                ('species', 'species_checked_by', 'came_as_species'),
+                ('species', 'species_checked_by', 'species_checked_date', 'came_as_species'),
                 ('user',),
             )
         }),
@@ -76,7 +76,7 @@ class EntryAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
         }),
         (_('miscellaneous'), {
             'classes': 'collapse',
-            'fields': ('gender', 'comment',)
+            'fields': ('gender', 'comment', 'import_reference')
         }),
         (_('seeds'), {
             'fields': ('order_number', 'sowing_number')
@@ -88,6 +88,9 @@ class EntryAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
 
     class Media:
         css = {"screen": ('BotGard/css_dropdown/css_dropdown.css',)}
+        js = (
+            "individuals/change_form_tools.js",
+        )
 
     def get_actions(self, request):
         actions = super().get_actions(request)

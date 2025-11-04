@@ -19,13 +19,30 @@ PROTECTION_OF_SPECIES_CHOICES = (
     ('EX', 'EX (Extinct)'),
 )
 
+# see https://en.wikipedia.org/wiki/Plant_life-form
 LIFEFORM_CHOICES = (
     ('P', 'Phanerophyt (Gehölz)'),
+    ('Pb', 'Phanerophyt (Baum)'),
+    ('Ps', 'Phanerophyt (Strauch)'),
     ('C', 'Chamaephyt (Zwergstrauch/Halbstrauch)'),
     ('H', 'Hemikryptophyt (Staude)'),
     ('K', 'Kryptophyt'),
     ('T', 'Therophyt (Einjährige)'),
+    ('A', 'Hydrophyt'),
+    ('Ck', 'krautiger Chamaephyt'),
+    ('G', 'Geophyt'),
+    ('N', 'Nanophanerophyt'),
+    ('Z', 'holziger Chamaephyt'),
+    ('li', 'Liane / Spreizklimmer'),
+    ('ep', 'Epiphyt'),
+    ('hp', 'Halbparasit'),
+    ('vp', 'Vollparasit'),
+    ('1', 'einjährig'),
+    ('2', 'zweijährig'),
 )
+
+if len(LIFEFORM_CHOICES) != len(set([i[0] for i in LIFEFORM_CHOICES])):
+    raise ValueError("Duplicate LIFEFORM_CHOICES!!")
 
 
 class Family(models.Model, Configurable):

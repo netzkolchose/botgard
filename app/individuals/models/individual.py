@@ -14,6 +14,16 @@ class Individual(IndividualBase, Configurable):
 
     _id_field = "id_name_generated"
 
+    user = models.ForeignKey(
+        verbose_name=_("Created by"),
+        to=get_user_model(),
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        db_index=True,
+        related_name="individuals",
+    )
+
     ipen_garden_code = models.ForeignKey('botman.BotanicGarden', verbose_name="-", on_delete=models.CASCADE)
     species = models.ForeignKey(
         'species.Species', verbose_name=_("genus & Species"), blank=False,
@@ -265,7 +275,7 @@ class Individual(IndividualBase, Configurable):
         # -- update generated fields --
         self.ipen_generated = (
             str.upper(self.ipen_country) + "-" + str.upper(self.ipen_transfer_restricted)
-            + "-" + str.upper(self.ipen_garden_code.code) + "-" + str(self.ipen_accession_number)
+            + "-" + str.upper(self.ipen_garden_code.code or "XX") + "-" + str(self.ipen_accession_number)
         )
 
         # -- update id_name_generated --
@@ -331,9 +341,9 @@ class IndividualForm(
     IndividualValidateMixin,
     AutoCompleteForm(
         Individual,
-        widgets={
-            "accession_number": widgets.NumberInput()  # don't need a spinbox for the accession number
-        },
+        #widgets={
+        #    "accession_number": widgets.NumberInput()  # don't need a spinbox for the accession number
+        #},
         autocomplete_mapping={
             "came_as_species": {"model": Species, "field": "full_name_generated"},
         }
@@ -432,9 +442,12 @@ class Seed(Individual):
 
 class SeedForm(
     IndividualValidateMixin,
-    AutoCompleteForm(Seed, widgets={
-        "accession_number": widgets.Input()  # don't need a spinbox for the accession number
-    })
+    AutoCompleteForm(
+        Seed,
+        #widgets={
+        #    "accession_number": widgets.Input()  # don't need a spinbox for the accession number
+        #}
+    )
 ):
     def __init__(self, *args, **kwargs):
         self._update_initial(kwargs)

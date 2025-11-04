@@ -88,9 +88,9 @@ def _get_new_number(
 
         max_num = method["min"]
         for Model in model_classes:
-            qset = Model.objects.all().order_by("-%s" % fieldname)
+            qset = Model.objects.filter(**{f"{fieldname}__regex": r"^\d+$"}).order_by(f"-{fieldname}")
             if qset.exists():
-                max_num = max(max_num, qset.values_list(fieldname, flat=True)[0] + 1)
+                max_num = max(max_num, int(qset.values_list(fieldname, flat=True)[0]) + 1)
 
         return max_num
 
@@ -109,7 +109,12 @@ def _get_new_number(
 
         used_numbers = set()
         for Model in model_classes:
-            used_numbers |= set(Model.objects.all().values_list(fieldname, flat=True))
+            used_numbers |= set(
+                map(
+                    int,
+                    Model.objects.filter(**{f"{fieldname}__regex": r"^\d+$"}).values_list(fieldname, flat=True),
+                )
+            )
         used_numbers = sorted(filter(lambda n: n >= method["min"], used_numbers))
         if not used_numbers:
             return method["min"]
