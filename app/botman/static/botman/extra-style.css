@@ -172,7 +172,8 @@ input[type="checkbox"] {
 }
 
 #header #user-tools .user-menu li > a,
-#header #user-tools .user-menu li > a:visited {
+#header #user-tools .user-menu li > a:visited,
+#header #user-tools .user-menu li #logout-form button {
     font-weight: bolder;
     font-style: normal;
     color: #236131;
