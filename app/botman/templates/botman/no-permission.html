@@ -1,0 +1,10 @@
+{% extends admin_base_tmpl %}
+{% load i18n %}
+
+{% block page_content %}
+
+    <p>{% trans "Sorry, but you do not have write permission!" %}</p>
+
+    <p><a href="/admin/logout/">{% trans "Log out and change user" %}</a></p>
+
+{% endblock %}
