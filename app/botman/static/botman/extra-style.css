@@ -293,6 +293,12 @@ span.icon-no {
     background-image: url('../admin/img/icon-no.svg');
 }
 
+.label-preview-background {
+    background-color: white;
+    color: black;
+    padding: .1rem;
+}
+
 
 :root {
     --link-fg: #236131;
@@ -307,3 +313,4 @@ span.icon-no {
         --link-selected-fg: #236131;
     }
 }
+
