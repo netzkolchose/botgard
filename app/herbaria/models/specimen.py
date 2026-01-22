@@ -14,7 +14,9 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 
 from config_tables.admin import configurable, Configurable
+from ajax.autocomplete import AutoCompleteForm
 from tools.global_request import get_current_user
+
 
 HERBARIUM_SPECIMEN_TYPES = (
     ("plant_generative", _("Plant (generative)")),
@@ -25,7 +27,18 @@ HERBARIUM_SPECIMEN_TYPES = (
 )
 
 def get_default_herbarium():
+    """
+    Return (in this priority):
+    - the Herbarium used for the latest created HerbariumSpecimen
+    - the first created Herbarium
+    - None
+    """
     from .herbarium import Herbarium
+
+    newest_specimen = HerbariumSpecimen.objects.all().order_by("-pk").first()
+    if newest_specimen is not None:
+        return newest_specimen.herbarium
+
     return Herbarium.objects.all().order_by("pk").first()
 
 
@@ -33,31 +46,31 @@ class HerbariumSpecimen(Configurable, models.Model):
 
     class Meta:
         verbose_name = _("Specimen")
-        verbose_name_plural = _("Specimen")
+        verbose_name_plural = _("Specimens")
 
     herbarium = models.ForeignKey(
         to="herbaria.Herbarium",
         on_delete=models.CASCADE,
         db_index=True,
         default=get_default_herbarium,
-        related_name="specimen",
+        related_name="specimens",
     )
 
     individual = models.ForeignKey(
         to="individuals.Individual",
         on_delete=models.CASCADE,
         db_index=True,
-        related_name="herbarium_specimen",
+        related_name="herbarium_specimens",
     )
 
-    legato = models.ForeignKey(
-        verbose_name=_("Legato"),
+    collector = models.ForeignKey(
+        verbose_name="Legato",
         help_text=_("Collector"),
         to=get_user_model(),
         on_delete=models.CASCADE,
         default=get_current_user,
         db_index=True,
-        related_name="herbarium_legato",
+        related_name="herbarium_collectors",
     )
 
     collection_date = models.DateField(
@@ -80,7 +93,7 @@ class HerbariumSpecimen(Configurable, models.Model):
 
     @configurable
     def __str__(self):
-        return self.individual.id_name_generated
+        return _("Specimen of {}").format(self.individual.id_name_generated)
 
     __str__.admin_order_field = 'individual.id_name_generated'
     __str__.short_description = _('Specimen')
@@ -109,3 +122,21 @@ class HerbariumSpecimen(Configurable, models.Model):
 
     label_link_decorator.short_description = _("create label")
     label_link_decorator.exclude_csv = True
+
+
+def create_herbarium_specimen_form_class(**autocomplete_kwargs):
+    class HerbariumSpecimenForm(AutoCompleteForm(HerbariumSpecimen, **autocomplete_kwargs)):
+        exclude_autocomplete = (
+            # There will be only one or a few herbaria, make it more simple to select without typing
+            "herbarium",
+            # Users are filtered to active users, so don't use autocomplete
+            "collector",
+        )
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.fields["collector"].queryset = (
+                get_user_model()
+                .objects.filter(is_active=True, is_staff=True)
+                .order_by("username")
+            )
+    return HerbariumSpecimenForm

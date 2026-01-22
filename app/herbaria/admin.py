@@ -4,6 +4,7 @@ from django.utils.translation import gettext_lazy as _
 from django.contrib.admin import SimpleListFilter
 from django import forms
 from django.db import transaction
+from django.contrib.auth import get_user_model
 
 from .models import *
 
@@ -18,25 +19,23 @@ from labels.mass_action import add_label_mass_actions
 class HerbariumAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
     form = AutoCompleteForm(Herbarium)
     list_display = (
-        'change_link_decorator', 'name', 'comment',
+        'change_link_decorator', 'date_created', 'name', 'comment',
     )
     blacklist = ('id', )
 
 
-from individuals.models import Individual
 @register(HerbariumSpecimen)
 class HerbariumSpecimenAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
-    form = AutoCompleteForm(HerbariumSpecimen)
+    form = create_herbarium_specimen_form_class()
     list_display = (
         'change_link_decorator',
-        'herbarium', 'individual', 'legato', 'collection_date', 'specimen_type', 'comment',
+        'herbarium', 'individual', 'collector', 'collection_date', 'specimen_type', 'comment',
     )
     list_filter = (
         'herbarium',
         'specimen_type',
-        ('legato__username', ForeignKeyFilter),
+        ('collector__username', ForeignKeyFilter),
         ('herbarium__name', ForeignKeyFilter),
         ('individual__id_name_generated', ForeignKeyFilter),
     )
     blacklist = ('id', )
-
