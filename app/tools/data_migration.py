@@ -11,7 +11,10 @@ from tickets.models import LaserGravurTicket
 """
 
 Please add ALL field dependencies here so we can arrange for re-generating the 
-fields on changes to their source
+fields on changes to their source (A -> B means: A depends on B)
+
+Tests should go into BotGard/tests/test_model_dependencies.py
+
 
     botman:
         BotanicGarden.full_name_generated -> self
@@ -29,7 +32,8 @@ fields on changes to their source
         Individual.is_alive_generated -> [Outplanting,].department
         Individual.location_generated -> [Outplanting,].department
         Individual.name_generated -> Species.family.genus
-
+        Individual.has_specimen_generated -> HerbariumSpecimen
+        
     species:
         Family.full_name_generated -> self
         Species.full_name_generated -> Family.genus

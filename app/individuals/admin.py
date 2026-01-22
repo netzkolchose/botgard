@@ -141,7 +141,7 @@ class HerbariumSpecimenInline(readOnlyAdmin.ReadOnlyTabularInline):
     )
     model = HerbariumSpecimen
     min_num = 0
-    extra = 1
+    extra = 0
 
 
 class IndividualAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):

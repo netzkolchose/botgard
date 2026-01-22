@@ -8,8 +8,8 @@ from django.urls import reverse
 from django.templatetags.static import static
 from django.utils.html import format_html, escape
 from django.utils.safestring import mark_safe
-#from django.db.models.signals import post_save
-#from django.dispatch import receiver
+from django.db.models.signals import post_save, post_delete
+from django.dispatch import receiver
 from django.conf import settings
 from django.contrib.auth import get_user_model
 
@@ -123,6 +123,13 @@ class HerbariumSpecimen(Configurable, models.Model):
     label_link_decorator.short_description = _("create label")
     label_link_decorator.exclude_csv = True
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        if not self.individual.has_specimen_generated:
+            self.individual.has_specimen_generated = True
+            self.individual.save()
+
 
 def create_herbarium_specimen_form_class(**autocomplete_kwargs):
     class HerbariumSpecimenForm(AutoCompleteForm(HerbariumSpecimen, **autocomplete_kwargs)):
@@ -140,3 +147,12 @@ def create_herbarium_specimen_form_class(**autocomplete_kwargs):
                 .order_by("username")
             )
     return HerbariumSpecimenForm
+
+
+@receiver(post_delete, sender=HerbariumSpecimen)
+def on_herbarium_deleted(sender, instance: HerbariumSpecimen, **kwargs):
+    if instance.individual:
+        has_specimen = instance.individual.herbarium_specimens.exists()
+        if has_specimen != instance.individual.has_specimen_generated:
+            instance.individual.has_specimen_generated = has_specimen
+            instance.individual.save()

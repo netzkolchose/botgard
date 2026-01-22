@@ -50,6 +50,7 @@ class Individual(IndividualBase, Configurable):
     territories_generated = models.CharField(max_length=1000, verbose_name=_("territories"), blank=True)
     # is any of the outplantings alive?
     is_alive_generated = models.BooleanField(verbose_name=_("is alive"), editable=False, default=False)
+    has_specimen_generated = models.BooleanField(verbose_name=_("has specimen"), editable=False, default=False)
 
     @configurable
     def __str__(self):
