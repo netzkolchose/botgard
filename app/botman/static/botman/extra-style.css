@@ -294,9 +294,18 @@ span.icon-no {
 }
 
 .label-preview-background {
+    display: inline-block;
     background-color: white;
     color: black;
     padding: .1rem;
+}
+
+.label-preview-background h1,
+.label-preview-background h2,
+.label-preview-background h3,
+.label-preview-background h4 {
+    background: unset;
+    color: black;
 }
 
 
