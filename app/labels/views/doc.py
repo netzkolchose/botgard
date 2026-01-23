@@ -16,6 +16,7 @@ from labels.models import (
 from individuals.models import Individual
 from botman.models import BotanicGarden
 from entrybook.models import Entry
+from herbaria.models import HerbariumSpecimen
 from tools.permissions import login_required
 
 
@@ -55,17 +56,20 @@ def get_template_doc_context(request) -> dict:
     elif label_type == "entry":
         model = Entry
         id_field_name = Entry._id_field
+    elif label_type == "herbarium_specimen":
+        model = HerbariumSpecimen
+        id_field_name = "pk"
     else:
         raise ValueError(f"Invalid label type '{label_type}'")
 
     try:
         instance = model.objects.get(**{id_field_name: instance_id})
-    except model.DoesNotExist:
+    except (model.DoesNotExist, ValueError):
         instance = None
         instance_id = ""
 
     return {
-        "docs": sorted(get_template_doc_from_model(model, instance), key=lambda e: e["name"]),
+        "docs": get_template_doc_from_model(model, instance),
         "has_example": instance is not None,
         "instance_id": instance_id,
         "instance_field": {
@@ -78,25 +82,36 @@ def get_template_doc_context(request) -> dict:
 def get_template_doc_from_model(
         model: Type[models.Model],
         instance: models.Model = None,
-        models_parsed: set = None
 ) -> List[dict]:
+    docs = _get_template_doc_from_model(model, instance)
+    docs = sorted(docs, key=lambda e: e["name"])
+    docs = sorted(docs, key=lambda e: 0 if e["name"].count(".") == 0 else 1)
+    return docs
+
+def _get_template_doc_from_model(
+        model: Type[models.Model],
+        instance: models.Model = None,
+        models_parsed: set = None,
+) -> List[dict]:
+    is_user_model = issubclass(model, get_user_model())
+
     models_parsed = models_parsed or set()
     models_parsed.add(model)
     docs = []
     for field in model._meta.fields:
         if isinstance(field, models.ForeignKey):
-            related_model = field.related_model
-            if related_model not in models_parsed:
-                sub_docs = get_template_doc_from_model(
+            related_model: Type[models.Model] = field.related_model
+            if related_model not in models_parsed or issubclass(related_model, get_user_model()):
+                sub_docs = _get_template_doc_from_model(
                     model=related_model,
                     instance=getattr(instance, field.name) if instance is not None else None,
                     models_parsed=models_parsed,
                 )
                 for d in sub_docs:
-                    d["name"] = f"{related_model._meta.model_name}.{d['name']}"
+                    d["name"] = f"{field.name}.{d['name']}"
                     docs.append(d)
         else:
-            if issubclass(model, get_user_model()):
+            if is_user_model:
                 if field.name not in ("username", "first_name", "last_name"):
                     continue
 
@@ -113,16 +128,22 @@ def get_template_doc_from_model(
             continue
         if callable(getattr(model, attr_name)):
             func = getattr(model, attr_name)
-            if hasattr(func, "short_description") or hasattr(func, "template_doc"):
-                #args, varargs, varkw = inspect.getargs(func)
-                #if args == 1:
+
+            verbose_name = None
+            if is_user_model and attr_name == "get_full_name":
+                verbose_name = _("Full user name")
+            elif hasattr(func, "short_description") or hasattr(func, "template_doc"):
+                verbose_name = getattr(func, "template_doc", None) or getattr(func, "short_description")
+            #args, varargs, varkw = inspect.getargs(func)
+            #if args == 1:
+
+            if verbose_name:
                 desc = {
                     "name": attr_name,
-                    "verbose_name": getattr(func, "template_doc", None) or getattr(func, "short_description"),
+                    "verbose_name": verbose_name,
                 }
                 if instance:
                     desc["example"] = getattr(instance, attr_name)()
-                    print("X", desc)
                 docs.append(desc)
 
     return docs
