@@ -168,7 +168,7 @@ input[type="checkbox"] {
 }
 
 #header #user-tools .user-menu li {
-    color: #999;
+    color: color-mix(in srgb, var(--body-fg) 80%, var(--body-bg) 20%);
 }
 
 #header #user-tools .user-menu li > a,
@@ -176,7 +176,7 @@ input[type="checkbox"] {
 #header #user-tools .user-menu li #logout-form button {
     font-weight: bolder;
     font-style: normal;
-    color: #236131;
+    color: var(--link-fg);
 }
 
 /*#header #user-tools .user-menu li > a:before {*/
