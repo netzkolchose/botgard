@@ -151,7 +151,7 @@ class IndividualBase(models.Model):
         """Full name of `found_country` code"""
         return get_iso_country_name(self.found_country)
     found_country_name.template_doc = _("collecting country name")
-    
+
     def found_text_lines(self):
         return self.found_text.split("\n")
 

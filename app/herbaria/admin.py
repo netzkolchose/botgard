@@ -29,7 +29,8 @@ class HerbariumSpecimenAdmin(readOnlyAdmin.ReadPermissionModelAdmin, Configurabl
     form = create_herbarium_specimen_form_class()
     list_display = (
         'change_link_decorator',
-        'herbarium', 'individual', 'collector', 'collection_date', 'specimen_type', 'comment',
+        'herbarium', 'individual', 'collector', 'collection_date', 'specimen_type',
+        'label_link_decorator',
     )
     list_filter = (
         'herbarium',
@@ -39,3 +40,8 @@ class HerbariumSpecimenAdmin(readOnlyAdmin.ReadPermissionModelAdmin, Configurabl
         ('individual__id_name_generated', ForeignKeyFilter),
     )
     blacklist = ('id', )
+
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        add_label_mass_actions(request, actions, "herbarium_specimen")
+        return actions

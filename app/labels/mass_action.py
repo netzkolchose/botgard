@@ -38,7 +38,7 @@ def add_label_mass_actions(request, actions: dict, label_type: str):
             actions[action_name] = (
                 partial(render_mass_labels_action, label_pk=pk),
                 action_name,
-                _("Label: %(name)s") % {"name": display_name}
+                _("Label: %(name)s") % {"name": display_name} + " (ZIP)"
             )
 
         else:

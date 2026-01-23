@@ -117,7 +117,7 @@ class HerbariumSpecimen(Configurable, models.Model):
     def label_link_decorator(self):
         from labels import label_link_decorator
         return label_link_decorator(
-            "herbarium", self.pk, filename=f"specimen-{self.pk}"
+            "herbarium_specimen", self.pk, filename=f"specimen-{self.pk}"
         )
 
     label_link_decorator.short_description = _("create label")
