@@ -74,6 +74,7 @@ class HerbariumSpecimen(Configurable, models.Model):
     )
 
     collection_date = models.DateField(
+        verbose_name=_("Collection date"),
         auto_now_add=True,
     )
 

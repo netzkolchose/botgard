@@ -32,6 +32,7 @@ class Herbarium(Configurable, models.Model):
     )
 
     date_created = models.DateField(
+        verbose_name=_("date created"),
         auto_now_add=True,
     )
 
