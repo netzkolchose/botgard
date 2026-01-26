@@ -135,6 +135,10 @@ def get_seed_order_ids(s: str) -> List[str]:
 
 class HerbariumSpecimenInline(readOnlyAdmin.ReadOnlyTabularInline):
     form = create_herbarium_specimen_form_class(
+        # remove one of the defaults, otherwise user might click "add specimen"
+        # and all defaults might be exactly the ones the user wants to enter
+        # and nothing is saved, because django thought nothing was entered
+        no_default_specimen_type=True,
         widgets={
             "comment": forms.TextInput,  # don't use textarea in inline form
         }

@@ -1,3 +1,4 @@
+import django.forms.fields
 from django.db import models, OperationalError
 from django import forms
 from django.forms import widgets
@@ -132,7 +133,10 @@ class HerbariumSpecimen(Configurable, models.Model):
             self.individual.save()
 
 
-def create_herbarium_specimen_form_class(**autocomplete_kwargs):
+def create_herbarium_specimen_form_class(
+        no_default_specimen_type: bool = False,
+        **autocomplete_kwargs,
+):
     class HerbariumSpecimenForm(AutoCompleteForm(HerbariumSpecimen, **autocomplete_kwargs)):
         exclude_autocomplete = (
             # There will be only one or a few herbaria, make it more simple to select without typing
@@ -147,6 +151,12 @@ def create_herbarium_specimen_form_class(**autocomplete_kwargs):
                 .objects.filter(is_active=True, is_staff=True)
                 .order_by("username")
             )
+            if no_default_specimen_type:
+                self.fields["specimen_type"].choices = (
+                    [("", _("Please select..."))] + list(self.fields["specimen_type"].choices)
+                )
+                self.fields["specimen_type"].initial = ""
+
     return HerbariumSpecimenForm
 
 
