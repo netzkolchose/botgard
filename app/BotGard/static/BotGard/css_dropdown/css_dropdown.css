@@ -21,8 +21,8 @@
     position: fixed;
     margin: 0;
     padding: 0.5em 0.75em ;
-    border: 1px solid #999;
-    background-color: white;
+    border: 1px solid color-mix(in srgb, var(--body-bg) 60%, var(--body-fg) 40%);;
+    background-color: color-mix(in srgb, var(--body-bg) 90%, var(--body-fg) 10%);
     letter-spacing: normal;
 }
 

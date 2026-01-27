@@ -95,14 +95,18 @@ class LabelDefinition(models.Model):
             qset = BotanicGarden.objects.all()
             if not qset.exists():
                 return ""
-            return self.render_markup(self.get_garden_context(qset[random.randrange(qset.count())]))
-        if self.type == "individual":
+            markup = self.render_markup(self.get_garden_context(qset[random.randrange(qset.count())]))
+        elif self.type == "individual":
             from individuals.models import Individual
             qset = Individual.objects.all()
             if not qset.exists():
                 return ""
-            return mark_safe(self.render_markup(self.get_individual_context(qset[random.randrange(qset.count())])))
-        return ""
+            markup = self.render_markup(self.get_individual_context(qset[random.randrange(qset.count())]))
+        else:
+            return ""
+        markup = f"""<div class="label-preview-background">{markup}</div>"""
+        return mark_safe(markup)
+
     preview_decorator.short_description = _("preview")
 
     def render_markup(self, context: dict, without_page_markup: bool = False) -> str:

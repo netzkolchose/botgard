@@ -35,8 +35,9 @@ function onDistributionTextChange() {
     let
         $input = $("#id_area_of_distribution_etikettxt"),
         text = $input.val(),
-        text_length = Math.round(getTextSize(text) * 100.);
-    $input.siblings(".help").text(`${text_length}%`);
+        text_length = Math.round(getTextSize(text) * 100.),
+        $help = $("#id_area_of_distribution_etikettxt_helptext");
+    $help.text(`${text_length}%`);
 }
 
 

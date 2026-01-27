@@ -23,6 +23,6 @@
 .ticket-description {
     display: block;
     padding: 3px;
-    background: #f5f4f4;
+    background: color-mix(in srgb, var(--body-bg) 87%, var(--body-fg) 13%);
     margin: 10px 0px;
 }

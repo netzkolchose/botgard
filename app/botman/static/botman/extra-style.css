@@ -168,7 +168,7 @@ input[type="checkbox"] {
 }
 
 #header #user-tools .user-menu li {
-    color: #999;
+    color: color-mix(in srgb, var(--body-fg) 80%, var(--body-bg) 20%);
 }
 
 #header #user-tools .user-menu li > a,
@@ -176,7 +176,7 @@ input[type="checkbox"] {
 #header #user-tools .user-menu li #logout-form button {
     font-weight: bolder;
     font-style: normal;
-    color: #236131;
+    color: var(--link-fg);
 }
 
 /*#header #user-tools .user-menu li > a:before {*/
@@ -293,6 +293,21 @@ span.icon-no {
     background-image: url('../admin/img/icon-no.svg');
 }
 
+.label-preview-background {
+    display: inline-block;
+    background-color: white;
+    color: black;
+    padding: .1rem;
+}
+
+.label-preview-background h1,
+.label-preview-background h2,
+.label-preview-background h3,
+.label-preview-background h4 {
+    background: unset;
+    color: black;
+}
+
 
 :root {
     --link-fg: #236131;
@@ -307,3 +322,4 @@ span.icon-no {
         --link-selected-fg: #236131;
     }
 }
+
