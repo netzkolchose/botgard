@@ -54,7 +54,7 @@ class TerritoryAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
 
 
 class OutplantingInline(readOnlyAdmin.ReadOnlyTabularInline):
-    #form = AutoCompleteForm(Outplanting)
+    form = OutplantingForm
     model = Outplanting
     min_num = 0
 
@@ -307,7 +307,7 @@ class IndividualFromEntryAdmin(IndividualAdmin):
 
 
 class OutplantingAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
-    form = AutoCompleteForm(Outplanting)
+    form = OutplantingForm
     list_display = (
         'change_link_decorator',
         'territory_decorator', 'department_decorator',
