@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-26 14:01+0100\n"
+"POT-Creation-Date: 2026-01-28 10:59+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -27,8 +27,8 @@ msgstr "Englisch"
 #: BotGard/tests/data/label-individual-complex.html:5
 #: demo-data/labels/individual-multipage-inner.html:5
 #: individuals/models/individual.py:171 individuals/models/individual.py:374
-#: individuals/models/outplanting.py:79 species/models.py:50
-#: species/models.py:61 species/models.py:217
+#: individuals/models/outplanting.py:81 species/models.py:55
+#: species/models.py:66 species/models.py:230
 msgid "genus"
 msgstr "Gattung"
 
@@ -64,7 +64,7 @@ msgstr "Verbreitung"
 #: BotGard/tests/data/label-individual-complex.html:30
 #: demo-data/labels/individual-multipage-inner.html:30 entrybook/admin.py:65
 #: entrybook/models/entry.py:57 individuals/admin.py:101
-#: individuals/admin.py:199 individuals/models/individual.py:33
+#: individuals/admin.py:205 individuals/models/individual.py:33
 msgid "source"
 msgstr "Quelle"
 
@@ -85,7 +85,7 @@ msgstr "Eingangsform"
 msgid "page"
 msgstr "Seite"
 
-#: ajax/autocomplete.py:64
+#: ajax/autocomplete.py:63
 msgid "Type to search"
 msgstr "zum Suchen tippen"
 
@@ -238,12 +238,12 @@ msgstr "Katalog/%(date)s"
 #: botman/models/garden.py:119 botman/models/garden.py:120
 #: entrybook/models/entry.py:115 entrybook/models/entry.py:116
 #: herbaria/models/herbarium.py:61 herbaria/models/herbarium.py:63
-#: herbaria/models/specimen.py:112 herbaria/models/specimen.py:114
+#: herbaria/models/specimen.py:113 herbaria/models/specimen.py:115
 #: individuals/models/individual.py:137 individuals/models/individual.py:139
 #: individuals/models/territory.py:121 individuals/models/territory.py:122
 #: individuals/models/territory.py:227 individuals/models/territory.py:228
-#: species/models.py:86 species/models.py:87 species/models.py:230
-#: species/models.py:231
+#: species/models.py:91 species/models.py:92 species/models.py:243
+#: species/models.py:244
 msgid "delete"
 msgstr "Löschen"
 
@@ -329,12 +329,12 @@ msgid "garden number"
 msgstr "Gartennummer"
 
 #: botman/models/garden.py:55 individuals/models/individual_base.py:124
-#: individuals/models/outplanting.py:24 plantimages/models.py:12
-#: species/models.py:141
+#: individuals/models/outplanting.py:26 plantimages/models.py:12
+#: species/models.py:154
 msgid "comment"
 msgstr "Bemerkungen"
 
-#: botman/models/garden.py:57 species/models.py:63 species/models.py:129
+#: botman/models/garden.py:57 species/models.py:68 species/models.py:134
 msgid "full name"
 msgstr "ganzer Name"
 
@@ -356,13 +356,13 @@ msgstr "Etikett"
 #: botman/models/garden.py:113 botman/models/garden.py:114
 #: entrybook/models/entry.py:108 entrybook/models/entry.py:109
 #: herbaria/models/herbarium.py:53 herbaria/models/herbarium.py:55
-#: herbaria/models/specimen.py:104 herbaria/models/specimen.py:106
+#: herbaria/models/specimen.py:105 herbaria/models/specimen.py:107
 #: individuals/models/individual.py:129 individuals/models/individual.py:131
-#: individuals/models/outplanting.py:47 individuals/models/outplanting.py:48
+#: individuals/models/outplanting.py:49 individuals/models/outplanting.py:50
 #: individuals/models/territory.py:114 individuals/models/territory.py:115
 #: individuals/models/territory.py:213 individuals/models/territory.py:214
-#: species/models.py:79 species/models.py:80 species/models.py:223
-#: species/models.py:224
+#: species/models.py:84 species/models.py:85 species/models.py:236
+#: species/models.py:237
 msgid "show"
 msgstr "Anzeigen"
 
@@ -425,6 +425,14 @@ msgstr "Sie haben leider keine Berechtigung, etwas zu ändern"
 msgid "Home"
 msgstr "Home"
 
+#: botman/templates/botman/no-permission.html:6 botman/views.py:27
+msgid "Sorry, but you do not have write permission!"
+msgstr "Sie haben leider keine Schreibberechtigung"
+
+#: botman/templates/botman/no-permission.html:8 botman/views.py:28
+msgid "Log out and change user"
+msgstr "Abmelden und Benutzer wechseln"
+
 #: botman/utils.py:27
 #, python-format
 msgid "Moved %s catalogs to archive"
@@ -434,14 +442,6 @@ msgstr "%s Kataloge ins Archiv bewegt"
 #, python-format
 msgid "Error moving catalogs: %s"
 msgstr "Fehler beim Verschieben der Kataloge: %s"
-
-#: botman/views.py:27
-msgid "Sorry, but you do not have write permission!"
-msgstr "Sie haben leider keine Schreibberechtigung"
-
-#: botman/views.py:28
-msgid "Log out and change user"
-msgstr "Abmelden und Benutzer wechseln"
 
 #: botman/views.py:69
 #, python-format
@@ -467,13 +467,13 @@ msgid ""
 " -f with a list of keys will only copy the default values for the given keys."
 msgstr ""
 
-#: config_app/management/commands/botgard_update_config.py:94
+#: config_app/management/commands/botgard_update_config.py:99
 msgid ""
 "INFO: The database contains configruation values which are different to the "
 "default settings."
 msgstr ""
 
-#: config_app/management/commands/botgard_update_config.py:95
+#: config_app/management/commands/botgard_update_config.py:100
 msgid "If you want to overwrite the database changes call:"
 msgstr ""
 
@@ -652,21 +652,21 @@ msgstr "90 (Kulturpflanze/Samen wechselnder Herkünfte)"
 msgid "W (Wildsamen)"
 msgstr "W (Wildsamen)"
 
-#: entrybook/admin.py:74 individuals/admin.py:98 individuals/admin.py:196
+#: entrybook/admin.py:74 individuals/admin.py:98 individuals/admin.py:202
 msgid "habitat"
 msgstr "Herkunft"
 
-#: entrybook/admin.py:77 individuals/admin.py:104 individuals/admin.py:202
+#: entrybook/admin.py:77 individuals/admin.py:104 individuals/admin.py:208
 msgid "miscellaneous"
 msgstr "Verschiedenes"
 
-#: entrybook/admin.py:81 individuals/admin.py:108 individuals/admin.py:206
-#: individuals/models/individual.py:362 species/models.py:258
+#: entrybook/admin.py:81 individuals/admin.py:108 individuals/admin.py:212
+#: individuals/models/individual.py:362 species/models.py:271
 msgid "seeds"
 msgstr "Samen"
 
-#: entrybook/admin.py:84 individuals/models/outplanting.py:14
-#: individuals/models/outplanting.py:30
+#: entrybook/admin.py:84 individuals/models/outplanting.py:16
+#: individuals/models/outplanting.py:32
 msgid "Outplanting"
 msgstr "Pflanzung"
 
@@ -694,22 +694,22 @@ msgstr "Familie & Art"
 msgid "Created by"
 msgstr "Erstellt von"
 
-#: entrybook/models/entry.py:84 individuals/models/outplanting.py:20
+#: entrybook/models/entry.py:84 individuals/models/outplanting.py:22
 msgid "sowing date"
 msgstr "Aussaatdatum"
 
-#: entrybook/models/entry.py:89 individuals/models/outplanting.py:21
+#: entrybook/models/entry.py:89 individuals/models/outplanting.py:23
 msgid "bed out date"
 msgstr "Auspflanzdatum"
 
 #: entrybook/models/entry.py:94 entrybook/models/entry.py:141
-#: individuals/models/outplanting.py:18 individuals/models/outplanting.py:54
+#: individuals/models/outplanting.py:20 individuals/models/outplanting.py:56
 #: individuals/models/territory.py:188
 msgid "department"
 msgstr "Abteilung"
 
 #: entrybook/models/entry.py:126 entrybook/models/entry.py:135
-#: herbaria/models/specimen.py:124 individuals/models/individual.py:149
+#: herbaria/models/specimen.py:125 individuals/models/individual.py:149
 msgid "create label"
 msgstr "Etikett erstellen"
 
@@ -734,56 +734,59 @@ msgstr "Name"
 msgid "date created"
 msgstr "Erstellt am"
 
-#: herbaria/models/herbarium.py:40 herbaria/models/specimen.py:90
+#: herbaria/models/herbarium.py:40 herbaria/models/specimen.py:91
 #: individuals/views.py:88
 msgid "Comment"
 msgstr "Bemerkungen"
 
-#: herbaria/models/specimen.py:22
+#: herbaria/models/specimen.py:23
 msgid "Plant (generative)"
 msgstr "Pflanze (generativ)"
 
-#: herbaria/models/specimen.py:23
+#: herbaria/models/specimen.py:24
 msgid "Plant (vegetative)"
 msgstr "Pflanze (vegetativ)"
 
-#: herbaria/models/specimen.py:24
+#: herbaria/models/specimen.py:25
 msgid "Blossoms"
 msgstr "Blüten"
 
-#: herbaria/models/specimen.py:25
+#: herbaria/models/specimen.py:26
 msgid "Leaves"
 msgstr "Blätter"
 
-#: herbaria/models/specimen.py:26
+#: herbaria/models/specimen.py:27
 msgid "Fruits"
 msgstr "Früchte"
 
-#: herbaria/models/specimen.py:48 herbaria/models/specimen.py:100
+#: herbaria/models/specimen.py:49 herbaria/models/specimen.py:101
 #: labels/models.py:21
 msgid "Specimen"
 msgstr "Herbarbeleg"
 
-#: herbaria/models/specimen.py:49
+#: herbaria/models/specimen.py:50
 msgid "Specimens"
 msgstr "Herbarbelege"
 
-#: herbaria/models/specimen.py:68
+#: herbaria/models/specimen.py:69
 msgid "Collector"
 msgstr "Sammler"
 
-#: herbaria/models/specimen.py:77
-#| msgid "collection date"
+#: herbaria/models/specimen.py:78
 msgid "Collection date"
 msgstr "Sammeldatum"
 
-#: herbaria/models/specimen.py:82
+#: herbaria/models/specimen.py:83
 msgid "Specimen type"
 msgstr "Belegtyp"
 
-#: herbaria/models/specimen.py:97
+#: herbaria/models/specimen.py:98
 msgid "Specimen of {}"
 msgstr "Herbarbeleg von {}"
+
+#: herbaria/models/specimen.py:156
+msgid "Please select..."
+msgstr "Bitte auswählen..."
 
 #: individuals/admin.py:95
 msgid "IPEN"
@@ -793,12 +796,12 @@ msgstr "IPEN"
 msgid "Individuals and their locations"
 msgstr "Individuen und Standorte"
 
-#: individuals/models/individual.py:11 individuals/models/outplanting.py:17
-#: individuals/models/outplanting.py:67 tickets/models.py:141
+#: individuals/models/individual.py:11 individuals/models/outplanting.py:19
+#: individuals/models/outplanting.py:69 tickets/models.py:141
 msgid "individual"
 msgstr "Individuum"
 
-#: individuals/models/individual.py:12 species/models.py:248
+#: individuals/models/individual.py:12 species/models.py:261
 #: tickets/models.py:142
 msgid "individuals"
 msgstr "Individuen"
@@ -834,27 +837,27 @@ msgid "Individual"
 msgstr "Individuum"
 
 #: individuals/models/individual.py:165 individuals/models/individual.py:368
-#: individuals/models/outplanting.py:73 species/models.py:57
-#: species/models.py:211
+#: individuals/models/outplanting.py:75 species/models.py:62
+#: species/models.py:224
 msgid "family"
 msgstr "Familie"
 
-#: individuals/models/individual.py:178 species/models.py:135
+#: individuals/models/individual.py:178 species/models.py:140
 msgid "endangering"
 msgstr "Gefährdung"
 
 #: individuals/models/individual.py:199 individuals/models/individual.py:391
-#: species/models.py:139
+#: species/models.py:152
 msgid "nomenclature checked"
 msgstr "Nomenklatur geprüft"
 
 #: individuals/models/individual.py:205 individuals/models/individual.py:405
-#: species/models.py:132
+#: species/models.py:137
 msgid "label text"
 msgstr "Verbreitung"
 
 #: individuals/models/individual.py:211 individuals/models/individual.py:398
-#: individuals/models/individual.py:412 species/models.py:134
+#: individuals/models/individual.py:412 species/models.py:139
 msgid "detailed"
 msgstr "Verbreitung detail."
 
@@ -1026,15 +1029,15 @@ msgstr "Status"
 msgid "collecting country name"
 msgstr "Fundort - Ländername"
 
-#: individuals/models/outplanting.py:15
+#: individuals/models/outplanting.py:17
 msgid "Outplantings"
 msgstr "Pflanzungen"
 
-#: individuals/models/outplanting.py:22
+#: individuals/models/outplanting.py:24
 msgid "plant died on"
 msgstr "Pflanze gestorben am"
 
-#: individuals/models/outplanting.py:60 individuals/models/territory.py:93
+#: individuals/models/outplanting.py:62 individuals/models/territory.py:93
 #: individuals/models/territory.py:193
 msgid "territory"
 msgstr "Revier"
@@ -1683,7 +1686,7 @@ msgstr "Sie haben leider keine Berechtigung, den Katalog zu finalisieren"
 msgid "Return to catalog"
 msgstr "Zurück zu Katalog"
 
-#: species/admin.py:37 species/models.py:271
+#: species/admin.py:37 species/models.py:284
 msgid "alive individuals"
 msgstr "Lebende Individuen"
 
@@ -1699,110 +1702,114 @@ msgstr "Existieren nicht"
 msgid "additional"
 msgstr "Zusätzliches"
 
-#: species/apps.py:7 species/models.py:107 species/models.py:108
-#: species/models.py:119
+#: species/apps.py:7 species/models.py:112 species/models.py:113
+#: species/models.py:124
 msgid "species"
 msgid_plural "species"
 msgstr[0] "Art"
 msgstr[1] "Arten"
 
-#: species/models.py:51
+#: species/models.py:56
 msgid "genera"
 msgstr "Gattungen"
 
-#: species/models.py:58
+#: species/models.py:63
 msgid "subfamily"
 msgstr "Unterfamilie"
 
-#: species/models.py:59
+#: species/models.py:64
 msgid "tribus"
 msgstr "Tribus"
 
-#: species/models.py:60
+#: species/models.py:65
 msgid "subtribus"
 msgstr "Subtribus"
 
-#: species/models.py:62
+#: species/models.py:67
 msgid "author"
 msgstr "Autor"
 
-#: species/models.py:114
+#: species/models.py:119
 msgid "can check nomenclature of a species"
 msgstr "Kann Nomenklatur prüfen"
 
-#: species/models.py:118
+#: species/models.py:123
 msgid "genus & family"
 msgstr "Gattung & Familie"
 
-#: species/models.py:120
+#: species/models.py:125
 msgid "author species"
 msgstr "Autor Art"
 
-#: species/models.py:121
+#: species/models.py:126
 msgid "subspecies"
 msgstr "Unterart"
 
-#: species/models.py:122
+#: species/models.py:127
 msgid "author subspec."
 msgstr "Autor Unterart"
 
-#: species/models.py:123
+#: species/models.py:128
 msgid "variety"
 msgstr "Varietät"
 
-#: species/models.py:124
+#: species/models.py:129
 msgid "author variety"
 msgstr "Autor Varietät"
 
-#: species/models.py:125
+#: species/models.py:130
 msgid "form"
 msgstr "Form"
 
-#: species/models.py:126
+#: species/models.py:131
 msgid "author form"
 msgstr "Autor Form"
 
-#: species/models.py:127
+#: species/models.py:132
 msgid "cultivar / breed"
 msgstr "Cultivar / Sorte"
 
-#: species/models.py:128
+#: species/models.py:133
 msgid "without quotation marks"
 msgstr "Bitte OHNE Anführungszeichen"
 
-#: species/models.py:130
+#: species/models.py:135
 msgid "german name"
 msgstr "deutscher Name"
 
-#: species/models.py:131
+#: species/models.py:136
 msgid "synonyms"
 msgstr "Synonyme"
 
-#: species/models.py:137
+#: species/models.py:148
+msgid "Protection category according to Federal Nature Conservation Act"
+msgstr "Schutzkategorie nach dem Bundesnaturschutzgesetz"
+
+#: species/models.py:150
 msgid "poisonous plant"
 msgstr "Giftpflanze"
 
-#: species/models.py:138
+#: species/models.py:151
 msgid "life-form"
 msgstr "Lebensform"
 
-#: species/models.py:142
+#: species/models.py:155
 msgid "picture"
 msgstr "Bild"
 
-#: species/models.py:154
+#: species/models.py:167
 msgid "author name"
 msgstr "Autorname"
 
-#: species/models.py:175
+#: species/models.py:188
 msgid "Full species name (with author)"
 msgstr "Ganzer Artenname (mit Autor)"
 
-#: species/models.py:199
+#: species/models.py:212
 msgid "Full species name (without author)"
 msgstr "Ganzer Artenname (ohne Autor)"
 
-#: species/models.py:204
+#: species/models.py:217
 msgid ""
 "Area of distribution (each line separate, access with "
 "{{obj.species.distribution_lines.0}}, {{obj.species.distribution_lines.0}}, "
@@ -1812,19 +1819,19 @@ msgstr ""
 "{{obj.species.distribution_lines.0}}, {{obj.species.distribution_lines.0}}, "
 "usw...)"
 
-#: species/models.py:237 tickets/models.py:125 tickets/models.py:127
+#: species/models.py:250 tickets/models.py:125 tickets/models.py:127
 msgid "check"
 msgstr "prüfen"
 
-#: species/models.py:238
+#: species/models.py:251
 msgid "availability"
 msgstr "Verfügbarkeit"
 
-#: species/models.py:246
+#: species/models.py:259
 msgid "search individuals"
 msgstr "Individuen durchsuchen"
 
-#: species/models.py:256
+#: species/models.py:269
 msgid "search seeds"
 msgstr "Samen durchsuchen"
 
