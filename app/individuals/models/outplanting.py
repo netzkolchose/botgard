@@ -6,7 +6,9 @@ from django.utils.safestring import mark_safe
 from django.dispatch import receiver
 
 from .individual import Individual
+from .territory import Department
 from config_tables.admin import configurable, Configurable
+from ajax.autocomplete import AutoCompleteForm
 
 
 class Outplanting(models.Model, Configurable):
@@ -78,6 +80,10 @@ class Outplanting(models.Model, Configurable):
         return self.individual.species.family.genus
     genus_single.short_description = _('genus')
     genus_single.admin_order_field = "individual__species__family__genus"
+
+
+class OutplantingForm(AutoCompleteForm(Outplanting)):
+    exclude_autocomplete = ["department"]
 
 
 def _recalc_outplanting_fields(outplanting, exclude_outplanting=None):

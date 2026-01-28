@@ -48,7 +48,6 @@ class AutoFieldMixin:
         elif hasattr(field, "choices") and field.choices:
             self.af_is_choices = True
 
-
     def autofield_widget_attrs(self, widget):
         meta = self.af_model._meta
         ret = {
@@ -76,9 +75,10 @@ class AutoFieldMixin:
         try:
             id = int(value)
             o = self.af_model.objects.get(pk=id)
-            return "%s" % o
         except (TypeError, ValueError, self.af_model.DoesNotExist):
             return value
+
+        return str(getattr(o, self.af_fieldname))
 
     def _get_qset(self, value):
         filter = { "%s__exact" % self.af_fieldname: value}

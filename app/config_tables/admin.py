@@ -588,7 +588,7 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
         from django.contrib.admin.options import IncorrectLookupParameters
         opts = self.model._meta
         app_label = opts.app_label
-        if not self.has_change_permission(request, None):
+        if not (self.has_view_or_change_permission(request, None)):
             raise PermissionDenied
 
         list_display = self.get_list_display(request)
