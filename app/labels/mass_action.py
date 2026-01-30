@@ -244,9 +244,9 @@ def nomenclature_confirmation_view(
                 form_items.append({"key": key, "value": value})
 
     if label.type == "individual":
-        species_qset = Species.objects.filter(individual__in=qset)
+        species_qset = Species.objects.filter(individual__in=unchecked_qset)
     elif label.type == "herbarium_specimen":
-        species_qset = Species.objects.filter(individual__herbarium_specimens__in=qset)
+        species_qset = Species.objects.filter(individual__herbarium_specimens__in=unchecked_qset)
     else:
         raise ProgrammingError(f"Nomenclature confirmation view called for label type {label.type}")
 
