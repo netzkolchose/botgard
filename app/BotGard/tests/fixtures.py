@@ -90,8 +90,7 @@ HERBARIA = [
 ]
 
 HERBARIUM_SPECIMENS = [
-    {"herbarium": "Herbarium1", "individual": 1000, "collector": "User1"},
-    {"herbarium": "Herbarium1", "individual": 1001, "collector": "User2"},
+    {"herbarium": "Herbarium1", "individual": 1002, "collector": "User1"},
 ]
 
 BASIC_TICKETS = [

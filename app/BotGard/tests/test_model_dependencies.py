@@ -20,7 +20,7 @@ class TestModelDependencies(TestCase):
     def setUpTestData(cls):
         create_test_fixtures()
 
-    def test_individual_has_speciment_generated(self):
+    def test_individual_has_specimen_generated(self):
         """
         Test that Individual.has_specimen_generated is updated when adding or deleting HerbariumSpecimen
         """
