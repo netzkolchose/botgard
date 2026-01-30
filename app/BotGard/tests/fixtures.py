@@ -85,6 +85,15 @@ LABELS = [
     {"id_name": "I2", "format": "html", "display_name": "Individual Label 2", "type": "individual", "markup": "label-individual.html", "page_markup": "label-individual-page.html"},
 ]
 
+HERBARIA = [
+    {"name": "Herbarium1", "comment": "A loose collection"},
+]
+
+HERBARIUM_SPECIMENS = [
+    {"herbarium": "Herbarium1", "individual": 1000, "collector": "User1"},
+    {"herbarium": "Herbarium1", "individual": 1001, "collector": "User2"},
+]
+
 BASIC_TICKETS = [
     {"title": "Ticket 1", "due_date": "2030-01-01", "current_state": "N", "created_by": "User1", "directed_to": "User2"},
     {"title": "Ticket 2", "due_date": "2030-01-02", "current_state": "A", "created_by": "User2", "directed_to": "User1"},
@@ -109,6 +118,7 @@ def create_test_fixtures():
     from entrybook.models import Entry
     from species.models import Family, Species
     from individuals.models import Department, Territory, Individual, Outplanting, Seed
+    from herbaria.models import Herbarium, HerbariumSpecimen
     from labels.models import LabelDefinition
     from tickets.models import BasicTicket, LaserGravurTicket
     from seedcatalog.models import SeedCatalog
@@ -260,6 +270,17 @@ def create_test_fixtures():
             date=data.get("date"),
             plant_died=None,
         )
+
+    log("creating Herbarium & HerbariumSpecimen")
+    for data in HERBARIA:
+        Herbarium.objects.create(**data)
+
+    for data in HERBARIUM_SPECIMENS:
+        data = deepcopy(data)
+        data["herbarium"] = Herbarium.objects.get(name=data["herbarium"])
+        data["individual"] = Individual.objects.get(accession_number=data["individual"])
+        data["collector"] = UserModel.objects.get(username=data["collector"])
+        HerbariumSpecimen.objects.create(**data)
 
     log("creating LabelDefinition")
     for data in LABELS:

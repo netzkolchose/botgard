@@ -140,6 +140,8 @@ class TestPermissions(TestCase):
             'botman.externalcatalogarchive': {'add', 'change'},
             'botman.outgoingorder': {'add', 'change'},
             'entrybook.entry': {'add', 'change'},
+            'herbaria.herbarium': {'add', 'change'},
+            'herbaria.herbariumspecimen': {'add', 'change'},
             'individuals.department': {'add', 'change'},
             'individuals.individual': {'add', 'change'},
             'individuals.outplanting': {'add', 'change'},
@@ -245,7 +247,10 @@ class TestPermissions(TestCase):
 
         model = qset.first()
         if not model:
-            raise NotImplementedError(f"Missing model fixture for {model_class} (user {username})")
+            raise NotImplementedError(
+                f"Missing model fixture for {model_class} (user {username})"
+                ", add it to BotGard/tests/fixtures.py"
+            )
         return model
 
     def test_garden(self):
