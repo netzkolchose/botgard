@@ -1,0 +1,25 @@
+{% extends admin_base_tmpl %}
+{% load i18n static %}
+
+{% block page_content %}
+
+    <p>{% trans 'Some species referenced by the labels have no validated nomenclature. Export them anyway?' %}</p>
+
+    <form method="post">
+        <button type="submit" name="_confirmation_yes_button" class="default">{% trans 'confirm' %}</button>
+        &nbsp;
+        <button type="submit" name="_confirmation_no_button">{% trans 'cancel' %}</button>
+
+        {% for item in form_items %}
+            <input name="{{ item.key }}" value="{{ item.value }}" type="hidden" hidden="hidden">
+        {% endfor %}
+    </form>
+
+    <br>
+    <ul>
+        {% for spec in species %}
+            <li><a href="{% url 'admin:species_species_change' spec.pk %}">{{ spec }}</a></li>
+        {% endfor %}
+    </ul>
+
+{% endblock %}

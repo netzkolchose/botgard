@@ -5,14 +5,17 @@ from io import StringIO, BytesIO
 import zipfile
 from typing import List, Union, Tuple
 
+from django.db import ProgrammingError
 from django.utils.translation import gettext_lazy as _
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpRequest
 from django.contrib.admin import ModelAdmin
 from django.contrib import messages
 from django.template import Template, Context
 from django.utils.safestring import mark_safe
+from django.shortcuts import render
 
 from labels.csv_to_xls import convert_csv_to_xls
+from tools.admin_extensions import minimal_admin_context
 from .models import (
     LabelDefinition,
     LABEL_TYPE_CHOICES,
@@ -66,6 +69,25 @@ def render_mass_labels_action(admin: ModelAdmin, request, queryset, label_pk, fo
             return
 
         label = LabelDefinition.objects.get(pk=label_pk)
+
+        unchecked_qset = None
+        if label.type == "individual":
+            unchecked_qset = queryset.filter(species__nomenclature_checked=False)
+        elif label.type == "herbarium_specimen":
+            unchecked_qset = queryset.filter(individual__species__nomenclature_checked=False)
+
+        if unchecked_qset is not None and unchecked_qset.exists():
+            if "_confirmation_yes_button" in request.POST:
+                pass  # go on to rendering
+            elif "_confirmation_no_button" in request.POST:
+                admin.message_user(
+                    request,
+                    _("Export of labels aborted"),
+                    level=messages.WARNING,
+                )
+                return
+            else:
+                return nomenclature_confirmation_view(admin, request, queryset, unchecked_qset, label, format)
 
         file_format, content = render_mass_labels(label, pks, format=format)
 
@@ -207,4 +229,32 @@ def _render_mass_labels_html(label: LabelDefinition, pks: List[int], format: str
 
     elif format == "pdf":
         return render_html_to_pdf(final_markup)
+
+
+def nomenclature_confirmation_view(
+        admin: ModelAdmin, request: HttpRequest, qset, unchecked_qset, label: LabelDefinition, format: str,
+):
+    from species.models import Species
+
+    # reproduce the changelist form including the action request
+    form_items = []
+    for key in request.POST.keys():
+        if key not in ("_confirmation_yes_button", "_confirmation_no_button"):
+            for value in request.POST.getlist(key):
+                form_items.append({"key": key, "value": value})
+
+    if label.type == "individual":
+        species_qset = Species.objects.filter(individual__in=qset)
+    elif label.type == "herbarium_specimen":
+        species_qset = Species.objects.filter(individual__herbarium_specimens__in=qset)
+    else:
+        raise ProgrammingError(f"Nomenclature confirmation view called for label type {label.type}")
+
+    context = {
+        **minimal_admin_context(request, admin.model, title=f"{admin.model._meta.verbose_name}: {label.display_name}"),
+        "form_items": form_items,
+        "species": species_qset,
+    }
+
+    return render(request, "labels/mass_label_confirmation.html", context)
 
