@@ -119,6 +119,13 @@ $(function () {
         }
     });
 
+    // add confirmations for labels with unchecked nomenclatures
+    $('.label-link.nomenclature-unchecked').on("click", function(event) {
+        if (!confirm(event.target.getAttribute("data-confirm-text"))) {
+            event.preventDefault();
+        }
+    });
+
     install_csv_export_warning();
     recall_search_focus();
     hook_search_focus_recall();

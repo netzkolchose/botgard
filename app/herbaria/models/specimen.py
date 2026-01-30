@@ -118,8 +118,12 @@ class HerbariumSpecimen(Configurable, models.Model):
     @configurable
     def label_link_decorator(self):
         from labels import label_link_decorator
+        name = _("Specimen").lower()
         return label_link_decorator(
-            "herbarium_specimen", self.pk, filename=f"specimen-{self.pk}"
+            label_class="herbarium_specimen",
+            object_pk=self.pk,
+            filename=f"{name}-{self.pk}",
+            nomenclature_unchecked=not self.individual.species.nomenclature_checked,
         )
 
     label_link_decorator.short_description = _("create label")

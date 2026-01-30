@@ -143,7 +143,10 @@ class Individual(IndividualBase, Configurable):
     def etikett_link_decorator(self):
         from labels import label_link_decorator
         return label_link_decorator(
-            "individual", self.pk, self.ipen_generated
+            label_class="individual",
+            object_pk=self.pk,
+            filename=self.ipen_generated,
+            nomenclature_unchecked=not self.species.nomenclature_checked,
         )
 
     etikett_link_decorator.short_description = _("create label")
