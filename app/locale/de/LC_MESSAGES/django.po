@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-28 10:59+0100\n"
+"POT-Creation-Date: 2026-01-30 12:43+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -26,7 +26,7 @@ msgstr "Englisch"
 
 #: BotGard/tests/data/label-individual-complex.html:5
 #: demo-data/labels/individual-multipage-inner.html:5
-#: individuals/models/individual.py:171 individuals/models/individual.py:374
+#: individuals/models/individual.py:174 individuals/models/individual.py:377
 #: individuals/models/outplanting.py:81 species/models.py:55
 #: species/models.py:66 species/models.py:230
 msgid "genus"
@@ -348,8 +348,8 @@ msgstr ""
 "{{obj.botanicgarden.address_lines.0}}, "
 "{{obj.botanicgarden.address_lines.1}}, usw."
 
-#: botman/models/garden.py:108 individuals/models/individual.py:383
-#: labels/__init__.py:76
+#: botman/models/garden.py:108 individuals/models/individual.py:386
+#: labels/__init__.py:81
 msgid "label"
 msgstr "Etikett"
 
@@ -661,7 +661,7 @@ msgid "miscellaneous"
 msgstr "Verschiedenes"
 
 #: entrybook/admin.py:81 individuals/admin.py:108 individuals/admin.py:212
-#: individuals/models/individual.py:362 species/models.py:271
+#: individuals/models/individual.py:365 species/models.py:271
 msgid "seeds"
 msgstr "Samen"
 
@@ -709,7 +709,7 @@ msgid "department"
 msgstr "Abteilung"
 
 #: entrybook/models/entry.py:126 entrybook/models/entry.py:135
-#: herbaria/models/specimen.py:125 individuals/models/individual.py:149
+#: herbaria/models/specimen.py:129 individuals/models/individual.py:152
 msgid "create label"
 msgstr "Etikett erstellen"
 
@@ -717,12 +717,8 @@ msgstr "Etikett erstellen"
 msgid "Save as individual"
 msgstr "Als Individuum speichern"
 
-#: herbaria/apps.py:7
-msgid "Herbaria"
-msgstr "Herbaria"
-
-#: herbaria/models/herbarium.py:22 herbaria/models/herbarium.py:23
-#: herbaria/models/herbarium.py:49
+#: herbaria/apps.py:7 herbaria/models/herbarium.py:22
+#: herbaria/models/herbarium.py:23 herbaria/models/herbarium.py:49
 msgid "Herbarium"
 msgstr "Harbarium"
 
@@ -760,7 +756,7 @@ msgid "Fruits"
 msgstr "Früchte"
 
 #: herbaria/models/specimen.py:49 herbaria/models/specimen.py:101
-#: labels/models.py:21
+#: herbaria/models/specimen.py:121 labels/models.py:21
 msgid "Specimen"
 msgstr "Herbarbeleg"
 
@@ -784,7 +780,7 @@ msgstr "Belegtyp"
 msgid "Specimen of {}"
 msgstr "Herbarbeleg von {}"
 
-#: herbaria/models/specimen.py:156
+#: herbaria/models/specimen.py:160
 msgid "Please select..."
 msgstr "Bitte auswählen..."
 
@@ -814,17 +810,17 @@ msgstr "alive_outplantings_generated"
 msgid "outplantings_generated"
 msgstr "outplantings_generated"
 
-#: individuals/models/individual.py:48 individuals/models/individual.py:185
+#: individuals/models/individual.py:48 individuals/models/individual.py:188
 #: individuals/models/territory.py:189
 msgid "departments"
 msgstr "Abteilungen"
 
-#: individuals/models/individual.py:50 individuals/models/individual.py:191
+#: individuals/models/individual.py:50 individuals/models/individual.py:194
 #: individuals/models/territory.py:94
 msgid "territories"
 msgstr "Reviere"
 
-#: individuals/models/individual.py:52 individuals/models/individual.py:219
+#: individuals/models/individual.py:52 individuals/models/individual.py:222
 msgid "is alive"
 msgstr "lebend"
 
@@ -836,70 +832,70 @@ msgstr "Herbarbeleg vorhanden"
 msgid "Individual"
 msgstr "Individuum"
 
-#: individuals/models/individual.py:165 individuals/models/individual.py:368
+#: individuals/models/individual.py:168 individuals/models/individual.py:371
 #: individuals/models/outplanting.py:75 species/models.py:62
 #: species/models.py:224
 msgid "family"
 msgstr "Familie"
 
-#: individuals/models/individual.py:178 species/models.py:140
+#: individuals/models/individual.py:181 species/models.py:140
 msgid "endangering"
 msgstr "Gefährdung"
 
-#: individuals/models/individual.py:199 individuals/models/individual.py:391
+#: individuals/models/individual.py:202 individuals/models/individual.py:394
 #: species/models.py:152
 msgid "nomenclature checked"
 msgstr "Nomenklatur geprüft"
 
-#: individuals/models/individual.py:205 individuals/models/individual.py:405
+#: individuals/models/individual.py:208 individuals/models/individual.py:408
 #: species/models.py:137
 msgid "label text"
 msgstr "Verbreitung"
 
-#: individuals/models/individual.py:211 individuals/models/individual.py:398
-#: individuals/models/individual.py:412 species/models.py:139
+#: individuals/models/individual.py:214 individuals/models/individual.py:401
+#: individuals/models/individual.py:415 species/models.py:139
 msgid "detailed"
 msgstr "Verbreitung detail."
 
-#: individuals/models/individual.py:239 plantimages/models.py:8
+#: individuals/models/individual.py:242 plantimages/models.py:8
 #: plantimages/models.py:11
 msgid "image"
 msgstr "Bild"
 
-#: individuals/models/individual.py:314
+#: individuals/models/individual.py:317
 msgid "The selected garden does not have an IPEN code."
 msgstr "Der gewählte Garten hat keinen IPEN-Code"
 
-#: individuals/models/individual.py:330
+#: individuals/models/individual.py:333
 msgid "Order number must be assigned"
 msgstr "Bestellnummer muß angegeben werden"
 
-#: individuals/models/individual.py:336
+#: individuals/models/individual.py:339
 #, python-format
 msgid "Order number already exists, next free number is %s"
 msgstr "Die Bestellnummer ist bereits vergeben, die nächste freie Nummer is %s"
 
-#: individuals/models/individual.py:361 seedcatalog/models.py:38
+#: individuals/models/individual.py:364 seedcatalog/models.py:38
 msgid "seed"
 msgstr "Samen"
 
-#: individuals/models/individual.py:422
+#: individuals/models/individual.py:425
 msgid "Create new catalog."
 msgstr "Neuen Katalog erstellen"
 
-#: individuals/models/individual.py:432 individuals/models/individual.py:437
+#: individuals/models/individual.py:435 individuals/models/individual.py:440
 msgid "catalog"
 msgstr "Katalog"
 
-#: individuals/models/individual.py:432
+#: individuals/models/individual.py:435
 msgid "remove"
 msgstr "entfernen"
 
-#: individuals/models/individual.py:437
+#: individuals/models/individual.py:440
 msgid "add"
 msgstr "hinzufügen"
 
-#: individuals/models/individual.py:440
+#: individuals/models/individual.py:443
 msgid "add to current catalog"
 msgstr "Zu letztem Katalog hinzufügen"
 
@@ -1293,11 +1289,15 @@ msgstr "Bitte fragen Sie Ihren <i>Kustos</i>"
 msgid "Label creation failed, sorry"
 msgstr "Etikett nicht erstellt"
 
-#: labels/__init__.py:73
+#: labels/__init__.py:78
 msgid "define a label first"
 msgstr "Bitte vorher Etiketten erstellen"
 
-#: labels/__init__.py:106
+#: labels/__init__.py:84
+msgid "The nomenclature of the species has not yet been validated"
+msgstr "Die Nomenklatur der Art wurde noch nicht überprüft"
+
+#: labels/__init__.py:120
 msgid "select label"
 msgstr "Etikett auswählen"
 
@@ -1309,25 +1309,29 @@ msgstr "Etiketten"
 msgid "sheet 1"
 msgstr "Blatt 1"
 
-#: labels/mass_action.py:41
+#: labels/mass_action.py:44
 #, python-format
 msgid "Label: %(name)s"
 msgstr "Etikett: %(name)s"
 
-#: labels/mass_action.py:51
+#: labels/mass_action.py:54
 #, python-format
 msgid "Label: %(name)s (%(format)s)"
 msgstr "Etikett: %(name)s (%(format)s)"
 
-#: labels/mass_action.py:63
+#: labels/mass_action.py:66
 msgid "No objects have been selected"
 msgstr "Es wurden keine Objekte ausgewählt"
 
-#: labels/mass_action.py:75
+#: labels/mass_action.py:85
+msgid "Export of labels aborted"
+msgstr "Export der Etiketten abgebrochen"
+
+#: labels/mass_action.py:97
 msgid "labels"
 msgstr "Etiketten"
 
-#: labels/mass_action.py:82
+#: labels/mass_action.py:104
 #, python-format
 msgid "Error creating labels: %s"
 msgstr "Fehler beim Erstellen der Etiketten: %s"
@@ -1417,6 +1421,20 @@ msgstr "Original"
 #: labels/templates/labels/change_form.html:54 tickets/models.py:12
 msgid "new"
 msgstr "Neu"
+
+#: labels/templates/labels/mass_label_confirmation.html:6
+msgid ""
+"Some species referenced by the labels have no validated nomenclature. Export "
+"them anyway?"
+msgstr "Die Etiketten referenzieren Arten, deren Nomenklatur nicht geprüft wurde. Trotzdem exportieren?"
+
+#: labels/templates/labels/mass_label_confirmation.html:9
+msgid "confirm"
+msgstr "bestätigen"
+
+#: labels/templates/labels/mass_label_confirmation.html:11 tickets/admin.py:99
+msgid "cancel"
+msgstr "abbrechen"
 
 #: labels/templates/labels/svg-widget.html:12
 msgid "import markup file"
@@ -1847,10 +1865,6 @@ msgstr "alle ändern"
 msgid "change unattributes"
 msgstr "unzugewiesene ändern"
 
-#: tickets/admin.py:99
-msgid "cancel"
-msgstr "abbrechen"
-
 #: tickets/models.py:13
 msgid "audited"
 msgstr "geprüft"
@@ -2018,6 +2032,9 @@ msgstr "Alle Etiketten erstellt. Als 'abgearbeitet' markieren!"
 #: tickets/views.py:99
 msgid "show ticket: "
 msgstr "Ticket anzeigen: "
+
+#~ msgid "Herbaria"
+#~ msgstr "Herbaria"
 
 #~ msgid "Enable or disable experimental mobile device support"
 #~ msgstr "Experimentellen Smartphone support aktivieren"
