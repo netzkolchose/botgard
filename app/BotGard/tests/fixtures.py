@@ -198,7 +198,7 @@ def create_test_fixtures():
             protection_of_species="",
             poisonous_plant=False,
             lifeform="",
-            nomenclature_checked=True,
+            nomenclature_checked=bool(data.get("nomenclature_checked")),
         )
 
     log("creating Territory")
