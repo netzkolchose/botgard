@@ -142,7 +142,7 @@ def model_fieldvalues_json(request):
                 ret["fk"] = Model.objects.filter(**filters)[0].id
             except IndexError:
                 ret = {"state": "none"}
-        print(ret)
+        # print(ret)
         return JsonResponse(ret)
 
     return _get_list(request)
