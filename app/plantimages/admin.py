@@ -28,7 +28,7 @@ class ImagePreviewWidget(widgets.AdminFileWidget):
                 settings.THUMBNAIL_ALIASES['']['large_preview']['size'][1],
                 thumb_url, markup)
 
-        return markup
+        return mark_safe(markup)
 
 
 class PlantImageInlineForm(forms.ModelForm):

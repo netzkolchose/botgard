@@ -1,9 +1,11 @@
 import pathlib
 import random
 import sys
+from copy import deepcopy
+from typing import Dict, Set
 
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Permission
+from django.contrib.auth.models import Permission, Group
 
 DATA_PATH = pathlib.Path(__file__).resolve().parent.joinpath("data")
 
@@ -13,11 +15,24 @@ USERS = [
     {"username": "User2", "password": "the-secret"},
 ]
 
+BGCI_GARDENS = [
+    {"bgci_id": 23, "ipen_code": "GARD", "name": "BGCI1", "type": "Botanic Garden/Arboretum", "bgci_data": {"some": "data"}},
+]
 
 BOTANIC_GARDENS = [
     {"name": "Garden 1", "code": "GARD1", "address": "Line 1\nLine 2\nLine 3\nLine 4"},
     {"name": "Garden 2", "code": "GARD2", "address": "Linä 1\nLine,2\nLine\\n'3\nLine\"4"},
     {"name": "Garden 3", "code": "GARD3"}
+]
+
+OUTGOING_ORDERS = [
+    {"garden": "Garden 1", "user": "User1", "order_text": "Salat alles"},
+    {"garden": "Garden 2", "user": "User2", "order_text": "123ABC"},
+]
+
+EXTERNAL_CATALOGS = [
+    {"garden": "Garden 1"},
+    {"garden": "Garden 2"},
 ]
 
 FAMILIES = [
@@ -43,6 +58,10 @@ DEPARTMENTS = [
     {"code": "D2", "name": "Department 2", "territory": "T2"},
     {"code": "D3", "name": "Department 3", "territory": "T3"},
     {"code": "D4", "name": "Department 4", "territory": "T3"},
+]
+
+ENTRIES = [
+    {"accession_number": 10, "species": "Species Unknown"},
 ]
 
 INDIVIDUALS = [
@@ -72,6 +91,10 @@ BASIC_TICKETS = [
     {"title": "Ticket 3", "due_date": "2030-01-03", "current_state": "F", "created_by": "User1", "directed_to": "User2"},
 ]
 
+SEED_CATALOGS = [
+    {"release_date": "2000-01-01", "valid_until_date": "2001-01-01", "title": "Index S"},
+]
+
 RANDOM_AUTHORS = ["A. Cunn.", "Baill.", "C. Morren"]
 
 
@@ -82,11 +105,14 @@ def log(*args, **kwargs):
 
 
 def create_test_fixtures():
-    from botman.models import BotanicGarden
+    from botman.models import BGCIGarden, BotanicGarden, ExternalCatalog, ExternalCatalogArchive, OutgoingOrder
+    from entrybook.models import Entry
     from species.models import Family, Species
     from individuals.models import Department, Territory, Individual, Outplanting, Seed
     from labels.models import LabelDefinition
     from tickets.models import BasicTicket, LaserGravurTicket
+    from seedcatalog.models import SeedCatalog
+
     UserModel = get_user_model()
 
     rnd = random.Random(42)
@@ -99,13 +125,15 @@ def create_test_fixtures():
             password=data["password"]
         )
         if data.get("superuser"):
-            user = UserModel.objects.create_superuser(**kwargs)
-            for p in Permission.objects.all():
-                user.user_permissions.add(p)
+            UserModel.objects.create_superuser(**kwargs)
         else:
             UserModel.objects.create_user(**kwargs)
 
         # print("U", UserModel.objects.get(username=data["username"]).is_superuser)
+
+    log("creating BGCIGarden")
+    for i, data in enumerate(BGCI_GARDENS):
+        BGCIGarden.objects.create(**data)
 
     log("creating BotanicGarden")
     for i, data in enumerate(BOTANIC_GARDENS):
@@ -114,6 +142,28 @@ def create_test_fixtures():
             code=data.get("code") or data["name"].replace(" ", "-")[-6:],
             number=data.get("number") or i,
             address=data.get("address"),
+        )
+
+    log("creating ExternalCatalog")
+    for i, data in enumerate(EXTERNAL_CATALOGS):
+        data = deepcopy(data)
+        data["garden"] = BotanicGarden.objects.get(name=data["garden"])
+        ExternalCatalog.objects.create(**data)
+        ExternalCatalogArchive.objects.create(**data)
+
+    log("creating OutgoingOrder")
+    for i, data in enumerate(OUTGOING_ORDERS):
+        data = deepcopy(data)
+        data["garden"] = BotanicGarden.objects.get(name=data["garden"])
+        data["user"] = UserModel.objects.get(username=data["user"])
+        OutgoingOrder.objects.create(**data)
+
+    log("creating Entry")
+    for i, data in enumerate(ENTRIES):
+        Entry.objects.create(
+            **data,
+            ipen_accession_number=data["accession_number"],
+            seed_available=False, seed_in_stock=False,
         )
 
     log("creating Family")
@@ -148,7 +198,7 @@ def create_test_fixtures():
             protection_of_species="",
             poisonous_plant=False,
             lifeform="",
-            nomenclature_checked=True,
+            nomenclature_checked=bool(data.get("nomenclature_checked")),
         )
 
     log("creating Territory")
@@ -222,9 +272,9 @@ def create_test_fixtures():
             format=data.get("format", "svg"),
         )
 
-    log("creating BasicTicket")
+    log("creating Tickets")
     for data in BASIC_TICKETS:
-        BasicTicket.objects.create(
+        data = dict(
             title=data["title"],
             description=data.get("description") or "",
             due_date=data["due_date"],
@@ -233,3 +283,29 @@ def create_test_fixtures():
             created_by=UserModel.objects.get(username=data["created_by"]),
             directed_to=UserModel.objects.get(username=data["directed_to"]),
         )
+        BasicTicket.objects.create(**data)
+        LaserGravurTicket.objects.create(**data)
+
+    log("creating SeedCatalog")
+    for data in SEED_CATALOGS:
+        SeedCatalog.objects.create(**data)
+
+
+def create_permission_group(name: str, permissions: Dict[str, Set[str]]) -> Group:
+    group = Group.objects.create(name=name)
+
+    perms = []
+    for key, levels in permissions.items():
+        app_name, model_name = key.split(".")
+        for level in levels:
+            perms.append(
+                Permission.objects.get(
+                    content_type__app_label=app_name,
+                    content_type__model=model_name,
+                    codename=f"{level}_{model_name}",
+                )
+            )
+
+    group.permissions.set(perms)
+
+    return group

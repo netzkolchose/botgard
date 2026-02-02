@@ -54,7 +54,7 @@ class TerritoryAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
 
 
 class OutplantingInline(readOnlyAdmin.ReadOnlyTabularInline):
-    #form = AutoCompleteForm(Outplanting)
+    form = OutplantingForm
     model = Outplanting
     min_num = 0
 
@@ -141,20 +141,22 @@ class IndividualAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable)
         'species_link_decorator',
         'departments_decorator', 'is_alive', 'source', 'etikett_link_decorator',
     )
-    list_filter = (#'seed_available', 'seed_in_stock',
-                   #'species__nomenclature_checked',
-                   # add all foreignkey fields that should be filterable
-                   ('source__full_name_generated', ForeignKeyFilter),
-                   ('species__full_name_generated', ForeignKeyFilter),
-                   ('species__nomenclature_checked', ForeignKeyFilter),
-                   ('species__protection_of_species', ForeignKeyFilter),
-                   ('species__area_of_distribution_etikettxt', ForeignKeyFilter),
-                   ('species__area_of_distribution_background', ForeignKeyFilter),
-                   ('species__family__family', ForeignKeyFilter),
-                   ('species__family__genus', ForeignKeyFilter),
-                   # ('geo_location__geo_name', ForeignKeyFilter),
-                   # ('osm_location__full_name', ForeignKeyFilter),
-                   )
+    list_filter = (
+        #'seed_available', 'seed_in_stock',
+        #'species__nomenclature_checked',
+        # add all foreignkey fields that should be filterable
+        ('user__username', ForeignKeyFilter),
+        ('source__full_name_generated', ForeignKeyFilter),
+        ('species__full_name_generated', ForeignKeyFilter),
+        ('species__nomenclature_checked', ForeignKeyFilter),
+        ('species__protection_of_species', ForeignKeyFilter),
+        ('species__area_of_distribution_etikettxt', ForeignKeyFilter),
+        ('species__area_of_distribution_background', ForeignKeyFilter),
+        ('species__family__family', ForeignKeyFilter),
+        ('species__family__genus', ForeignKeyFilter),
+        # ('geo_location__geo_name', ForeignKeyFilter),
+        # ('osm_location__full_name', ForeignKeyFilter),
+    )
 
     blacklist = ('id', '__str__', 'ipen_transfer_restricted', 'ipen_garden_code', 'ipen_accession_number',
                  'ipen_country', 'departments_generated', 'territories_generated', 'species',
@@ -307,7 +309,7 @@ class IndividualFromEntryAdmin(IndividualAdmin):
 
 
 class OutplantingAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
-    form = AutoCompleteForm(Outplanting)
+    form = OutplantingForm
     list_display = (
         'change_link_decorator',
         'territory_decorator', 'department_decorator',
