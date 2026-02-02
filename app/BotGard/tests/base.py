@@ -91,9 +91,14 @@ class TestBase(TestCase):
         webbrowser.open(f"file://{fn}")
 
     def assert_no_warning(self, response: HttpResponse):
-        for pattern in ():
-        if b"li class=\"warning\"" in response.content:
-            raise AssertionError(f"Warning found in response {response}")
+        for pattern in (
+                b'li class="warning"',
+                b'p class="error"',
+        ):
+            if pattern in response.content:
+                idx = response.content.index(pattern)
+                snippet = response.content[idx: idx + 200]
+                raise AssertionError(f"warning/error found in response {response}: {snippet}")
 
     def get_label_response(
             self,

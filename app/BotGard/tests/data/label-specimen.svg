@@ -137,11 +137,7 @@
          id="tspan7"
          style="font-size:3px;stroke-width:1.155"
          x="2.6951671"
-         y="72.676582">Akzessionsnummer: {{obj.individual.accession_number}}</tspan><tspan
-                sodipodi:role="line"
-                style="font-size:3px;stroke-width:1.155"
-                x="2.6951671"
-                y="76.426582"
-                id="tspan8" /></text>
+         y="72.676582"><!--Akzessionsnummer:--> {{obj.individual.accession_number}}</tspan></text>
+        <!-- TODO: VERY STRANGE: including above string makes rsvg-convert to format png run forever in python's subprocess -->
     </g>
 </svg>

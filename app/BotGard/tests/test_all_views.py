@@ -225,9 +225,13 @@ class TestAllViews(TestBase):
 
                     try:
                         response = self.client.get(url)
+                        if b"Can not render a label of format &#x27;csv&#x27; to format &#x27;pdf&#x27" in response.content:
+                            continue
+                        if b"Can not render a label of format &#x27;csv&#x27; to format &#x27;png&#x27" in response.content:
+                            continue
+                        if b"Can not render a label of format &#x27;html&#x27; to format &#x27;png&#x27" in response.content:
+                            continue
                         self.assert_no_warning(response)
-                        if b"error" in response.content or b"Error" in response.content:
-                            print(response.content)
                         self.assertStatus(200, response, f"in {url_name} {url}")
                     except Exception as e:
                         print(f"ERROR IN VIEW {url_name}: {type(e).__name__}: {e}")
