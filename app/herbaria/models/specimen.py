@@ -16,6 +16,7 @@ from django.contrib.auth import get_user_model
 
 from config_tables.admin import configurable, Configurable
 from ajax.autocomplete import AutoCompleteForm
+from individuals.models import Individual
 from tools.global_request import get_current_user
 
 
@@ -114,6 +115,20 @@ class HerbariumSpecimen(Configurable, models.Model):
 
     delete_link_decorator.short_description = _("delete")
     delete_link_decorator.exclude_csv = True
+
+    @configurable
+    def individual_link_decorator(self):
+        return mark_safe(format_html(
+            """
+            <a href="{}">{}</a> (<a href="{}">{}</a>)
+            """,
+            reverse("admin:individuals_individual_change", args=(self.individual.pk,)),
+            self.individual.accession_number,
+            reverse("admin:species_species_change", args=(self.individual.species.pk,)),
+            self.individual.species.full_name(with_author=False),
+        ))
+    individual_link_decorator.short_description = _("individual")
+    individual_link_decorator.admin_order_field = "individual__id_name_generated"
 
     @configurable
     def label_link_decorator(self):

@@ -29,7 +29,7 @@ class HerbariumSpecimenAdmin(readOnlyAdmin.ReadPermissionModelAdmin, Configurabl
     form = create_herbarium_specimen_form_class()
     list_display = (
         'change_link_decorator',
-        'herbarium', 'individual', 'collector', 'collection_date', 'specimen_type',
+        'herbarium', 'individual_link_decorator', 'collector', 'collection_date', 'specimen_type',
         'label_link_decorator',
     )
     list_filter = (
