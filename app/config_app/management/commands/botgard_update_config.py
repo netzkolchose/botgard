@@ -12,19 +12,16 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('-f', nargs="+",
-                            help=_(
+                            help=
 """Force update of all (or specified values) in the DB. 
  -f all: will copy all default values over the values in the database.
- -f with a list of keys will only copy the default values for the given keys."""))
+ -f with a list of keys will only copy the default values for the given keys.""")
 
     def handle(self, *args, **options):
-        starttime = datetime.datetime.now()
         update_config_in_database(**options)
-        endtime = datetime.datetime.now()
-        print("TOOK %s" % (endtime - starttime))
 
 
-def update_config_in_database(**options):
+def update_config_in_database(verbosity: int = 1, **options):
     from config_app import _defaults
     from config_app.models import KeyValue
 
@@ -92,9 +89,10 @@ def update_config_in_database(**options):
                             kwargs["value_%s" % lang] = value
 
                 KeyValue.objects.create(**kwargs)
-                print("INFO: '%s': created database value" % key)
+                if verbosity > 1:
+                    print("INFO: '%s': created database value" % key)
 
-    if missed_updates:
+    if missed_updates and verbosity > 1:
         print()
         print(_("INFO: The database contains configruation values which are different to the default settings."))
         print(_("If you want to overwrite the database changes call:"))

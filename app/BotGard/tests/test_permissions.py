@@ -1,34 +1,4 @@
-import re
-import pprint
-import secrets
-import webbrowser
-import itertools
-from pathlib import Path
-import tempfile
-from typing import Dict, Set, Optional, Type
-
-from django.test import TestCase, Client
-from django.urls import reverse
-from django.urls.exceptions import NoReverseMatch
-from django.db import models
-from django.utils import timezone
-from django.apps import apps
-from django.contrib.contenttypes.models import ContentType
-from django.contrib.auth.models import Permission, Group
-from django.contrib.auth import get_user_model
-
-import bs4
-
-from botman.models import *
-from entrybook.models import *
-from species.models import *
-from individuals.models import *
-from labels.models import *
-from tickets.models import *
-from seedcatalog.models import *
-
-from .fixtures import create_permission_group, create_test_fixtures
-from config_app.management.commands.botgard_update_config import update_config_in_database
+from .base import *
 
 
 GARDENER_PERMISSIONS = {
@@ -52,7 +22,7 @@ GARDENER_PERMISSIONS = {
     'tickets.myticket': {'add', 'change', 'delete'}
 }
 
-class TestPermissions(TestCase):
+class TestPermissions(TestBase):
     PW = "the-secret"
 
     @classmethod
@@ -95,29 +65,44 @@ class TestPermissions(TestCase):
             password=cls.PW,
             is_staff=True,
         )
-        group = create_permission_group(
+        gardeners_group = create_permission_group(
             "gardeners",
             GARDENER_PERMISSIONS,
         )
-        user.groups.add(group)
+        user.groups.add(gardeners_group)
 
         BasicTicket.objects.create(
             created_by=User.objects.get(username="User1"),
             directed_to=user, due_date="2100-01-01", title="Ticket for gardener",
         )
+
+        user = get_user_model().objects.create_user(
+            username="kustos",
+            email="kustos@example.com",
+            password=cls.PW,
+            is_staff=True,
+        )
+        user.groups.add(gardeners_group)
+        user.user_permissions.add(Permission.objects.get(
+            content_type__app_label="species",
+            content_type__model="species",
+            codename="can_check_nomenclature",
+        ))
+
         user = get_user_model().objects.create_user(
             username="noaccess",
             email="noaccess@example.com",
             password=cls.PW,
             is_staff=True,  # staff user without any permissions
         )
-        #print(group)
-        #print(user.groups.all())
+
         #for perm in Group.objects.get(name="gardeners").permissions.all():
+        #for perm in Permission.objects.all():
         #    print(perm)
         #    print(perm.codename, perm.content_type.app_label, perm.content_type.model)
 
     def show_html(self, html: str):
+        """Debugging method to open an html page in the browser"""
         fn = Path(tempfile.tempdir) / f"botgard-test-{secrets.token_hex(10)}.html"
         fn.write_text(html)
         webbrowser.open(f"file://{fn}")
@@ -183,7 +168,7 @@ class TestPermissions(TestCase):
             'tickets.myticket': {'add', 'change'}
         })
 
-    def test_gardener(self):
+    def test_gardener_model_access(self):
         self.login("gardener")
         self.assert_models_access(
             can_change_models=[
@@ -196,6 +181,43 @@ class TestPermissions(TestCase):
                 ExternalCatalog, ExternalCatalogArchive,
                 LabelDefinition, SeedCatalog, BasicTicket, LaserGravurTicket, MyTicket
             ]
+        )
+
+    def test_species_nomenclature_permission_gardener(self):
+        self._test_species_nomenclature_permission("gardener", expect_permission=False)
+
+    def test_species_nomenclature_permission_kustos(self):
+        self._test_species_nomenclature_permission("kustos", expect_permission=True)
+
+    def _test_species_nomenclature_permission(self, user: str, expect_permission: bool):
+        msg = f"for user '{user}'"
+        self.login(user)
+
+        def _check_form(form: bs4.PageElement):
+            elem = form.find_next("select", {"id": "id_nomenclature_checked"})
+            self.assertTrue(elem)
+            if expect_permission:
+                self.assertNotIn("disabled", elem.attrs, msg)
+            else:
+                self.assertIn("disabled", elem.attrs, msg)
+
+        pk = self.get_model_for_user(Species, user).pk
+        self.change_model(Species, pk, on_form=_check_form)
+
+        self.assertFalse(Species.objects.get(pk=pk).nomenclature_checked)
+        self.change_model(
+            Species, pk,
+            change_data={"nomenclature_checked": "true"}, msg=msg,
+        )
+        self.assertEqual(expect_permission, Species.objects.get(pk=pk).nomenclature_checked, msg)
+
+    def test_add_garden(self):
+        self.run_test_model(
+            BotanicGarden,
+            {
+                "number": 666,
+                "name": "GardenXY"
+            },
         )
 
     def assert_models_access(
@@ -253,15 +275,6 @@ class TestPermissions(TestCase):
             )
         return model
 
-    def test_garden(self):
-        self.run_test_model(
-            BotanicGarden,
-            {
-                "number": 666,
-                "name": "GardenXY"
-            },
-        )
-
     def run_test_model(self, model_class: Type[models.Model], data: dict):
         self.client.logout()
         self.create_model(model_class, {}, expect_no_access=True)
@@ -276,6 +289,7 @@ class TestPermissions(TestCase):
             model_class: Type[models.Model],
             expect_no_access: bool = False,
     ):
+        """Assert changelist read access"""
         app_name = model_class._meta.app_label
         model_name = model_class._meta.model_name
         url = reverse(f"admin:{app_name}_{model_name}_changelist")
@@ -287,12 +301,18 @@ class TestPermissions(TestCase):
             pk: int,
             expect_read_access: bool = True,
             expect_write_access: bool = True,
+            change_data: Optional[dict] = None,
     ):
+        """Assert read or write access in a model changeview"""
         app_name = model_class._meta.app_label
         model_name = model_class._meta.model_name
         url = reverse(f"admin:{app_name}_{model_name}_change", args=(pk,))
         self.get_response(url, expect_no_access=not (expect_read_access or expect_write_access))
-        self.change_model(model_class, pk, expect_no_access=not expect_read_access, expect_no_write_access=not expect_write_access)
+        self.change_model(
+            model_class, pk,
+            expect_no_access=not expect_read_access, expect_no_write_access=not expect_write_access,
+            change_data=change_data,
+        )
 
     def get_response(
             self,
@@ -348,16 +368,10 @@ class TestPermissions(TestCase):
 
         soup = bs4.BeautifulSoup(response.content, features="html.parser")
         form = soup.find("form", {"id": f"{model_name}_form"})
-
-        post_data = {}
-        for inp in form.find_all("input"):
-            name = inp.attrs["name"]
-            if name in data:
-                post_data[name] = data[name]
-            elif "value" in inp.attrs:
-                post_data[name] = inp.attrs["value"]
-
+        post_data = self.get_form_data(form)
+        post_data.update(data)
         post_data["_continue"] = "Save and continue editing"
+
         response = self.client.post(url, post_data)
         if response.status_code != 302:
             raise AssertionError(f"Creation failed for {url}, status={response.status_code}")
@@ -374,7 +388,9 @@ class TestPermissions(TestCase):
             pk: int,
             expect_no_access: bool = False,
             expect_no_write_access: bool = False,
+            change_data: Optional[dict] = None,
             msg: str = "",
+            on_form: Optional[Callable[[bs4.PageElement], None]] = None,
     ) -> Optional[int]:
         """
         Load changeview for model and POST form as is
@@ -382,6 +398,7 @@ class TestPermissions(TestCase):
         :param model_class: django Model class
         :param pk: int, model's primary key
         :param expect_no_access: bool, If True, expected redirect to login
+        :param change_data: optional dict with key/values to use in the POST
         :return: primary key of model
         """
         if msg:
@@ -409,34 +426,26 @@ class TestPermissions(TestCase):
 
         soup = bs4.BeautifulSoup(response.content, features="html.parser")
         form = soup.find("form", {"id": f"{model_name}_form"})
+        if on_form:
+            on_form(form)
 
-        post_data = {}
-        for inp in form.find_all("input"):
-            if "value" in inp.attrs and inp.attrs["type"] != "submit":
-                post_data[inp.attrs["name"]] = inp.attrs["value"]
-        for inp in form.find_all("textarea"):
-            if inp.text:
-                post_data[inp.attrs["name"]] = inp.text
-        for inp in form.find_all("select"):
-            val = None
-            for opt in inp.find_all("option"):
-                if value := opt.attrs.get("value"):
-                    if "selected" in opt.attrs:
-                        val = value
-                        break
-            if val is not None:
-                post_data[inp.attrs["name"]] = val
-
-        for field in model_instance._meta.fields:
-            if field.name not in post_data:
-                post_data[field.name] = getattr(model_instance, field.name) or ''
-
+        post_data = self.get_form_data(form)
         post_data["_continue"] = "Save and continue editing"
+
+        # fallback data, not really needed
+        #for field in model_instance._meta.fields:
+        #    if field.name not in post_data:
+        #        post_data[field.name] = getattr(model_instance, field.name) or ''
+
+        if change_data:
+            post_data.update(change_data)
+
         response = self.client.post(url, post_data)
         if expect_no_write_access:
             if response.status_code != 403:
                 raise AssertionError(f"Expected 403 for {url}, status={response.status_code}{msg}")
             return
+
         if response.status_code != 302:
             self.show_html(response.content.decode())
             raise AssertionError(f"Changing failed for {url}, status={response.status_code}{msg}")
