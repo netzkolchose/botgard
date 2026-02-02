@@ -101,12 +101,6 @@ class TestPermissions(TestBase):
         #    print(perm)
         #    print(perm.codename, perm.content_type.app_label, perm.content_type.model)
 
-    def show_html(self, html: str):
-        """Debugging method to open an html page in the browser"""
-        fn = Path(tempfile.tempdir) / f"botgard-test-{secrets.token_hex(10)}.html"
-        fn.write_text(html)
-        webbrowser.open(f"file://{fn}")
-
     def login(self, username: str):
         self.assertTrue(
             self.client.login(username=username, password=self.PW),

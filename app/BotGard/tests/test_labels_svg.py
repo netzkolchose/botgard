@@ -1,24 +1,6 @@
-import re
-import subprocess
-import tempfile
-import zipfile
-import io
-from pathlib import Path
-from typing import List, Union
+from .base import *
 
-from django.test import TestCase, Client
-from django.urls import reverse
-from django.contrib.admindocs.views import simplify_regex
-
-from labels.models import LabelDefinition
-from labels.mass_action import render_mass_labels_action
-from labels.admin import LabelDefinitionAdmin
-from botman.models import BotanicGarden
-
-from .fixtures import create_test_fixtures
-
-
-class TestLabelsSVG(TestCase):
+class TestLabelsSVG(TestBase):
 
     @classmethod
     def setUpTestData(cls):
@@ -38,11 +20,8 @@ class TestLabelsSVG(TestCase):
         )
         self.assert_pdf_size(response.content, [252, 102])
 
-    def test_svg_label_multi(self):
-        self.assertTrue(
-            self.client.login(username="User1", password="the-secret"),
-            "failed to log in"
-        )
+    def test_svg_label_multi_garden(self):
+        self.login("User1")
 
         # --- multiple PDFS as zip from change-list action ---
 
@@ -53,13 +32,7 @@ class TestLabelsSVG(TestCase):
             "pdf",
         )
         self.assertEqual("application/zip", response.headers["Content-Type"])
-        fp = io.BytesIO(response.content)
-        with zipfile.ZipFile(fp) as zf:
-            self.assertEqual(2, len(zf.filelist))
-            for fileinfo in zf.filelist:
-                self.assertTrue(fileinfo.filename.endswith(".pdf"), fileinfo)
-                with zf.open(fileinfo.filename) as fp:
-                    self.assert_pdf_size(fp.read(), [252, 102])
+        self.assert_zip_with_pdfs(response, [252, 102])
 
         # single selected file in change-list action returns no zip
         response = self.get_label_response(
@@ -69,6 +42,66 @@ class TestLabelsSVG(TestCase):
             "pdf",
         )
         self.assert_pdf_size(response.content, [252, 102])
+
+    def test_svg_label_multi_individual(self):
+        self.login("User1")
+
+        # --- multiple PDFS as zip from change-list action ---
+
+        response = self.get_label_response(
+            LabelDefinition.objects.get(id_name="I1"),
+            "individual",
+            [Individual.objects.get(accession_number=1000), Individual.objects.get(accession_number=1001)],
+            "pdf",
+            expect_unchecked_nomenclature=True,
+        )
+        self.assertEqual("application/zip", response.headers["Content-Type"])
+        self.assert_zip_with_pdfs(response, [252, 102])
+
+        # single selected file in change-list action returns no zip
+        response = self.get_label_response(
+            LabelDefinition.objects.get(id_name="I1"),
+            "individual",
+            [Individual.objects.get(accession_number=1000)],
+            "pdf",
+            expect_unchecked_nomenclature=True,
+        )
+        self.assert_pdf_size(response.content, [252, 102])
+
+    def test_svg_label_multi_specimen(self):
+        self.login("User1")
+
+        # --- multiple PDFS as zip from change-list action ---
+
+        response = self.get_label_response(
+            LabelDefinition.objects.get(id_name="S1"),
+            "herbarium_specimen",
+            [HerbariumSpecimen.objects.get(individual__accession_number=1002),
+             HerbariumSpecimen.objects.get(individual__accession_number=1003)],
+            "pdf",
+            expect_unchecked_nomenclature=True,
+        )
+        self.assertEqual("application/zip", response.headers["Content-Type"])
+        self.assert_zip_with_pdfs(response, [297, 212])
+
+        # single selected file in change-list action returns no zip
+        response = self.get_label_response(
+            LabelDefinition.objects.get(id_name="S1"),
+            "herbarium_specimen",
+            [HerbariumSpecimen.objects.get(individual__accession_number=1002)],
+            "pdf",
+            expect_unchecked_nomenclature=True,
+        )
+        self.assert_pdf_size(response.content, [297, 212])
+
+    def assert_zip_with_pdfs(self, response: HttpResponse, pdf_size: List[int]):
+        fp = io.BytesIO(response.content)
+        with zipfile.ZipFile(fp) as zf:
+            self.assertEqual(2, len(zf.filelist))
+            for fileinfo in zf.filelist:
+                self.assertTrue(fileinfo.filename.endswith(".pdf"), fileinfo)
+                with zf.open(fileinfo.filename) as fp:
+                    self.assert_pdf_size(fp.read(), pdf_size)
 
     def assert_pdf_size(self, pdf_data: bytes, expected_size: List[int]):
         with tempfile.TemporaryDirectory() as path:
@@ -80,31 +113,3 @@ class TestLabelsSVG(TestCase):
                 raise AssertionError(f"Page size not found in pdfinfo result: {result}")
             page_size = [int(float(g)) for g in match.groups()]
             self.assertEqual(list(expected_size), page_size, "PDF page size does not match")
-
-    def get_label_response(self, label_model: LabelDefinition, object_type: str, object_model, format: str):
-        if isinstance(object_model, list):
-            if object_type == "garden":
-                url = reverse("admin:botman_botanicgarden_changelist")
-            else:
-                url = reverse("admin:individuals_individual_changelist")
-            response = self.client.post(
-                url,
-                data={
-                    "action": f"label_{label_model.id_name}",
-                    "_selected_action": [str(o.pk) for o in object_model],
-                },
-                follow=True,
-            )
-        else:
-            response = self.client.get(
-                reverse(f"labels:{object_type}", args=(label_model.pk, object_model.pk)) + f"?format={format}",
-            )
-
-        self.assertLess(response.status_code, 400)
-
-        err_msg = "Error creating labels"
-        if err_msg.encode() in response.content:
-            idx = response.content.find(err_msg.encode())
-            raise AssertionError(f"{err_msg}: {response.content[idx:idx + 5000]}")
-
-        return response

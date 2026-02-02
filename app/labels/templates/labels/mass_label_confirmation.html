@@ -5,7 +5,7 @@
 
     <p>{% trans 'Some species referenced by the labels have no validated nomenclature. Export them anyway?' %}</p>
 
-    <form method="post">
+    <form method="post" id="label-confirmation-form">
         <button type="submit" name="_confirmation_yes_button" class="default">{% trans 'confirm' %}</button>
         &nbsp;
         <button type="submit" name="_confirmation_no_button">{% trans 'cancel' %}</button>
