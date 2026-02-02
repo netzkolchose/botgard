@@ -215,6 +215,8 @@ def _render_impl(
     if format == "html":
         try:
             markup = label.render_markup(context)
+        except KeyboardInterrupt:
+            raise
         except BaseException as e:
             return HttpResponse('<p class="error">%s</p>' % e)
 
@@ -235,6 +237,8 @@ def _render_impl(
     else:
         try:
             return label.render_file_response(context, filename, format=format)
+        except KeyboardInterrupt:
+            raise
         except Exception as e:
             import traceback
             return HttpResponse(
