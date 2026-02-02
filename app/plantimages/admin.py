@@ -1,10 +1,13 @@
+import traceback
+
 from .models import PlantImage
 from tools import readOnlyAdmin
 from django.contrib.admin import StackedInline
 from django import forms
 from django.contrib.admin import widgets
-from django.utils.html import conditional_escape
+from django.utils.html import conditional_escape, format_html
 from django.utils.safestring import mark_safe
+from django.utils.translation import gettext_lazy as _
 from django.conf import settings
 
 
@@ -19,14 +22,24 @@ class ImagePreviewWidget(widgets.AdminFileWidget):
             url = "%s%s" % (settings.MEDIA_URL, value)
             try:
                 thumb_url = get_thumbnailer(value)['large_preview'].url
-            except (InvalidImageFormatError, ValueError, ):
-                return markup
+            except Exception as e:
+                print(f"Exception in thumbnailer for {value}: {type(e).__name__}: {e}")
+                traceback.print_exc(10)
+                markup = format_html(
+                    """<div><p class="error">{}<br/>{}</p></div>{}""",
+                    _("Error"),
+                    f"{type(e).__name__}: {e}",
+                    markup,
+                )
+                thumb_url = None
 
-            markup = '<div class="image-preview-widget-wrapper"><a href="%s" target="_blank"><img width="%i" height="%i" class="preview-image" src="%s"></a>%s</div>'%(
-                url,
-                settings.THUMBNAIL_ALIASES['']['large_preview']['size'][0],
-                settings.THUMBNAIL_ALIASES['']['large_preview']['size'][1],
-                thumb_url, markup)
+            if thumb_url:
+                markup = '<div class="image-preview-widget-wrapper"><a href="%s" target="_blank"><img width="%i" height="%i" class="preview-image" src="%s"></a>%s</div>'%(
+                    url,
+                    settings.THUMBNAIL_ALIASES['']['large_preview']['size'][0],
+                    settings.THUMBNAIL_ALIASES['']['large_preview']['size'][1],
+                    thumb_url, markup
+                )
 
         return mark_safe(markup)
 

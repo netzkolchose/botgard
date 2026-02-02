@@ -76,6 +76,14 @@ THUMBNAIL_ALIASES = {
         'large_preview': {'size': (500, 500), 'crop': True},
     },
 }
+THUMBNAIL_DEBUG = True
+THUMBNAIL_PROCESSORS = (
+    'easy_thumbnails.processors.colorspace',
+    'easy_thumbnails.processors.autocrop',
+    'tools.thumbnail_processors.scale_and_crop',
+    'easy_thumbnails.processors.filters',
+    'easy_thumbnails.processors.background',
+)
 
 DIRS = [
     'templates'
