@@ -253,9 +253,10 @@ ISO_COUNTRY_CHOICES = (
     ('zw', 'ZW (Zimbabwe)'),
 )
 
+ISO_COUNTRY_CODE_NAME_MAPPING = {
+    cc: name
+    for cc, name in ISO_COUNTRY_CHOICES
+}
 
-def get_iso_country_by_id(id):
-    for i in ISO_COUNTRY_CHOICES:
-        if i[0].lower() == id.lower():
-            return i[1]
-    return ISO_COUNTRY_CHOICES[0][1]
+def get_iso_country_name(code):
+    return ISO_COUNTRY_CODE_NAME_MAPPING.get(code.lower(), code.upper())

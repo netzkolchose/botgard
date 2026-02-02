@@ -1,19 +1,9 @@
-import re
-
-from django.test import TestCase, Client
-from django.urls import reverse
 from django.contrib.admindocs.views import simplify_regex
 
-from botman.models import BotanicGarden
-from species.models import Family, Species
-from individuals.models import Department, Territory, Individual, Outplanting
-from labels.models import LabelDefinition
-from tickets.models import BasicTicket, LaserGravurTicket
-
-from .fixtures import create_test_fixtures
+from .base import *
 
 
-class TestAllViews(TestCase):
+class TestAllViews(TestBase):
 
     @classmethod
     def setUpTestData(cls):
@@ -175,6 +165,10 @@ class TestAllViews(TestCase):
                 [LabelDefinition.objects.filter(type="garden"), BotanicGarden.objects.all()],
                 ["", "format=pdf", "format=png", "format=html&include_links=1"],
             ),
+            "labels:herbarium_specimen": (
+                [LabelDefinition.objects.filter(type="herbarium_specimen"), HerbariumSpecimen.objects.all()],
+                ["", "format=pdf", "format=png", "format=html&include_links=1"],
+            ),
             "labels:random": (
                 [LabelDefinition.objects.all()],
                 ["", "format=pdf", "format=png", "format=html&include_links=1"],
@@ -184,6 +178,9 @@ class TestAllViews(TestCase):
             ),
             "labels:random_garden": (
                 [LabelDefinition.objects.filter(type="garden")],
+            ),
+            "labels:random_specimen": (
+                [LabelDefinition.objects.filter(type="herbarium_specimen")],
             )
             #"sidebar:delete_bookmark": ['id'],
             #"sidebar:delete_note": ['id'],
@@ -228,6 +225,13 @@ class TestAllViews(TestCase):
 
                     try:
                         response = self.client.get(url)
+                        if b"Can not render a label of format &#x27;csv&#x27; to format &#x27;pdf&#x27" in response.content:
+                            continue
+                        if b"Can not render a label of format &#x27;csv&#x27; to format &#x27;png&#x27" in response.content:
+                            continue
+                        if b"Can not render a label of format &#x27;html&#x27; to format &#x27;png&#x27" in response.content:
+                            continue
+                        self.assert_no_warning(response)
                         self.assertStatus(200, response, f"in {url_name} {url}")
                     except Exception as e:
                         print(f"ERROR IN VIEW {url_name}: {type(e).__name__}: {e}")

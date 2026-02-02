@@ -15,6 +15,7 @@ from tools.search_fields import search_fields_compatible
 from config_tables.admin import ConfigurableTable, ForeignKeyFilter
 from ajax.autocomplete import AutoCompleteForm
 from labels.mass_action import add_label_mass_actions
+from herbaria.models.specimen import HerbariumSpecimen, create_herbarium_specimen_form_class
 
 
 class DepartmentAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
@@ -132,6 +133,21 @@ def get_seed_order_ids(s: str) -> List[str]:
     return re.findall(r"\d+", s)
 
 
+class HerbariumSpecimenInline(readOnlyAdmin.ReadOnlyTabularInline):
+    form = create_herbarium_specimen_form_class(
+        # remove one of the defaults, otherwise user might click "add specimen"
+        # and all defaults might be exactly the ones the user wants to enter
+        # and nothing is saved, because django thought nothing was entered
+        no_default_specimen_type=True,
+        widgets={
+            "comment": forms.TextInput,  # don't use textarea in inline form
+        }
+    )
+    model = HerbariumSpecimen
+    min_num = 0
+    extra = 0
+
+
 class IndividualAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
     form = IndividualForm
     save_on_top = True
@@ -198,7 +214,7 @@ class IndividualAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable)
         })
     )
     raw_id_fields = ("species",)
-    inlines = [OutplantingInline, PlantImageInline]
+    inlines = [OutplantingInline, PlantImageInline, HerbariumSpecimenInline]
 
     class Media:
         css = {"screen": ('BotGard/css_dropdown/css_dropdown.css',)}

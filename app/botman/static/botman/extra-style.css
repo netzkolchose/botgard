@@ -293,6 +293,11 @@ span.icon-no {
     background-image: url('../admin/img/icon-no.svg');
 }
 
+.label-link.nomenclature-unchecked:after {
+    content: " !";
+    font-weight: bold;
+}
+
 .label-preview-background {
     display: inline-block;
     background-color: white;

@@ -3,7 +3,7 @@
     <a href>{{ title }}</a>
     <ul class="css-dropdown-list">
         {% for item in items %}
-            <li><a title="{{ item.title }}" href="{{ item.url }}">{{ item.name }}</a></li>
+            <li><a {% if item.class %}class="{{ item.class }}" {% endif %}{% if item.extra %}{{ item.extra }}{% endif %}title="{{ item.title }}" href="{{ item.url }}">{{ item.name }}</a></li>
         {% endfor %}
     </ul>
 </div>

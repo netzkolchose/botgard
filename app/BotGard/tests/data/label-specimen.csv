@@ -1,0 +1,6 @@
+Herbarium
+{{obj.herbarium|safe}}
+IPEN
+{{obj.individual.ipen_generated|safe}}
+Collector
+{{obj.collector.username|safe}}

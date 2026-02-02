@@ -17,7 +17,7 @@ from picklefield.fields import PickledObjectField
 
 #from botman.models import BotanicGarden
 from seedcatalog.models import SeedCatalog
-from tools.countries import ISO_COUNTRY_CHOICES
+from tools.countries import ISO_COUNTRY_CHOICES, get_iso_country_name
 from tools.global_request import get_current_request
 from ajax.autocomplete import AutoCompleteForm
 
@@ -147,13 +147,10 @@ class IndividualBase(models.Model):
         max_length=128, null=True, blank=True,
     )
 
-    def country_decorator(self):
-        """Only needed by geolocation template"""
-        cc = self.found_country
-        for i in ISO_COUNTRY_CHOICES:
-            if i[0] == cc:
-                return i[1]
-        return cc.upper()
+    def found_country_name(self) -> str:
+        """Full name of `found_country` code"""
+        return get_iso_country_name(self.found_country)
+    found_country_name.template_doc = _("collecting country name")
 
     def found_text_lines(self):
         return self.found_text.split("\n")

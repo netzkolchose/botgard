@@ -1,3 +1,4 @@
+from .territory import Territory, TerritoryForm, Department, DepartmentForm
 from .individual import Individual, IndividualForm, Seed, SeedForm, SeedCatalog
 from .outplanting import Outplanting, OutplantingForm
 from .territory import Territory, TerritoryForm, Department, DepartmentForm

@@ -4,7 +4,7 @@ import re
 import sys
 import codecs
 import random
-
+import time
 
 from django.conf import settings
 
@@ -42,11 +42,16 @@ def convert_svg_to_format(svg_markup: str, format: str):
     )
 
     proc.stdin.write(bytes(svg_markup, encoding='utf8'))
-    proc.stdin.write(bytes("\n", encoding='utf8'))
+    proc.stdin.write(b"\n")
+    proc.stdin.flush()
     proc.stdin.close()
 
+    start_time = time.time()
     while proc.returncode is None:
         proc.poll()
+        time.sleep(.01)
+        if time.time() - start_time >= 3.:
+            raise RuntimeError(f"rsvg timeout, format: {format}")
 
     err = proc.stderr.read()
     if err:

@@ -6,7 +6,6 @@ from django.urls import reverse
 from individuals.models import *
 from tools.permissions import *
 
-# from tools.countries import get_iso_country_by_id
 from tools.pdf import create_pdf_response
 from tools.admin_extensions import minimal_admin_context
 from tools.csv_response import csv_response

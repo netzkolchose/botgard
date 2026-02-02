@@ -1,32 +1,13 @@
-import csv
-from io import StringIO, BytesIO
-from typing import List
+from .base import *
 
-from django.test import TestCase, Client
-from django.urls import reverse
-from django.contrib.admindocs.views import simplify_regex
-
-import xlrd
-
-from labels.models import LabelDefinition
-from labels.mass_action import render_mass_labels_action
-from labels.admin import LabelDefinitionAdmin
-from botman.models import BotanicGarden
-
-from .fixtures import create_test_fixtures
-
-
-class TestLabelsCSV(TestCase):
+class TestLabelsCSV(TestBase):
 
     @classmethod
     def setUpTestData(cls):
         create_test_fixtures()
 
-    def test_label_single(self):
-        self.assertTrue(
-            self.client.login(username="User1", password="the-secret"),
-            "failed to log in"
-        )
+    def test_csv_label_single_garden(self):
+        self.login("User1")
 
         label_model = LabelDefinition.objects.get(id_name="A2")
 
@@ -48,11 +29,22 @@ class TestLabelsCSV(TestCase):
             ]
         )
 
-    def test_label_mass_action(self):
-        self.assertTrue(
-            self.client.login(username="User1", password="the-secret"),
-            "failed to log in"
+    def test_csv_label_single_individual(self):
+        self.login("User1")
+
+        label_model = LabelDefinition.objects.get(id_name="I3")
+
+        self.assert_table(
+            label_model,
+            "individual", Individual.objects.get(accession_number=1000),
+            [
+                ["IPEN", "Species"],
+                ["AU-0-GARD1-1000", "Genus 1 Species 1 Baill."],
+            ],
         )
+
+    def test_csv_label_mass_action_garden(self):
+        self.login("User1")
 
         label_model = LabelDefinition.objects.get(id_name="A2")
 
@@ -70,16 +62,61 @@ class TestLabelsCSV(TestCase):
             ]
         )
 
+    def test_csv_label_mass_action_individual(self):
+        self.login("User1")
+
+        label_model = LabelDefinition.objects.get(id_name="I3")
+
+        self.assert_table(
+            label_model,
+            "individual",
+            [
+                Individual.objects.get(accession_number=1000),
+                Individual.objects.get(accession_number=1001),
+            ],
+            [
+                ["IPEN", "Species"],
+                ["AU-0-GARD1-1000", "Genus 1 Species 1 Baill."],
+                ["IT-0-GARD2-1001", "Genus 1 Species 2 A. Cunn."],
+            ],
+            expect_unchecked_nomenclature=True,
+        )
+
+    def test_csv_label_mass_action_specimen(self):
+        self.login("User1")
+
+        label_model = LabelDefinition.objects.get(id_name="S2")
+
+        self.assert_table(
+            label_model,
+            "herbarium_specimen",
+            [
+                HerbariumSpecimen.objects.get(individual__accession_number=1002),
+                HerbariumSpecimen.objects.get(individual__accession_number=1003),
+            ],
+            [
+                ["Herbarium", "IPEN", "Collector"],
+                ["Herbarium1", "ES-0-GARD2-1003", "User2"],
+                ["Herbarium1", "CZ-0-GARD1-1002", "User1"],
+            ],
+            expect_unchecked_nomenclature=True,
+        )
+
     def assert_table(
-            self, label_model: LabelDefinition, object_type: str, object_model, expected_lines: List[List[str]]
+            self, label_model: LabelDefinition, object_type: str, object_model, expected_lines: List[List[str]],
+            expect_unchecked_nomenclature: bool = False,
     ):
-        self.assert_csv(label_model, object_type, object_model, expected_lines)
-        self.assert_xls(label_model, object_type, object_model, expected_lines)
+        self.assert_csv(label_model, object_type, object_model, expected_lines, expect_unchecked_nomenclature)
+        self.assert_xls(label_model, object_type, object_model, expected_lines, expect_unchecked_nomenclature)
 
     def assert_csv(
-            self, label_model: LabelDefinition, object_type: str, object_model, expected_lines: List[List[str]]
+            self, label_model: LabelDefinition, object_type: str, object_model, expected_lines: List[List[str]],
+            expect_unchecked_nomenclature: bool = False,
     ):
-        response = self.get_label_response(label_model, object_type, object_model, "csv")
+        response = self.get_label_response(
+            label_model, object_type, object_model, "csv",
+            expect_unchecked_nomenclature=expect_unchecked_nomenclature,
+        )
         fp = StringIO(response.content.decode("utf-8"))
         try:
             lines = list(csv.reader(fp))
@@ -90,8 +127,14 @@ class TestLabelsCSV(TestCase):
             print(f"RENDERED RESPONSE:\n{fp.read()}")
             raise
 
-    def assert_xls(self, label_model: LabelDefinition, object_type: str, object_model, expected_lines: List[List[str]]):
-        response = self.get_label_response(label_model, object_type, object_model, "xls")
+    def assert_xls(
+            self, label_model: LabelDefinition, object_type: str, object_model, expected_lines: List[List[str]],
+            expect_unchecked_nomenclature: bool = False,
+    ):
+        response = self.get_label_response(
+            label_model, object_type, object_model, "xls",
+            expect_unchecked_nomenclature=expect_unchecked_nomenclature,
+        )
 
         try:
             book = xlrd.open_workbook(file_contents=response.content, encoding_override="utf-8")
@@ -106,31 +149,3 @@ class TestLabelsCSV(TestCase):
             print("RENDERED RESPONSE:")
             print(response.content)
             raise
-
-    def get_label_response(self, label_model: LabelDefinition, object_type: str, object_model, format: str):
-        if isinstance(object_model, list):
-            if object_type == "garden":
-                url = reverse("admin:botman_botanicgarden_changelist")
-            else:
-                url = reverse("admin:individuals_individual_changelist")
-
-            response = self.client.post(
-                url,
-                data={
-                    "action": f"label_{label_model.id_name}_{format}",
-                    "_selected_action": [str(o.pk) for o in object_model],
-                }
-            )
-        else:
-            response = self.client.get(
-                reverse(f"labels:{object_type}", args=(label_model.pk, object_model.pk)) + f"?format={format}",
-            )
-
-        self.assertLess(response.status_code, 400)
-
-        err_msg = "Error creating labels"
-        if err_msg.encode() in response.content:
-            idx = response.content.find(err_msg.encode())
-            raise AssertionError(f"{err_msg}: {response.content[idx:idx + 1000]}")
-
-        return response

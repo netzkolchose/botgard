@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="105mm"
+   height="75mm"
+   viewBox="0 0 105 75"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="herbarium-specimen-60x40.svg"
+   inkscape:version="1.4 (e7c3feb100, 2024-10-09)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     inkscape:export-bgcolor="#ffffff00"
+     showguides="true"
+     inkscape:zoom="2.013074"
+     inkscape:cx="175.60209"
+     inkscape:cy="142.07128"
+     inkscape:window-width="1920"
+     inkscape:window-height="1029"
+     inkscape:window-x="0"
+     inkscape:window-y="27"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1">
+    <inkscape:page
+       x="0"
+       y="0"
+       width="105"
+       height="75"
+       id="page2"
+       margin="0"
+       bleed="0" />
+    <sodipodi:guide
+       position="52.499999,48.977695"
+       orientation="-1,0"
+       id="guide1"
+       inkscape:locked="false"
+       inkscape:label=""
+       inkscape:color="rgb(0,134,229)" />
+  </sodipodi:namedview>
+  <defs
+     id="defs1" />
+  <g
+     inkscape:label="Ebene 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <text
+       xml:space="preserve"
+       style="font-weight:bold;font-size:4px;font-family:'Book Antiqua';-inkscape-font-specification:'Book Antiqua Bold';text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;opacity:1;fill:none;stroke:#000000;stroke-width:1.155"
+       x="52.629547"
+       y="6.2234273"
+       id="text1"><tspan
+         sodipodi:role="line"
+         id="tspan1"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:4px;font-family:'Book Antiqua';-inkscape-font-specification:'Book Antiqua Bold';text-align:center;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1.155"
+         x="52.629547"
+         y="6.2234273">{{obj.herbarium.name}}</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:6px;font-family:'Book Antiqua';-inkscape-font-specification:'Book Antiqua Bold';text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;opacity:1;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1.155"
+       x="51.832771"
+       y="19.086672"
+       id="text2"><tspan
+         sodipodi:role="line"
+         id="tspan2"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6px;font-family:'Book Antiqua';-inkscape-font-specification:'Book Antiqua';text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;stroke-width:1.155"
+         x="51.832771"
+         y="19.086672">{{obj.individual.species.full_name_no_author}}</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:4px;font-family:'Book Antiqua';-inkscape-font-specification:'Book Antiqua Bold';text-align:start;writing-mode:lr-tb;direction:ltr;text-anchor:start;opacity:1;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1.155"
+       x="53.430569"
+       y="25.836432"
+       id="text3"><tspan
+         sodipodi:role="line"
+         id="tspan3"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4px;font-family:'Book Antiqua';-inkscape-font-specification:'Book Antiqua';text-align:center;text-anchor:middle;stroke-width:1.155"
+         x="53.430569"
+         y="25.836432">{{obj.individual.family_single}}</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:4px;font-family:'Book Antiqua';-inkscape-font-specification:'Book Antiqua Bold';text-align:start;writing-mode:lr-tb;direction:ltr;text-anchor:start;opacity:1;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1.155"
+       x="2.5092938"
+       y="40.241638"
+       id="text4"><tspan
+         sodipodi:role="line"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4px;font-family:'Book Antiqua';-inkscape-font-specification:'Book Antiqua';stroke-width:1.155"
+         x="2.5092938"
+         y="40.241638"
+         id="tspan9">Fundort: {{obj.individual.found_country_name}}</tspan><tspan
+         sodipodi:role="line"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4px;font-family:'Book Antiqua';-inkscape-font-specification:'Book Antiqua';stroke-width:1.155"
+         x="2.5092938"
+         y="45.241638"
+         id="tspan10">{{obj.individual.found_text}}</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:3px;font-family:'Book Antiqua';-inkscape-font-specification:'Book Antiqua Bold';text-align:start;writing-mode:lr-tb;direction:ltr;text-anchor:start;opacity:1;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1.155"
+       x="3.0669143"
+       y="63.475838"
+       id="text5"><tspan
+         sodipodi:role="line"
+         id="tspan5"
+         style="font-size:3px;stroke-width:1.155"
+         x="3.0669143"
+         y="63.475838">leg.: {{obj.collector.get_full_name}}</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:3px;font-family:'Book Antiqua';-inkscape-font-specification:'Book Antiqua Bold';text-align:start;writing-mode:lr-tb;direction:ltr;text-anchor:start;opacity:1;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1.155"
+       x="3.2527881"
+       y="68.215614"
+       id="text6"><tspan
+         sodipodi:role="line"
+         id="tspan6"
+         style="font-size:3px;stroke-width:1.155"
+         x="3.2527881"
+         y="68.215614">IPEN: {{obj.individual.ipen_generated}}</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:3px;font-family:'Book Antiqua';-inkscape-font-specification:'Book Antiqua Bold';text-align:start;writing-mode:lr-tb;direction:ltr;text-anchor:start;opacity:1;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1.155"
+       x="2.6951671"
+       y="72.676582"
+       id="text7"><tspan
+         sodipodi:role="line"
+         id="tspan7"
+         style="font-size:3px;stroke-width:1.155"
+         x="2.6951671"
+         y="72.676582">Angelegt: {{obj.collection_date}}</tspan><tspan
+         sodipodi:role="line"
+         style="font-size:3px;stroke-width:1.155"
+         x="2.6951671"
+         y="76.426582"
+         id="tspan8" /></text>
+  </g>
+</svg>

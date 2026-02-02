@@ -50,6 +50,7 @@ class Individual(IndividualBase, Configurable):
     territories_generated = models.CharField(max_length=1000, verbose_name=_("territories"), blank=True)
     # is any of the outplantings alive?
     is_alive_generated = models.BooleanField(verbose_name=_("is alive"), editable=False, default=False)
+    has_specimen_generated = models.BooleanField(verbose_name=_("has specimen"), editable=False, default=False)
 
     @configurable
     def __str__(self):
@@ -142,7 +143,10 @@ class Individual(IndividualBase, Configurable):
     def etikett_link_decorator(self):
         from labels import label_link_decorator
         return label_link_decorator(
-            "individual", self.pk, self.ipen_generated
+            label_class="individual",
+            object_pk=self.pk,
+            filename=self.ipen_generated,
+            nomenclature_unchecked=not self.species.nomenclature_checked,
         )
 
     etikett_link_decorator.short_description = _("create label")

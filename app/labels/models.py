@@ -4,6 +4,7 @@ import csv as csv_lib
 from io import StringIO
 from typing import Union, List, Tuple
 
+from asgiref.typing import HTTPResponseBodyEvent
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.template import Template, Context
@@ -17,6 +18,7 @@ LABEL_TYPE_CHOICES = (
     ('garden', _("Botanic Garden")),
     ('individual', _("Individual")),
     ('entry', _("Entry")),
+    ('herbarium_specimen', _("Specimen")),
 )
 
 LABEL_ID_VALIDATOR = RegexValidator(
@@ -102,6 +104,12 @@ class LabelDefinition(models.Model):
             if not qset.exists():
                 return ""
             markup = self.render_markup(self.get_individual_context(qset[random.randrange(qset.count())]))
+        elif self.type == "herbarium_specimen":
+            from herbaria.models import HerbariumSpecimen
+            qset = HerbariumSpecimen.objects.all()
+            if not qset.exists():
+                return ""
+            markup = self.render_markup(self.get_herbarium_specimen_context(qset[random.randrange(qset.count())]))
         else:
             return ""
         markup = f"""<div class="label-preview-background">{markup}</div>"""
@@ -265,6 +273,17 @@ class LabelDefinition(models.Model):
             indi = Entry.objects.get(pk=entry_or_pk)
         context = _get_default_context()
         context["obj"] = indi
+        return context
+
+    @classmethod
+    def get_herbarium_specimen_context(cls, specimen_or_pk):
+        from herbaria.models import HerbariumSpecimen
+        if isinstance(specimen_or_pk, HerbariumSpecimen):
+            model = specimen_or_pk
+        else:
+            model = HerbariumSpecimen.objects.get(pk=specimen_or_pk)
+        context = _get_default_context()
+        context["obj"] = model
         return context
 
 

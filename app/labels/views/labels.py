@@ -9,6 +9,7 @@ from labels.models import LabelDefinition, LABEL_FORMAT_TO_FILE_FORMAT
 from individuals.models import Individual
 from entrybook.models import Entry
 from botman.models import BotanicGarden
+from herbaria.models import HerbariumSpecimen
 from tools.permissions import login_required
 
 
@@ -26,8 +27,14 @@ def label_individual(request, label_pk, indi_pk):
 
 @login_required
 def label_entry(request, label_pk, entry_pk):
-    """View to render garden address label"""
+    """View to render entry book label"""
     return _render_label_entry(request, label_pk, entry_pk)
+
+
+@login_required
+def label_herbarium_specimen(request, label_pk, specimen_pk):
+    """View to render specimen label"""
+    return _render_herbarium_specimen_entry(request, label_pk, specimen_pk)
 
 
 @login_required
@@ -44,6 +51,8 @@ def label_random(request, label_pk):
         return label_random_individual(request, label_pk)
     if label.type == "entry":
         return label_random_entry(request, label_pk)
+    if label.type == "herbarium_specimen":
+        return label_random_herbarium_specimen(request, label_pk)
 
     return HttpResponse(_("Invalid label type '%s'") % label.type, status=404)
 
@@ -82,6 +91,18 @@ def label_random_entry(request, label_pk):
     entry = qset[random.randrange(qset.count())]
 
     return _render_label_entry(request, label_pk, entry.pk)
+
+
+@login_required
+def label_random_herbarium_specimen(request, label_pk):
+    """View to render random herbarium specimen label"""
+    qset = HerbariumSpecimen.objects.all()
+    if not qset.exists():
+        return HttpResponse(_("No entries defined"), status=404)
+
+    model = qset[random.randrange(qset.count())]
+
+    return _render_herbarium_specimen_entry(request, label_pk, model.pk)
 
 
 def _render_label_individual(request, label_pk, indi_pk):
@@ -156,6 +177,30 @@ def _render_label_entry(request, label_pk, entry_pk):
     )
 
 
+def _render_herbarium_specimen_entry(request, label_pk, specimen_pk):
+    """View implementation to render label for HerbariumSpecimen"""
+    try:
+        label = LabelDefinition.objects.get(pk=label_pk)
+    except LabelDefinition.DoesNotExist:
+        return HttpResponse(_("Invalid label id"), status=404)
+
+    if label.type != "herbarium_specimen":
+        return HttpResponse(_("Invalid label type"), status=404)
+
+    try:
+        model = HerbariumSpecimen.objects.get(pk=specimen_pk)
+    except HerbariumSpecimen.DoesNotExist:
+        return HttpResponse(_("Invalid specimen id"), status=404)
+
+    context = label.get_herbarium_specimen_context(model)
+
+    return _render_impl(
+        request, label, context,
+        filename="%s" % model.individual.ipen_generated,
+        label_url=reverse("labels:herbarium_specimen", args=(label_pk, specimen_pk))
+    )
+
+
 def _render_impl(
         request,
         label: LabelDefinition,
@@ -170,6 +215,8 @@ def _render_impl(
     if format == "html":
         try:
             markup = label.render_markup(context)
+        except KeyboardInterrupt:
+            raise
         except BaseException as e:
             return HttpResponse('<p class="error">%s</p>' % e)
 
@@ -190,6 +237,8 @@ def _render_impl(
     else:
         try:
             return label.render_file_response(context, filename, format=format)
+        except KeyboardInterrupt:
+            raise
         except Exception as e:
             import traceback
             return HttpResponse(

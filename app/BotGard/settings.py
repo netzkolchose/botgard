@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     'seedcatalog.apps.SeedcatalogConfig',
     'tickets.apps.TicketsConfig',
     'labels.apps.LabelsConfig',
+    'herbaria.apps.HerbariaConfig',
     'ajax.apps.AjaxConfig',
     'easy_thumbnails',
     'BotGard',

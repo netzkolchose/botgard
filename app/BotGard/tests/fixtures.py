@@ -68,6 +68,7 @@ INDIVIDUALS = [
     {"accession_number": 1000, "species": "Species 1", "source": "Garden 1", "found_country": "AU"},
     {"accession_number": 1001, "species": "Species 2", "source": "Garden 2", "found_country": "IT"},
     {"accession_number": 1002, "species": "Species 3", "source": "Garden 1", "found_country": "CZ"},
+    {"accession_number": 1003, "species": "Species 3", "source": "Garden 2", "found_country": "ES"},
 ]
 
 OUTPLANTINGS = [
@@ -80,9 +81,21 @@ OUTPLANTINGS = [
 
 LABELS = [
     {"id_name": "A1", "format": "svg", "display_name": "Address Label 1", "type": "garden", "markup": "label-garden.svg"},
-    {"id_name": "I1", "format": "svg", "display_name": "Individual Label 1", "type": "individual", "markup": "label-individual.svg"},
     {"id_name": "A2", "format": "csv", "display_name": "Address Label 2", "type": "garden", "markup": "label-garden.csv"},
+    {"id_name": "I1", "format": "svg", "display_name": "Individual Label 1", "type": "individual", "markup": "label-individual.svg"},
     {"id_name": "I2", "format": "html", "display_name": "Individual Label 2", "type": "individual", "markup": "label-individual.html", "page_markup": "label-individual-page.html"},
+    {"id_name": "I3", "format": "csv", "display_name": "Individual Label 3", "type": "individual", "markup": "label-individual.csv"},
+    {"id_name": "S1", "format": "svg", "display_name": "Specimen Label 1", "type": "herbarium_specimen", "markup": "label-specimen.svg"},
+    {"id_name": "S2", "format": "csv", "display_name": "Specimen Label 2", "type": "herbarium_specimen", "markup": "label-specimen.csv"},
+]
+
+HERBARIA = [
+    {"name": "Herbarium1", "comment": "A loose collection"},
+]
+
+HERBARIUM_SPECIMENS = [
+    {"herbarium": "Herbarium1", "individual": 1002, "collector": "User1"},
+    {"herbarium": "Herbarium1", "individual": 1003, "collector": "User2"},
 ]
 
 BASIC_TICKETS = [
@@ -109,6 +122,7 @@ def create_test_fixtures():
     from entrybook.models import Entry
     from species.models import Family, Species
     from individuals.models import Department, Territory, Individual, Outplanting, Seed
+    from herbaria.models import Herbarium, HerbariumSpecimen
     from labels.models import LabelDefinition
     from tickets.models import BasicTicket, LaserGravurTicket
     from seedcatalog.models import SeedCatalog
@@ -260,6 +274,17 @@ def create_test_fixtures():
             date=data.get("date"),
             plant_died=None,
         )
+
+    log("creating Herbarium & HerbariumSpecimen")
+    for data in HERBARIA:
+        Herbarium.objects.create(**data)
+
+    for data in HERBARIUM_SPECIMENS:
+        data = deepcopy(data)
+        data["herbarium"] = Herbarium.objects.get(name=data["herbarium"])
+        data["individual"] = Individual.objects.get(accession_number=data["individual"])
+        data["collector"] = UserModel.objects.get(username=data["collector"])
+        HerbariumSpecimen.objects.create(**data)
 
     log("creating LabelDefinition")
     for data in LABELS:

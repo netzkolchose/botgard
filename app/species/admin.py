@@ -105,7 +105,9 @@ class SpeciesAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
         (_('additional'), {
             'classes': 'collapse',
             'fields': (
-            'protection_of_species', 'poisonous_plant', 'lifeform', 'nomenclature_checked', 'picture', 'comment')
+                'protection_of_species', 'bnatschg_category',
+                'poisonous_plant', 'lifeform', 'nomenclature_checked', 'picture', 'comment',
+            )
         }),
     )
 

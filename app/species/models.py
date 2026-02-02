@@ -19,6 +19,11 @@ PROTECTION_OF_SPECIES_CHOICES = (
     ('EX', 'EX (Extinct)'),
 )
 
+SPECIES_BNATSCHG_CHOICES = (
+    ('besonders', 'besonders geschützt'),
+    ('streng', 'streng geschützt'),
+)
+
 # see https://en.wikipedia.org/wiki/Plant_life-form
 LIFEFORM_CHOICES = (
     ('P', 'Phanerophyt (Gehölz)'),
@@ -134,6 +139,14 @@ class Species(models.Model, Configurable):
     area_of_distribution_background = models.TextField(verbose_name=_('detailed'), blank=True)
     protection_of_species = models.CharField(verbose_name=_('endangering'), max_length=2,
                                              choices=PROTECTION_OF_SPECIES_CHOICES, blank=True)
+    bnatschg_category = models.CharField(
+        verbose_name='BNatSchG',
+        max_length=32,
+        blank=True,
+        default="",
+        choices=SPECIES_BNATSCHG_CHOICES,
+        help_text=_("Protection category according to Federal Nature Conservation Act"),
+    )
     poisonous_plant = models.BooleanField(verbose_name=_('poisonous plant'), blank=True, null=True)
     lifeform = models.CharField(verbose_name=_('life-form'), max_length=2, choices=LIFEFORM_CHOICES, blank=True)
     nomenclature_checked = models.BooleanField(verbose_name=_('nomenclature checked'), default=False, blank=True,
