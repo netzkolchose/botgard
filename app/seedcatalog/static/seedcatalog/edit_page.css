@@ -1,0 +1,7 @@
+.seed-table {
+    border-collapse: collapse;
+}
+
+.seed-table tr:first-child {
+    background-color: color-mix(in srgb, var(--body-bg), #888 30%);
+}
