@@ -1,26 +1,53 @@
+html:root, html[data-theme="light"]:root {
+    --autocomplete-bg: #fff;
+    --autocomplete-bg-none: #ffe1e1;
+    --autocomplete-bg-many: #fff5d0;
+    --autocomplete-bg-one: #ebf7e0;
+    --autocomplete-bg-empty-required: #fee;
+}
+
+html[data-theme="dark"]:root {
+    --autocomplete-bg: #000000;
+    --autocomplete-bg-none: #400000;
+    --autocomplete-bg-many: #404000;
+    --autocomplete-bg-one: #004000;
+    --autocomplete-bg-empty-required: #502020;
+}
+
+@media (prefers-color-scheme: dark) {
+    html:root, html[data-theme="auto"]:root {
+        --autocomplete-bg: #000000;
+        --autocomplete-bg-none: #400000;
+        --autocomplete-bg-many: #404000;
+        --autocomplete-bg-one: #004000;
+        --autocomplete-bg-empty-required: #502020;
+    }
+}
+
 input.autocomplete-relation {
 }
 
 .autocomplete-verify {
-    background: #fff;
+    background: var(--autocomplete-bg);
 }
 
 .autocomplete-verify[data-ac-state="none"] {
-    background: #ffe1e1;
+    background: var(--autocomplete-bg-none);
 }
 
 .autocomplete-verify[data-ac-state="many"] {
-    background: #fff5d0;
+    background: var(--autocomplete-bg-many);
 }
 
 .autocomplete-verify[data-ac-state="one"] {
-    background: #ebf7e0;
+    background: var(--autocomplete-bg-one);
 }
 
 .autocomplete-verify[data-ac-state="empty"][required] {
-    background: #fee;
+    background: var(--autocomplete-bg-empty-required);
 }
 
+/*
 @media (prefers-color-scheme: dark) {
     .autocomplete-verify {
         background: #000000;
@@ -42,6 +69,7 @@ input.autocomplete-relation {
         background: #502020;
     }
 }
+*/
 
 .autocomplete-related-widget-wrapper {
     display: inline;
