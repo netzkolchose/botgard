@@ -39,7 +39,7 @@ class Migration(migrations.Migration):
                 ('collection_date', models.DateField(auto_now_add=True)),
                 ('specimen_type', models.CharField(choices=[('plant_generative', 'Plant (generative)'), ('plant_vegetative', 'Plant (vegetative)'), ('blossoms', 'Blossoms'), ('leaves', 'Leaves'), ('fruits', 'Fruits')], db_index=True, default='plant_generative', max_length=32, verbose_name='Specimen type')),
                 ('comment', models.TextField(blank=True, db_index=True, null=True, verbose_name='Comment')),
-                ('collector', models.ForeignKey(default=tools.global_request.get_current_user, help_text='Collector', on_delete=django.db.models.deletion.CASCADE, related_name='herbarium_collectors', to=settings.AUTH_USER_MODEL, verbose_name='Legato')),
+                ('collector', models.ForeignKey(default=tools.global_request.get_current_user, help_text='Collector', on_delete=django.db.models.deletion.CASCADE, related_name='herbarium_collectors', to=settings.AUTH_USER_MODEL, verbose_name='Legit')),
                 ('herbarium', models.ForeignKey(default=herbaria.models.specimen.get_default_herbarium, on_delete=django.db.models.deletion.CASCADE, related_name='specimens', to='herbaria.herbarium')),
                 ('individual', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='herbarium_specimens', to='individuals.individual')),
             ],

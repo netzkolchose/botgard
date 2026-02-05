@@ -66,7 +66,7 @@ class HerbariumSpecimen(Configurable, models.Model):
     )
 
     collector = models.ForeignKey(
-        verbose_name="Legato",
+        verbose_name="Legit",
         help_text=_("Collector"),
         to=get_user_model(),
         on_delete=models.CASCADE,
