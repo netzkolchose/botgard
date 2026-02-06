@@ -417,10 +417,8 @@ class Seed(Individual):
     etikett_detail_decorator.searchable_field = "species__area_of_distribution_background"
 
     def seed_add_to_latest_catalog_decorator(self):
-        try:
-            catalog = SeedCatalog.objects.latest('pk')
-            assert not catalog.is_finalized
-        except:
+        catalog = SeedCatalog.objects.latest_editable_catalog()
+        if not catalog:
             url = reverse("admin:seedcatalog_seedcatalog_add")
             return mark_safe('<a href="%s">%s</a>' % (url, _("Create new catalog.")))
 
@@ -429,7 +427,7 @@ class Seed(Individual):
         if request.GET:
             redirect += "?" + request.GET.urlencode()
 
-        if catalog.seed.filter(pk=self.pk):
+        if catalog.seed.filter(pk=self.pk).exists():
             url = reverse("seedcatalog:remove_seed", args=(self.pk, catalog.pk,))
             return_string = '<a title="%s: %s" href="%s?_redirect=%s">%s</a>' % (
                 _("catalog"), catalog, url, redirect, _("remove")

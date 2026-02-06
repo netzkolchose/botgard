@@ -16,6 +16,7 @@ from config_tables.admin import ConfigurableTable, ForeignKeyFilter
 from ajax.autocomplete import AutoCompleteForm
 from labels.mass_action import add_label_mass_actions
 from herbaria.models.specimen import HerbariumSpecimen, create_herbarium_specimen_form_class
+from .actions import add_seed_catalog_actions
 
 
 class DepartmentAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
@@ -79,7 +80,7 @@ class SeedAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
 
     blacklist = ('id', '__str__', 'ipen_transfer_restricted', 'ipen_garden_code', 'ipen_accession_number',
                  'ipen_country', 'departments_generated', 'territories_generated', 'species',
-                 'alive_outplantings_generated')
+                 'outplantings_generated', 'alive_outplantings_generated', 'is_alive_generated',)
 
     search_fields = search_fields_compatible([
         'order_number', '@species__species', 'accession_number', '@species__family__genus',
@@ -124,8 +125,10 @@ class SeedAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
         return queryset.filter(order_number__in=order_ids), False
 
     def get_actions(self, request):
-        actions = super().get_actions(request)
+        actions = {}
+        add_seed_catalog_actions(request, actions)
         add_label_mass_actions(request, actions, "individual")
+        actions.update(super().get_actions(request))
         return actions
 
 

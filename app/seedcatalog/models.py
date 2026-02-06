@@ -1,6 +1,7 @@
 import os
 import datetime
 import time
+from typing import Optional
 
 from django.db import models
 from django.conf import settings
@@ -10,7 +11,15 @@ from django.utils.translation import gettext_lazy as _
 from django.utils.safestring import mark_safe
 
 
+class SeedCatalogManager(models.Manager):
+
+    def latest_editable_catalog(self) -> Optional["SeedCatalog"]:
+        return SeedCatalog.objects.filter(is_finalized=False).order_by("-pk").first()
+
+
 class SeedCatalog(models.Model):
+    objects = SeedCatalogManager()
+
     class Meta:
         verbose_name = _('seed catalog')
         verbose_name_plural = _('seed catalogs')
