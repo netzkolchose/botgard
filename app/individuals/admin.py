@@ -17,6 +17,7 @@ from ajax.autocomplete import AutoCompleteForm
 from labels.mass_action import add_label_mass_actions
 from herbaria.models.specimen import HerbariumSpecimen, create_herbarium_specimen_form_class
 from .actions import add_seed_catalog_actions
+from .models.individual import SeedInLatestCatalogFilter
 
 
 class DepartmentAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
@@ -69,14 +70,16 @@ class SeedAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
         'change_link_decorator', 'order_number', 'accession_number', 'accession_extension', 'ipen_generated',
         'species_link_decorator', 'seed_available', 'seed_in_stock', 'seed_add_to_latest_catalog_decorator',
         'seed_etikett_decorator', 'endangering_decorator')
-    list_filter = (# 'seed_available', 'seed_in_stock', 'source__name',
-                   ('species__full_name_generated', ForeignKeyFilter),
-                   ('species__nomenclature_checked', ForeignKeyFilter),
-                   ('species__area_of_distribution_etikettxt', ForeignKeyFilter),
-                   ('species__area_of_distribution_background', ForeignKeyFilter),
-                   ('species__family__family', ForeignKeyFilter),
-                   ('species__family__genus', ForeignKeyFilter),
-                   )
+    list_filter = (
+        # 'seed_available', 'seed_in_stock', 'source__name',
+        ('species__full_name_generated', ForeignKeyFilter),
+        ('species__nomenclature_checked', ForeignKeyFilter),
+        ('species__area_of_distribution_etikettxt', ForeignKeyFilter),
+        ('species__area_of_distribution_background', ForeignKeyFilter),
+        ('species__family__family', ForeignKeyFilter),
+        ('species__family__genus', ForeignKeyFilter),
+        (SeedInLatestCatalogFilter.QUERY_NAME, SeedInLatestCatalogFilter),
+    )
 
     blacklist = ('id', '__str__', 'ipen_transfer_restricted', 'ipen_garden_code', 'ipen_accession_number',
                  'ipen_country', 'departments_generated', 'territories_generated', 'species',
@@ -115,7 +118,10 @@ class SeedAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
     inlines = [OutplantingInline]
 
     class Media:
-        css = {"screen": ('BotGard/css_dropdown/css_dropdown.css',)}
+        css = {"screen": (
+            'BotGard/css_dropdown/css_dropdown.css',
+            'BotGard/css/no-changelist-filter-box.css',
+        )}
 
     def get_search_results(self, request, queryset, search_term):
         order_ids = get_seed_order_ids(search_term)

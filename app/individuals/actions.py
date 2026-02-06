@@ -16,13 +16,13 @@ def add_seed_catalog_actions(request, actions: dict):
     actions[action_name] = (
         _action_seeds_to_catalog,
         action_name,
-        _("Add select seeds to current catalog"),
+        _("Add selected seeds to current catalog"),
     )
     action_name = "remove_seeds_from_current_catalog"
     actions[action_name] = (
         _action_seeds_remove_from_catalog,
         action_name,
-        _("Remove select seeds from current catalog"),
+        _("Remove selected seeds from current catalog"),
     )
 
 

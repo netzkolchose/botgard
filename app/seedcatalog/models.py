@@ -16,6 +16,9 @@ class SeedCatalogManager(models.Manager):
     def latest_editable_catalog(self) -> Optional["SeedCatalog"]:
         return SeedCatalog.objects.filter(is_finalized=False).order_by("-pk").first()
 
+    def latest_catalog(self) -> Optional["SeedCatalog"]:
+        return SeedCatalog.objects.order_by("-pk").first()
+
 
 class SeedCatalog(models.Model):
     objects = SeedCatalogManager()
