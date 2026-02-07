@@ -1,3 +1,5 @@
+import copy
+import dataclasses
 import re
 import io
 import csv
@@ -9,9 +11,10 @@ import itertools
 import subprocess
 from pathlib import Path
 import tempfile
-from typing import Dict, Set, Optional, Type, Callable
+from typing import Dict, Set, Optional, Type, Callable, Any
 
 from django.test import TestCase, Client
+from django.test.utils import override_settings
 from django.urls import reverse
 from django.urls.exceptions import NoReverseMatch
 from django.db import models
@@ -36,6 +39,12 @@ from herbaria.models import *
 
 from .fixtures import create_permission_group, create_test_fixtures
 from config_app.management.commands.botgard_update_config import update_config_in_database
+
+
+"""
+decorator to turn on logging of requests
+"""
+log_requests = override_settings(MIDDLEWARE=settings.MIDDLEWARE + ["tools.log_middleware.LogRequestMiddleware"])
 
 
 class TestBase(TestCase):
@@ -89,6 +98,15 @@ class TestBase(TestCase):
         fn = Path(tempfile.tempdir) / f"botgard-test-{secrets.token_hex(10)}.html"
         fn.write_text(html)
         webbrowser.open(f"file://{fn}")
+
+    def assert_response(
+            self,
+            response: HttpResponse,
+            status: Optional[int] = None,
+    ):
+        if status is not None:
+            if response.status_code != status:
+                raise AssertionError(f"Expected status {status}, got {response.status_code}")
 
     def assert_no_warning(self, response: HttpResponse):
         for pattern in (
@@ -165,3 +183,190 @@ class TestBase(TestCase):
             raise AssertionError(f"{err_msg}: {response.content[idx:idx + 5000]}")
 
         return response
+
+    def get_changelist(self, app_name: str, model_name: str) -> "ChangeListForm":
+        return ChangeListForm(self, app_name, model_name)
+
+
+class ChangeListForm:
+    """
+    Interface to the django changelist admin interface through html parsing
+    """
+
+    @dataclasses.dataclass
+    class FormField:
+        name: str
+        value: str
+        hidden: bool
+        type: Optional[str] = None
+        options: Optional[List[str]] = None
+        is_header_filter: bool = True
+        disabled: bool = False
+
+    @dataclasses.dataclass
+    class Header:
+        name: str
+        title: str
+        filter: Optional["FormField"] = None
+
+    def __init__(self, parent: TestBase, app_name: str, model_name: str):
+        self.parent = parent
+        self.app_name = app_name
+        self.model_name = model_name
+        self.url = reverse(f"admin:{self.app_name}_{model_name}_changelist")
+        self.fields: List[self.FormField] = []
+        self.headers: List[self.Header] = []
+        self.rows: List[Dict[str, Any]] = []
+
+        response = self.parent.client.get(self.url)
+        self.parent.assert_no_warning(response)
+        self.parse(response.content.decode())
+
+    def parse(self, html):
+        self.soup = bs4.BeautifulSoup(html, features="html.parser")
+        self.fields = []
+        self.rows = []
+        self._parse_form()
+        self._parse_table()
+
+    def get_form_field(self, name: str) -> FormField:
+        for field in self.fields:
+            if field.name == name:
+                return field
+        sorted_names = sorted(f.name for f in self.fields)
+        raise AssertionError(f"Form field '{name}' not found, got only {sorted_names}")
+
+    def get_row(self, **filters) -> Dict[str, Any]:
+        row = self.find_row(**filters)
+        if not row:
+            raise AssertionError(f"Did not find row for filters {filters}")
+        return row
+
+    def find_row(self, **filters) -> Optional[Dict[str, Any]]:
+        for row in self.rows:
+            is_match = True
+            for key, value in filters.items():
+                if key not in row:
+                    raise AssertionError(f"Missing key '{key}' in row {row}")
+                if row[key] != value and row[key] != str(value):
+                    is_match = False
+                    break
+            if is_match:
+                return row
+
+    def post(self, override_values: Union[None, Dict, QueryDict] = None):
+        if override_values is None:
+            values = QueryDict(mutable=True)
+        elif isinstance(override_values, QueryDict):
+            values = copy.deepcopy(override_values)
+            values._mutable = True
+        elif isinstance(override_values, dict):
+            values = QueryDict(mutable=True)
+            for k, v in override_values.items():
+                values[k] = v
+        else:
+            raise TypeError(f"Expected dict or QueryDict, got {type(override_values).__name__}")
+
+        for field in self.fields:
+            if not field.is_header_filter and not field.disabled:
+                if not override_values or field.name not in override_values:
+                    values[field.name] = field.value
+
+        actual_values = QueryDict(mutable=True)
+        for key in values.keys():
+            field = self.get_form_field(key)
+            for value in values.getlist(key):
+                if field.type == "checkbox":
+                    if isinstance(value, bool):
+                        if not value:
+                            continue
+                        value = "on"
+                elif value is None:
+                    value = ""
+                actual_values[key] = value
+
+        response = self.parent.client.post(self.url, actual_values, follow=True)
+        self.parent.assert_response(response, status=200)
+        self.parent.assert_no_warning(response)
+        self.parse(response.content.decode())
+
+    def _parse_form(self):
+        form = self.soup.find("form", {"id": "changelist-form"})
+        if not form:
+            raise AssertionError(f"No changelist-form found in {self.url}")
+
+        def _add_field(inp: bs4.PageElement, value):
+            self.fields.append(self.FormField(
+                name=inp.attrs["name"],
+                value=value,
+                type=inp.attrs.get("type"),
+                hidden="hidden" in inp.attrs or inp.attrs.get("type") == "hidden",
+                is_header_filter="filter-form-element" in inp.attrs.get("class", []),
+                disabled="disabled" in inp.attrs,
+            ))
+
+        for inp in form.find_all("input"):
+            if "name" in inp.attrs:
+                if inp.attrs.get("type") == "checkbox":
+                    if "value" in inp.attrs:
+                        value = inp.attrs["value"]
+                    else:
+                        value = "checked" in inp.attrs
+                else:
+                    value = inp.attrs["value"]
+                _add_field(inp, value)
+
+        for inp in form.find_all("textarea"):
+            _add_field(inp, inp.text)
+
+        for inp in form.find_all("select"):
+            value = None
+            options = []
+            for opt in inp.find_all("option"):
+                val = opt.attrs.get("value", "")
+                options.append(val)
+                if "selected" in opt.attrs and value is None:
+                    value = val
+
+            _add_field(inp, value)
+
+    def _parse_table(self):
+        table = self.soup.find("table", {"id": "result_list"})
+
+        trs = list(table.find("thead").find_all("tr"))
+        for i, th in enumerate(trs[0].find_all("th")):
+            name = None
+            for klass in th.attrs["class"]:
+                if klass.startswith("column-"):
+                    name = klass[7:]
+                elif klass == "action-checkbox-column":
+                    name = "action-checkbox"
+            self.parent.assertIsNotNone(name, f"In header column: {th}")
+
+            self.headers.append(self.Header(
+                name=name,
+                title=th.text.strip(),
+            ))
+
+        # TODO: they are currently rendered as td, should be th
+        for i, th in enumerate(trs[1].find_all("td")):
+            if inp := th.find(None, {"class": "filter-form-element"}):
+                self.headers[i].filter = self.get_form_field(inp.attrs["name"])
+
+        for tr in table.find("tbody").find_all("tr"):
+            row = {}
+            for td in itertools.chain(tr.find_all("td"), tr.find_all("th")):
+                name = None
+                for klass in td.attrs["class"]:
+                    if klass == "action-checkbox":
+                        name = klass
+                    elif klass.startswith("field-"):
+                        name = klass[6:]
+                if not name:
+                    raise AssertionError(f"Unhandled table tbody td {td}")
+
+                value = td.text.strip()
+                if inp := td.find("input"):
+                    value = self.get_form_field(inp.attrs["name"])
+                row[name] = value
+            self.rows.append(row)

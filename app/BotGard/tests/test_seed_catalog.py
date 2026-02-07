@@ -1,30 +1,20 @@
-import re
+import pprint
 
-from django.test import TestCase, Client
-from django.urls import reverse
-from django.contrib.admindocs.views import simplify_regex
-from django.utils import timezone
-from django.contrib.auth import get_user_model
-
-from individuals.models import Seed
-from seedcatalog.models import SeedCatalog
-
-from .fixtures import create_test_fixtures
+from .base import *
 
 
-class TestSeedCatalog(TestCase):
+class TestSeedCatalog(TestBase):
 
     @classmethod
     def setUpTestData(cls):
         create_test_fixtures()
 
-        UserModel = get_user_model()
-        cls.admin = UserModel.objects.create_user(
+        cls.admin = User.objects.create_user(
             username="admin", password="pass",
             is_staff=True, is_superuser=True,
         )
 
-    def test_seed_catalog(self):
+    def test_seed_catalog_rendering(self):
         catalog = SeedCatalog.objects.create(
             release_date=timezone.now(),
             valid_until_date=timezone.now(),
@@ -51,3 +41,33 @@ class TestSeedCatalog(TestCase):
 
         pdf_link = catalog.pdf_file_decorator()
         self.assertIn(".pdf", pdf_link, f"Debug output: {catalog.debug_output}")
+
+    #@log_requests
+    def test_seed_catalog_changelist_save_in_stock(self):
+        self.login("User1")
+        cl = self.get_changelist("individuals", "seed")
+        self.assertGreaterEqual(len(cl.rows), 3)
+
+        rows = [
+            cl.get_row(accession_number=accession_number)
+            for accession_number in (1000, 1001, 1002)
+        ]
+        self.assertEqual(
+            [True, True, True],
+            [r["seed_in_stock"].value for r in rows]
+        )
+
+        cl.post({
+            "_save": "Save",
+            rows[0]["seed_in_stock"].name: False,
+            rows[2]["seed_in_stock"].name: False,
+        })
+
+        rows = [
+            cl.get_row(accession_number=accession_number)
+            for accession_number in (1000, 1001, 1002)
+        ]
+        self.assertEqual(
+            [False, True, False],
+            [r["seed_in_stock"].value for r in rows]
+        )
