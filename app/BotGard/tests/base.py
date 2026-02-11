@@ -5,6 +5,7 @@ import io
 import csv
 import pprint
 import zipfile
+import urllib.parse
 import secrets
 import webbrowser
 import itertools
@@ -195,6 +196,7 @@ class ChangeListForm:
 
     @dataclasses.dataclass
     class FormField:
+        element: bs4.PageElement
         name: str
         value: str
         hidden: bool
@@ -214,11 +216,53 @@ class ChangeListForm:
         self.app_name = app_name
         self.model_name = model_name
         self.url = reverse(f"admin:{self.app_name}_{model_name}_changelist")
-        self.fields: List[self.FormField] = []
-        self.headers: List[self.Header] = []
+        self.query_params = {}
+        self.fields: List[ChangeListForm.FormField] = []
+        self.headers: List[ChangeListForm.Header] = []
         self.rows: List[Dict[str, Any]] = []
+        self.num_pages = 0
+        self.request()
 
-        response = self.parent.client.get(self.url)
+    def update_filters(self, params: dict):
+        for key, value in params.items():
+            field = self.get_form_field(key)
+            if field.options:
+                self.parent.assertIn(value, field.options)
+        self.query_params = params
+        self.request()
+
+    def run_action(self, name: str, rows: Union[True, Tuple[int, int]] = True):
+        """
+        Select rows, select action and post.
+
+        :param name: str, internal name of the action
+        :param rows: either True, to select all (filtered) entities,
+            or a range like (0, 3) to select rows 0, 1, 2
+        """
+        sel = self.soup.find("select", {"name": "action"})
+        if not sel.find("option", {"value": name}):
+            raise AssertionError(
+                f"Action '{name}' is not in actions list, available actions are: "
+                + ", ".join([opt.attrs["value"] for opt in sel.find_all("option")])
+            )
+        params = QueryDict(mutable=True)
+        params["action"] = name
+
+        if rows is True:
+            params["select-across"] = "1"
+
+        elif isinstance(rows, (list, tuple)):
+            self.parent.assertEqual(2, len(rows), f"Expected 2-tuple, got {rows}")
+            for row in self.rows[rows[0]: rows[1]]:
+                params.appendlist(row["action-checkbox"].name, row["action-checkbox"].value)
+
+        else:
+            raise AssertionError(f"rows must be True or a 2-tuple, got {rows}")
+
+        self.post(params, no_save=True)
+
+    def request(self):
+        response = self.parent.client.get(self.url, query_params=self.query_params)
         self.parent.assert_no_warning(response)
         self.parse(response.content.decode())
 
@@ -228,13 +272,14 @@ class ChangeListForm:
         self.rows = []
         self._parse_form()
         self._parse_table()
+        self._parse_paginator()
 
-    def get_form_field(self, name: str) -> FormField:
+    def get_form_field(self, name_or_element: Union[str, bs4.PageElement]) -> FormField:
         for field in self.fields:
-            if field.name == name:
+            if field.name == name_or_element or field.element == name_or_element:
                 return field
         sorted_names = sorted(f.name for f in self.fields)
-        raise AssertionError(f"Form field '{name}' not found, got only {sorted_names}")
+        raise AssertionError(f"Form field '{name_or_element}' not found, got only {sorted_names}")
 
     def get_row(self, **filters) -> Dict[str, Any]:
         row = self.find_row(**filters)
@@ -254,7 +299,7 @@ class ChangeListForm:
             if is_match:
                 return row
 
-    def post(self, override_values: Union[None, Dict, QueryDict] = None):
+    def post(self, override_values: Union[None, Dict, QueryDict] = None, no_save: bool = False):
         if override_values is None:
             values = QueryDict(mutable=True)
         elif isinstance(override_values, QueryDict):
@@ -263,14 +308,14 @@ class ChangeListForm:
         elif isinstance(override_values, dict):
             values = QueryDict(mutable=True)
             for k, v in override_values.items():
-                values[k] = v
+                values.appendlist(k, v)
         else:
             raise TypeError(f"Expected dict or QueryDict, got {type(override_values).__name__}")
 
         for field in self.fields:
             if not field.is_header_filter and not field.disabled:
                 if not override_values or field.name not in override_values:
-                    values[field.name] = field.value
+                    values.appendlist(field.name, field.value)
 
         actual_values = QueryDict(mutable=True)
         for key in values.keys():
@@ -283,9 +328,18 @@ class ChangeListForm:
                         value = "on"
                 elif value is None:
                     value = ""
-                actual_values[key] = value
+                actual_values.appendlist(key, value)
 
-        response = self.parent.client.post(self.url, actual_values, follow=True)
+        url = self.url
+        if self.query_params:
+            url = f"{url}?{urllib.parse.urlencode(self.query_params)}"
+
+        if no_save and "_save" in actual_values:
+            actual_values.pop("_save")
+
+        # don't put a QueryDict there, it only yields the LAST entry of a list value
+        response = self.parent.client.post(url, dict(actual_values), follow=True)
+
         self.parent.assert_response(response, status=200)
         self.parent.assert_no_warning(response)
         self.parse(response.content.decode())
@@ -297,6 +351,7 @@ class ChangeListForm:
 
         def _add_field(inp: bs4.PageElement, value):
             self.fields.append(self.FormField(
+                element=inp,
                 name=inp.attrs["name"],
                 value=value,
                 type=inp.attrs.get("type"),
@@ -367,6 +422,12 @@ class ChangeListForm:
 
                 value = td.text.strip()
                 if inp := td.find("input"):
-                    value = self.get_form_field(inp.attrs["name"])
+                    value = self.get_form_field(inp)
                 row[name] = value
             self.rows.append(row)
+
+    def _parse_paginator(self):
+        p = self.soup.find("p", {"class": "paginator"})
+        self.num_pages = len(list(p.find_all("a")))
+        if p.find("span", {"class": "this-page"}):
+            self.num_pages += 1
