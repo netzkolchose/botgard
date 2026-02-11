@@ -625,7 +625,7 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
                 endtime = time.time()
                 if endtime - starttime > 0.2:
                     break
-            print(count, endtime-starttime)
+            # print(count, endtime-starttime)
             num_items_per_sec = int(count / max(0.0001, endtime - starttime))
 
         extra_context.update({
