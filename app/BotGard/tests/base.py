@@ -231,12 +231,12 @@ class ChangeListForm:
         self.query_params = params
         self.request()
 
-    def run_action(self, name: str, rows: Union[True, Tuple[int, int]] = True):
+    def run_action(self, name: str, rows: Union[bool, Tuple[int, int]] = True):
         """
         Select rows, select action and post.
 
         :param name: str, internal name of the action
-        :param rows: either True, to select all (filtered) entities,
+        :param rows: either True, to "select-across" all (filtered) entities,
             or a range like (0, 3) to select rows 0, 1, 2
         """
         sel = self.soup.find("select", {"name": "action"})
