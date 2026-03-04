@@ -231,6 +231,10 @@ class ChangeListForm:
         self.query_params = params
         self.request()
 
+    def has_action(self, name: str) -> bool:
+        sel = self.soup.find("select", {"name": "action"})
+        return bool(sel.find("option", {"value": name}))
+
     def run_action(self, name: str, rows: Union[bool, Tuple[int, int]] = True):
         """
         Select rows, select action and post.
@@ -243,7 +247,7 @@ class ChangeListForm:
         if not sel.find("option", {"value": name}):
             raise AssertionError(
                 f"Action '{name}' is not in actions list, available actions are: "
-                + ", ".join([opt.attrs["value"] for opt in sel.find_all("option")])
+                + ", ".join([opt.attrs["value"] for opt in sel.find_all("option") if opt.attrs.get("value")])
             )
         params = QueryDict(mutable=True)
         params["action"] = name

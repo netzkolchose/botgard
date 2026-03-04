@@ -13,11 +13,16 @@ from django.utils.safestring import mark_safe
 
 class SeedCatalogManager(models.Manager):
 
-    def latest_editable_catalog(self) -> Optional["SeedCatalog"]:
-        return SeedCatalog.objects.filter(is_finalized=False).order_by("-pk").first()
-
     def latest_catalog(self) -> Optional["SeedCatalog"]:
+        """Return the instance of the newest SeedCatalog"""
         return SeedCatalog.objects.order_by("-pk").first()
+
+    def latest_editable_catalog(self) -> Optional["SeedCatalog"]:
+        """Return the instance of the newest SeedCatalog, iff it is not finalized"""
+        cat = SeedCatalog.objects.order_by("-pk").first()
+        if cat.is_finalized:
+            return None
+        return cat
 
 
 class SeedCatalog(models.Model):
@@ -57,7 +62,7 @@ class SeedCatalog(models.Model):
 
     def manage_seed_decorator(self):
         if self.is_finalized:
-            return _("finalized")
+            return _("finalized (%d seeds in catalog)") % self.seed.count()
         url = reverse("seedcatalog:edit_seeds", args=(self.pk,))
         return mark_safe('<a href="%s">%s</a>' % (url, _('Edit %d seeds in catalog') % self.seed.count()))
     manage_seed_decorator.short_description = _('Edit seeds in catalog')

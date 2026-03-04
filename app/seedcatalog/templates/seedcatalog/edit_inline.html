@@ -1,6 +1,6 @@
 {% load i18n %}
 
-<h1>{{catalog}}</h1>
+<h1>{{catalog}}{% if catalog.is_finalized %} ({% trans 'finalized' %}){% endif %}</h1>
 <div style="margin-bottom: 20px;">
     <a href="{% url 'admin:individuals_seed_changelist' %}">Zu den Samen</a>&nbsp;&nbsp;&nbsp;
     <a href="{% url 'admin:seedcatalog_seedcatalog_changelist' %}">Zu den Katalogen</a>
@@ -15,13 +15,15 @@
 <div style="display: flex; justify-content: space-between;">
     <div style="margin-bottom: 20px;"><a href="#samenvorhanden">Zu den Samen, die in diesem Katalog fehlen</a></div>
 
-    <div style="margin-bottom: 20px;">
-        <a
-            href="/seedcatalog/remove-all-seeds/{{catalog.pk}}/"
-            style="color: red;"
-            data-confirm="Wirklich alle Samen aus dem Katalog entfernen?"
-        >Alle Samen aus dem Katalog entfernen</a>
-    </div>
+    {% if not catalog.is_finalized %}
+        <div style="margin-bottom: 20px;">
+            <a
+                href="/seedcatalog/remove-all-seeds/{{catalog.pk}}/"
+                style="color: red;"
+                data-confirm="Wirklich alle Samen aus dem Katalog entfernen?"
+            >Alle Samen aus dem Katalog entfernen</a>
+        </div>
+    {% endif %}
 </div>
 
 
@@ -35,7 +37,9 @@
         <td>HC</td><td width="80">vorhanden</td>
         <td width="120">Lager</td>
         <td width="100">Nomenklatur</td>
-        <td width="180">aus Katalog entfernen</td>
+        {% if not catalog.is_finalized %}
+            <td width="180">aus Katalog entfernen</td>
+        {% endif %}
     </tr>
     {%for seed in seeds %}
         <tr>
@@ -46,13 +50,17 @@
             <td><span class="{% if seed.seed_available %}icon-yes{% else %}icon-no{% endif %}"></span></td>
             <td>{% if seed.seed_in_stock %}auf Lager{%else%}nicht auf Lager{%endif%}</td>
             <td>{%if not seed.species.nomenclature_checked%}
-                <a href="/admin/species/species/{{seed.species.pk}}/">prüfen</a>
-                {%endif%}
+                    <a href="/admin/species/species/{{seed.species.pk}}/">prüfen</a>
+                {% else %}
+                    geprüft
+                {% endif %}
             </td>
-            <td><a href="/seedcatalog/remove/{{seed.pk}}/from/{{catalog.pk}}/"
-                   data-catalog="{{catalog.pk}}" data-seed="{{seed.pk}}"
-                   data-action="remove">entfernen</a>
-            </td>
+            {% if not catalog.is_finalized %}
+                <td><a href="/seedcatalog/remove/{{seed.pk}}/from/{{catalog.pk}}/"
+                       data-catalog="{{catalog.pk}}" data-seed="{{seed.pk}}"
+                       data-action="remove">entfernen</a>
+                </td>
+            {% endif %}
         </tr>
     {%endfor%}
     </tbody>
@@ -68,7 +76,9 @@
         <td>HC</td><td width="80">vorhanden</td>
         <td width="120">Lager</td>
         <td width="100">Nomenklatur</td>
-        <td width="180">aus Katalog entfernen</td>
+        {% if not catalog.is_finalized %}
+            <td width="180">zu Katalog hinzufügen</td>
+        {% endif %}
     </tr>
     {%for seed in allseeds %}
         {% if not seed in seeds %}
@@ -78,14 +88,18 @@
                 <td>{{seed.accession_extension}}</td>
                 <td><span class="{% if seed.seed_available %}icon-yes{% else %}icon-no{% endif %}"></span></td>
                 <td>{% if seed.seed_in_stock %}auf Lager{%else%}nicht auf Lager{%endif%}</td>
-                <td>{%if not seed.species.nomenclature_checked%}
+                <td>{% if not seed.species.nomenclature_checked%}
                         <a href="/admin/species/species/{{seed.species.pk}}/">prüfen</a>
-                    {%endif%}
+                    {% else %}
+                        geprüft
+                    {% endif %}
                 </td>
-                <td><a href="/seedcatalog/add/{{seed.pk}}/to/{{catalog.pk}}/"
-                       data-catalog="{{catalog.pk}}" data-seed="{{seed.pk}}"
-                       data-action="add">hinzufügen</a>
-                </td>
+                {% if not catalog.is_finalized %}
+                    <td><a href="/seedcatalog/add/{{seed.pk}}/to/{{catalog.pk}}/"
+                           data-catalog="{{catalog.pk}}" data-seed="{{seed.pk}}"
+                           data-action="add">hinzufügen</a>
+                    </td>
+                {% endif %}
             </tr>
         {% endif %}
     {%endfor%}

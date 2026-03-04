@@ -30,7 +30,7 @@ class TestSeedCatalog(TestBase):
         # pprint.pprint(demo_indi)
         Individual.objects.all().delete()
 
-        for i in range(300):
+        for i in range(count):
             Individual.objects.create(**{
                 **demo_indi,
                 "accession_number": 1000 + i,
@@ -181,3 +181,38 @@ class TestSeedCatalog(TestBase):
 
         cl.update_filters({"seedcatalog": "yes"})
         self.assertEqual(48, len(cl.rows))
+
+    def test_seed_catalog_changelist_finalized(self):
+        # 100 individuals/seeds
+        self.create_individuals(100)
+        # current catalog is empty
+        self.assertEqual(0, SeedCatalog.objects.latest_editable_catalog().seed.all().count())
+
+        self.login("User1")
+        cl = self.get_changelist("individuals", "seed")
+        self.assertEqual(100, len(cl.rows))
+        self.assertEqual(0, cl.num_pages)
+
+        # add 50 seeds to catalog
+        cl.run_action(
+            "add_seeds_to_current_catalog",
+            rows=(0, 50),
+        )
+        # added to catalog?
+        self.assertEqual(50, SeedCatalog.objects.latest_editable_catalog().seed.all().count())
+
+        # now "finalize" catalog
+
+        catalog = SeedCatalog.objects.latest_editable_catalog()
+        self.client.get(
+            reverse("seedcatalog:finalize_catalog", args=(catalog.pk, ))
+        )
+        catalog.refresh_from_db()
+        self.assertTrue(catalog.is_finalized)
+
+        # -- make sure action is not available anymore --
+
+        cl = self.get_changelist("individuals", "seed")
+        self.assertEqual(100, len(cl.rows))
+
+        self.assertFalse(cl.has_action("add_seeds_to_current_catalog"))
