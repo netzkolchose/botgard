@@ -1,11 +1,12 @@
 import types
+from typing import List, Tuple
 
 from django.db import models
 from django.contrib import admin
 from django.urls import re_path
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import render, redirect
-from django.http import QueryDict
+from django.http import QueryDict, HttpRequest
 from django.utils.text import capfirst
 from django.utils.encoding import force_str
 from django.utils.translation import gettext as _
@@ -85,6 +86,59 @@ class ForeignKeyFilter(admin.AllValuesFieldListFilter):
 
     def has_output(self):
         return False
+
+
+class CustomHeaderFilter:
+    """
+    Abstract base for implementing custom filters in table headers.
+
+    Use like:
+    ```
+    class MyModel(models.Model):
+        ...
+        @configurable
+        def some_decorator(self):
+            return self.value
+        some_decorator.short_description = _("something")
+        some_decorator.custom_header_filter = MyCustomHeaderFilter()
+
+    ```
+    """
+
+    def render_widget(self, request: HttpRequest) -> str:
+        """
+        This method must return the markup for the widget in the table header.
+
+        Check ConfigurableTable.header_search_widget() for implementation details
+        """
+        raise NotImplementedError
+
+
+class CustomSelectHeaderFilter(CustomHeaderFilter):
+
+    def __init__(
+            self,
+            query_name: str,
+            choices: List[Tuple[str, str]],
+    ):
+        """
+        Custom header filter as choice box
+        :param query_name: str, name of the filter query, eg url?<query_name>=<choice>
+        :param choices: list of tuple[str, str], empty choice with "" value is rendered automatically
+        """
+        self.query_name = query_name
+        self.choices = choices
+
+    def render_widget(self, request: HttpRequest):
+        value = request.GET.get(self.query_name) or ""
+        return ConfigurableTable._get_search_widget_choice_box(
+            {
+                "query": self.query_name,
+                "value": value,
+                "inactive": "" if value else "inactive",
+            },
+            self.choices,
+        )
 
 
 class ConfigurableTable(admin.ModelAdmin, Configurable):
@@ -355,6 +409,12 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
                     break
             if not func:
                 return None
+
+            # check for CustomHeaderFilter
+            custom_filter = func.__dict__.get("custom_header_filter", None)
+            if custom_filter:
+                return custom_filter.render_widget(request)
+
             # get actual field-name from decorator
             used_field_name = func.__dict__.get("searchable_field", None)
             if not used_field_name:
@@ -461,12 +521,14 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
         else:
             return self._get_search_widget_text(context)
 
-    def _get_search_widget_boolean(self, context):
-        return self._get_search_widget_choice_box(context,
+    @classmethod
+    def _get_search_widget_boolean(cls, context):
+        return cls._get_search_widget_choice_box(context,
                                                   (('1', _('yes')),
                                                    ('0', _('no'))))
 
-    def _get_search_widget_text(self, context):
+    @classmethod
+    def _get_search_widget_text(cls, context):
         ctx = context.copy()
         ctx.update({"id": 'id="%s"' % context["id"] if context.get("id", None) else ""})
         datatags = []
@@ -481,7 +543,8 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
         </div>
         """ % ctx
 
-    def _get_search_widget_choice_box(self, context, choices):
+    @classmethod
+    def _get_search_widget_choice_box(cls, context, choices):
         html = ""
         for choice in choices:
             html += '<option value="%s" %s>%s</option>' % (
@@ -562,7 +625,7 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
                 endtime = time.time()
                 if endtime - starttime > 0.2:
                     break
-            print(count, endtime-starttime)
+            # print(count, endtime-starttime)
             num_items_per_sec = int(count / max(0.0001, endtime - starttime))
 
         extra_context.update({
@@ -662,7 +725,7 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
                 list_select_related=list_select_related,
                 list_per_page=10000000,       # self.list_per_page,
                 list_max_show_all=10000000,   # self.list_max_show_all,
-                list_editable=[False],        # self.list_editable,
+                list_editable=[],             # self.list_editable,
                 model_admin=self,
                 sortable_by=sortable_by,
                 search_help_text=None,

@@ -1,6 +1,9 @@
+from django.db.models import QuerySet
 from django.utils.translation import gettext_lazy as _
 from django.utils.translation import ngettext_lazy as __
+from django.contrib.admin.filters import FieldListFilter, AllValuesFieldListFilter
 
+from config_tables.admin import CustomSelectHeaderFilter
 from species.models import Species
 from .individual_base import *
 
@@ -358,6 +361,69 @@ class IndividualForm(
         super(IndividualForm, self).__init__(*args, **kwargs)
 
 
+class SeedInLatestCatalogFilter(FieldListFilter):
+    """
+    Filter if seed is in latest seed catalog.
+
+    It's displayed in the changelist filterbox because Django wont process it otherwise,
+    but the filterbox is disabled via CSS for the seed changelist
+    """
+    QUERY_NAME = "seedcatalog"
+    CHOICES = [
+        ("yes", _("included")),
+        ("no", _("not included")),
+    ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.title = _("is in latest catalog")
+
+    def has_output(self):
+        return True  # turning this to False unfortunately disables the filter
+
+    def expected_parameters(self):
+        return [self.QUERY_NAME]
+
+    def choices(self, changelist):
+        param_name = self.expected_parameters()[0]
+        yield {
+            "selected": self.used_parameters.get(param_name) not in ("yes", "no"),
+            "query_string": changelist.get_query_string(remove=[param_name]),
+            "display": _("All"),
+        }
+        for value, text in self.CHOICES:
+            yield {
+                "selected": self.used_parameters.get(param_name) == value,
+                "query_string": changelist.get_query_string({param_name: value}),
+                "display": text,
+            }
+
+    def queryset(self, request, queryset: QuerySet):
+        value = request.GET.get(self.expected_parameters()[0])
+        if value is None:
+            return queryset
+
+        cat = SeedCatalog.objects.latest_catalog()
+        if cat is None:
+            if value == self.CHOICES[0][0]:
+                return queryset.none()
+            else:
+                return queryset
+        else:
+            if value == self.CHOICES[0][0]:
+                return queryset.filter(seedcatalog=cat)
+            else:
+                return queryset.exclude(seedcatalog=cat)
+
+    @classmethod
+    def create_header_filter(cls):
+        """Return the CustomSelectHeaderFilter used in the ConfigurableTable header"""
+        return CustomSelectHeaderFilter(
+            query_name=cls.QUERY_NAME,
+            choices=cls.CHOICES,
+        )
+
+
 class Seed(Individual):
 
     class Meta:
@@ -417,10 +483,8 @@ class Seed(Individual):
     etikett_detail_decorator.searchable_field = "species__area_of_distribution_background"
 
     def seed_add_to_latest_catalog_decorator(self):
-        try:
-            catalog = SeedCatalog.objects.latest('pk')
-            assert not catalog.is_finalized
-        except:
+        catalog = SeedCatalog.objects.latest_editable_catalog()
+        if not catalog:
             url = reverse("admin:seedcatalog_seedcatalog_add")
             return mark_safe('<a href="%s">%s</a>' % (url, _("Create new catalog.")))
 
@@ -429,7 +493,7 @@ class Seed(Individual):
         if request.GET:
             redirect += "?" + request.GET.urlencode()
 
-        if catalog.seed.filter(pk=self.pk):
+        if catalog.seed.filter(pk=self.pk).exists():
             url = reverse("seedcatalog:remove_seed", args=(self.pk, catalog.pk,))
             return_string = '<a title="%s: %s" href="%s?_redirect=%s">%s</a>' % (
                 _("catalog"), catalog, url, redirect, _("remove")
@@ -442,6 +506,7 @@ class Seed(Individual):
         return mark_safe(return_string)
     seed_add_to_latest_catalog_decorator.short_description = _('add to current catalog')
     seed_add_to_latest_catalog_decorator.exclude_csv = True
+    seed_add_to_latest_catalog_decorator.custom_header_filter = SeedInLatestCatalogFilter.create_header_filter()
 
 
 class SeedForm(
