@@ -7,6 +7,7 @@ from django.utils.translation import gettext_lazy as _
 from django.utils.translation import ngettext_lazy as __
 from django.urls import reverse
 from django.templatetags.static import static
+from django.utils import timezone
 from django.utils.html import format_html, escape
 from django.utils.safestring import mark_safe
 from django.db.models.signals import post_save, post_delete
@@ -77,7 +78,7 @@ class HerbariumSpecimen(Configurable, models.Model):
 
     collection_date = models.DateField(
         verbose_name=_("Collection date"),
-        auto_now_add=True,
+        default=timezone.now,
     )
 
     specimen_type = models.CharField(
