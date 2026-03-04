@@ -54,7 +54,7 @@ def convert_svg_to_format(svg_markup: str, format: str):
             raise RuntimeError(f"rsvg timeout, format: {format}")
 
     err = proc.stderr.read()
-    if err:
+    if _is_rsvg_error(err):
         raise RuntimeError("rsvg failed\n" + err.decode())
 
     return proc.stdout.read()
@@ -78,7 +78,7 @@ def _convert_svg_to_format_tmpfile(svg_markup, format):
         proc.poll()
 
     err = proc.stderr.read()
-    if err:
+    if _is_rsvg_error(err):
         os.remove(outfilename)
         raise RuntimeError(f"rsvg failed\n{err}")
 
@@ -88,3 +88,15 @@ def _convert_svg_to_format_tmpfile(svg_markup, format):
     os.remove(outfilename)
     os.remove(infilename)
     return outp
+
+
+def _is_rsvg_error(text: bytes) -> bool:
+    if not text:
+        return False
+
+    # some warning message that is only annoying but not helpful
+    #   see eg.: https://github.com/lovell/sharp/issues/4429
+    if b"Fontconfig warning: using without calling FcInit()" in text and len(text) <= 51:
+        return False
+
+    return True
