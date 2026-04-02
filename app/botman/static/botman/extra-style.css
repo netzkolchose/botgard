@@ -227,8 +227,7 @@ input[type="checkbox"] {
 footer {
     background: #6aaf2d;
     color: #ddd;
-    padding: 20px 40px;
-    margin-top: 40px;
+    padding: 10px 20px;
 }
 
 footer a:link,
@@ -239,6 +238,10 @@ footer a:visited {
 footer a:link:hover,
 footer a:visited:hover {
     color: #236131;
+}
+
+footer a:hover svg {
+    fill: #236131;
 }
 
 footer .links {

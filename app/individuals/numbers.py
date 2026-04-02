@@ -3,22 +3,41 @@ import random
 from typing import Union, Type, List
 
 from django.utils.translation import gettext_lazy as _
+from django.utils.encoding import force_str
 from django.db import models
 
 import config_app
 
+
+VALID_NUMBER_METHODS = (
+    'random_range', 'incremental', 'incremental_tight', 'empty'
+)
+
+NUMBER_METHOD_HELP_TEXT = (
+    "<br>The object must at least have the attribute 'method', e.g. <code>{\"method\": \"empty\"}</code>"
+    "<br>Available methods are:\n<ul>\n"
+    "<li><b>empty</b>: Do not create a number automatically</li>\n"
+    "<li><b>random_range</b>: A random number between attributes 'min' and 'max'</li>\n"
+    "<li><b>incremental</b>: Increasing numbers starting at 'min' (skips existing number gaps)</li>\n"
+    "<li><b>incremental_tight</b>: Increasing numbers starting at 'min' (will also pick free numbers in existing gaps)</li>\n"
+    "</ul>"
+)
 
 def _number_generation_validator(val):
     from django.forms import ValidationError
 
     if "method" not in val:
         raise ValidationError(_('Method must be defined'))
-    if val['method'] not in ('random_range', 'incremental', 'incremental_tight'):
-        raise ValidationError(_('Unknown method "%s". Supported values are "random_range", "incremental" or "incremental_tight".')%val['method'])
-    if 'min' not in val:
-        raise ValidationError(_('Property "min" must be specified.'))
-    if not isinstance(val['min'], int):
-        raise ValidationError(_('Property "min" must be of type int or long.'))
+    if val['method'] not in VALID_NUMBER_METHODS:
+        raise ValidationError(_('Unknown method "%s". Supported values are %s.') % (
+            val['method'],
+            ", ".join(f'"{m}"' for m in VALID_NUMBER_METHODS)
+        ))
+    if val['method'] not in ("empty",):
+        if 'min' not in val:
+            raise ValidationError(_('Property "min" must be specified.'))
+        if not isinstance(val['min'], int):
+            raise ValidationError(_('Property "min" must be of type int or long.'))
     if val['method'] in ('random_range', ):
         if 'max' not in val or 'min' not in val:
             raise ValidationError(_('Method specified requires "min" and "max" properties.'))
@@ -31,14 +50,14 @@ def _number_generation_validator(val):
 config_app.register_key(
     "accession_generation",
     {"method": "random_range", "min": 7000000, "max": 7999999},
-    _("The method used for generating new accession numbers"),
+    _("The method used for generating new accession numbers") + force_str(NUMBER_METHOD_HELP_TEXT),
     validator=_number_generation_validator
 )
 
 config_app.register_key(
     "order_number_generation",
     {"method": "incremental_tight", "min": 1000},
-    _("The method used for generating new order numbers"),
+    _("The method used for generating new order numbers") + force_str(NUMBER_METHOD_HELP_TEXT),
     validator=_number_generation_validator
 )
 
@@ -128,6 +147,9 @@ def _get_new_number(
             return used_numbers[-1] + 1
         else:
             return sorted(unused_numbers)[0]
+
+    elif method["method"] == "empty":
+        return ""
 
     raise ValueError("Unknown number generation method '%s'" % method["method"])
 

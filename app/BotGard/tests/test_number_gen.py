@@ -210,3 +210,22 @@ class TestNumberGenerator(TestCase):
         # it's still fitting tight!
         self.assertEqual(2003, numbers.get_new_accession_number())
         self.assertEqual(3005, numbers.get_new_order_number())
+
+    def test_number_gen_empty(self):
+        KeyValue.objects.create(
+            type="j",
+            key="accession_generation",
+            value_json={
+                "method": "empty",
+            },
+        )
+        KeyValue.objects.create(
+            type="j",
+            key="order_number_generation",
+            value_json={
+                "method": "empty",
+            },
+        )
+
+        self.assertEqual("", numbers.get_new_accession_number())
+        self.assertEqual("", numbers.get_new_order_number())

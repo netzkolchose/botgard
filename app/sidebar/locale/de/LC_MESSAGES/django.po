@@ -20,60 +20,60 @@ msgstr ""
 
 #: sidebar/__init__.py:28
 msgid "An object is expected"
-msgstr ""
+msgstr "Ein Objekt wird erwartet"
 
 #: sidebar/__init__.py:31
 msgid "A key 'enabled' must be present."
-msgstr ""
+msgstr "Der Schlüssel 'enabled' wird erwartet"
 
 #: sidebar/__init__.py:34
 msgid "Value for key 'enabled' must be a boolean."
-msgstr ""
+msgstr "Der Wert für 'enabled' muss boolean sein"
 
 #: sidebar/__init__.py:37
 msgid "A key 'elements' must be present"
-msgstr ""
+msgstr "Der Schlüssel 'elements' wird erwartet"
 
 #: sidebar/__init__.py:40
 msgid "A key 'elements' must be a list."
-msgstr ""
+msgstr "'elements' muss eine Liste sein"
 
 #: sidebar/__init__.py:69
 msgid "A list is expected."
-msgstr ""
+msgstr "Eine Liste wird erwartet"
 
 #: sidebar/__init__.py:73
 msgid "Each item requires an icon attribute."
-msgstr ""
+msgstr "Jeder Eintrag erwartet ein 'icon' Attribut"
 
 #: sidebar/__init__.py:75
 msgid "Each item requires a target or target_url attribute."
-msgstr ""
+msgstr "Jeder Eintrag erfordet ein 'target' oder 'target_url' Attribut"
 
 #: sidebar/__init__.py:77
 msgid "Each item requires a caption attribute."
-msgstr ""
+msgstr "Jeder Eintrag erfordert ein 'caption' Attribut"
 
 #: sidebar/__init__.py:79
 msgid "Each item requires a group attribute."
-msgstr ""
+msgstr "Jeder Eintrag erfordert ein 'group' Attribut"
 
 #: sidebar/__init__.py:81
 msgid "Each item requires a only_superuser attribute."
-msgstr ""
+msgstr "Jeder Eintrag erfordert ein 'only_superuser' Attribut"
 
 #: sidebar/__init__.py:84
 msgid "The attribute groups must be a list."
-msgstr ""
+msgstr "Die Attribut-Gruppen müssen eine Liste sein"
 
 #: sidebar/__init__.py:86
 #, python-format
 msgid "The attribute caption must contain a key %s."
-msgstr ""
+msgstr "Das Attribut 'caption' muss einen Schlüssel '%s' enthalten"
 
 #: sidebar/models.py:11 sidebar/models.py:29
 msgid "URL"
-msgstr ""
+msgstr "URL"
 
 #: sidebar/models.py:12 sidebar/templates/sidebar/sidebar.html:30
 msgid "title"
@@ -113,11 +113,11 @@ msgstr "Notiz veröffentlichen?"
 
 #: sidebar/templates/sidebar/sidebar.html:15
 msgid "Shortcuts"
-msgstr ""
+msgstr "Shortcuts"
 
 #: sidebar/templates/sidebar/sidebar.html:38
 msgid "Bookmarks"
-msgstr ""
+msgstr "Bookmarks"
 
 #: sidebar/templates/sidebar/sidebar.html:39
 msgid "add bookmark"

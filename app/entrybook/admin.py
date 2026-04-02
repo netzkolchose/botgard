@@ -76,7 +76,7 @@ class EntryAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
         }),
         (_('miscellaneous'), {
             'classes': 'collapse',
-            'fields': ('gender', 'comment', 'import_reference')
+            'fields': ('gender', 'comment', 'import_reference', 'status')
         }),
         (_('seeds'), {
             'fields': ('order_number', 'sowing_number')
