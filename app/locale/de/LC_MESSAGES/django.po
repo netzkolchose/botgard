@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-02 09:34+0200\n"
+"POT-Creation-Date: 2026-04-02 10:09+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1133,50 +1133,48 @@ msgid "A Department with code %(code)s in territory %(terr)s already exists"
 msgstr ""
 "Es existiert bereits eine Abteilung mit Code %(code)s im Revier %(terr)s"
 
-#: individuals/numbers.py:15
+#: individuals/numbers.py:30
 msgid "Method must be defined"
 msgstr "Methode muß angegeben werden"
 
-#: individuals/numbers.py:17
+#: individuals/numbers.py:32
 #, python-format
-msgid ""
-"Unknown method \"%s\". Supported values are \"random_range\", "
-"\"incremental\" or \"incremental_tight\"."
-msgstr ""
+msgid "Unknown method \"%s\". Supported values are %s."
+msgstr "Unbekannte Methode \"%s\". Unterstüzte Werte sind %s."
 
-#: individuals/numbers.py:19
+#: individuals/numbers.py:38
 msgid "Property \"min\" must be specified."
-msgstr ""
+msgstr "Attribut \"min\" muss enthalten sein."
 
-#: individuals/numbers.py:21
+#: individuals/numbers.py:40
 msgid "Property \"min\" must be of type int or long."
-msgstr ""
+msgstr "Attribut \"min\" muss eine Zahl sein."
 
-#: individuals/numbers.py:24
+#: individuals/numbers.py:43
 msgid "Method specified requires \"min\" and \"max\" properties."
-msgstr ""
+msgstr "Die Methode benötigt die Attribute \"min\" und \"max\""
 
-#: individuals/numbers.py:26
+#: individuals/numbers.py:45
 msgid "Property \"max\" must be of type int or long."
-msgstr ""
+msgstr "Attribut \"max\" muss eine Zahl sein."
 
-#: individuals/numbers.py:28
+#: individuals/numbers.py:47
 msgid "Property \"max\" must be much larger than \"min\". :)"
-msgstr ""
+msgstr "Der Wert von \"max\" muss größer als \"min\" sein"
 
-#: individuals/numbers.py:34
+#: individuals/numbers.py:53
 msgid "The method used for generating new accession numbers"
 msgstr "Die Methode um neue Akzessionsnummern zu erzeugen"
 
-#: individuals/numbers.py:41
+#: individuals/numbers.py:60
 msgid "The method used for generating new order numbers"
 msgstr "Die Methode um neue Bestellnummern zu erzeugen"
 
-#: individuals/numbers.py:145
+#: individuals/numbers.py:167
 msgid "Could not find a free accession_number in time, sorry"
 msgstr "Leider keine freie Akzessionsnummer gefunden"
 
-#: individuals/numbers.py:159
+#: individuals/numbers.py:181
 msgid "Could not find a free order_number in time, sorry"
 msgstr "Leider keine freie Bestellnummer gefunden"
 
@@ -1603,6 +1601,7 @@ msgid "debug output"
 msgstr "Debug-Ausgabe"
 
 #: seedcatalog/models.py:65
+#, python-format
 msgid "finalized (%d seeds in catalog)"
 msgstr "Finalisiert (%d Samen im Katalog)"
 
