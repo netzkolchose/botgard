@@ -107,7 +107,7 @@ class SeedAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
         }),
         (_('miscellaneous'), {
             'classes': 'collapse',
-            'fields': ('gender', 'comment')
+            'fields': ('gender', 'comment', 'import_reference', 'status')
         }),
         (_('seeds'), {
             'fields': ('order_number',)
@@ -216,7 +216,7 @@ class IndividualAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable)
         }),
         (_('miscellaneous'), {
             'classes': 'collapse',
-            'fields': ('gender', 'comment', 'import_reference')
+            'fields': ('gender', 'comment', 'import_reference', 'status')
         }),
         (_('seeds'), {
             'fields': ('order_number', 'sowing_number')
