@@ -7,7 +7,6 @@ from seedcatalog.models import *
 from individuals.models import *
 from tools.permissions import *
 from tools.admin_extensions import minimal_admin_context
-from config_app import register_key
 
 
 def render_catalog_edit(request, catalog: SeedCatalog, inline: bool = False, message: str = None):

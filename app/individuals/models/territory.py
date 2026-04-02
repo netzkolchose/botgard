@@ -170,7 +170,7 @@ def _department_full_code_validator(val):
 config_app.register_key(
     "department_full_code",
     ["territory", "-", "department"],
-    _("""Generation of a full code for a department. A list is expected.<br>
+    """Generation of a full code for a department. A list is expected.<br>
     Valid values for the list items are:
     <dl> 
     <dt>territory</dt><dd>for the territory code,</dd> 
@@ -178,7 +178,7 @@ config_app.register_key(
     </dl> 
     Any other string will be concatenated into the full code.<br> 
     Note that changes affect only newly created departments. To change existing departments run<br> 
-    <b>./manage.py botgard_data_all</b>"""),
+    <b>./manage.py botgard_data_all</b>""",
     _department_full_code_validator
 )
 

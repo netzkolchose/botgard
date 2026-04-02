@@ -1,8 +1,5 @@
-import datetime
-
 from django.core.management.base import BaseCommand, CommandError
 from django.utils import translation
-from django.utils.translation import gettext_lazy as _
 from django.conf import settings
 from django.db import transaction
 
@@ -94,8 +91,8 @@ def update_config_in_database(verbosity: int = 1, **options):
 
     if missed_updates and verbosity > 1:
         print()
-        print(_("INFO: The database contains configruation values which are different to the default settings."))
-        print(_("If you want to overwrite the database changes call:"))
+        print("INFO: The database contains configruation values which are different to the default settings.")
+        print("If you want to overwrite the database changes call:")
         print("./manage.py %s -f %s" % (
             __name__.split(".")[-1],
             " ".join(sorted(missed_updates)),

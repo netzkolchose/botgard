@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-06 17:54+0100\n"
+"POT-Creation-Date: 2026-04-02 09:34+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -238,7 +238,7 @@ msgstr "Katalog/%(date)s"
 #: botman/models/garden.py:119 botman/models/garden.py:120
 #: entrybook/models/entry.py:115 entrybook/models/entry.py:116
 #: herbaria/models/herbarium.py:61 herbaria/models/herbarium.py:63
-#: herbaria/models/specimen.py:114 herbaria/models/specimen.py:116
+#: herbaria/models/specimen.py:115 herbaria/models/specimen.py:117
 #: individuals/models/individual.py:140 individuals/models/individual.py:142
 #: individuals/models/territory.py:121 individuals/models/territory.py:122
 #: individuals/models/territory.py:227 individuals/models/territory.py:228
@@ -356,7 +356,7 @@ msgstr "Etikett"
 #: botman/models/garden.py:113 botman/models/garden.py:114
 #: entrybook/models/entry.py:108 entrybook/models/entry.py:109
 #: herbaria/models/herbarium.py:53 herbaria/models/herbarium.py:55
-#: herbaria/models/specimen.py:106 herbaria/models/specimen.py:108
+#: herbaria/models/specimen.py:107 herbaria/models/specimen.py:109
 #: individuals/models/individual.py:132 individuals/models/individual.py:134
 #: individuals/models/outplanting.py:49 individuals/models/outplanting.py:50
 #: individuals/models/territory.py:114 individuals/models/territory.py:115
@@ -406,7 +406,11 @@ msgstr "Abmelden"
 msgid "About BotGard"
 msgstr "Über BotGard"
 
-#: botman/templates/admin/base_site.html:92
+#: botman/templates/admin/base_site.html:97
+msgid "Help"
+msgstr "Hilfe"
+
+#: botman/templates/admin/base_site.html:100
 msgid "License"
 msgstr "Lizenz"
 
@@ -459,16 +463,6 @@ msgstr "Benutzeraktivität"
 #: config_app/apps.py:7
 msgid "Configuration"
 msgstr "Tabelleneinstellungen"
-
-#: config_app/management/commands/botgard_update_config.py:97
-msgid ""
-"INFO: The database contains configruation values which are different to the "
-"default settings."
-msgstr ""
-
-#: config_app/management/commands/botgard_update_config.py:98
-msgid "If you want to overwrite the database changes call:"
-msgstr ""
 
 #: config_app/models.py:8
 msgid "Variable"
@@ -702,7 +696,7 @@ msgid "department"
 msgstr "Abteilung"
 
 #: entrybook/models/entry.py:126 entrybook/models/entry.py:135
-#: herbaria/models/specimen.py:144 individuals/models/individual.py:155
+#: herbaria/models/specimen.py:145 individuals/models/individual.py:155
 msgid "create label"
 msgstr "Etikett erstellen"
 
@@ -723,63 +717,63 @@ msgstr "Name"
 msgid "date created"
 msgstr "Erstellt am"
 
-#: herbaria/models/herbarium.py:40 herbaria/models/specimen.py:92
+#: herbaria/models/herbarium.py:40 herbaria/models/specimen.py:93
 #: individuals/views.py:88
 msgid "Comment"
 msgstr "Bemerkungen"
 
-#: herbaria/models/specimen.py:24
+#: herbaria/models/specimen.py:25
 msgid "Plant (generative)"
 msgstr "Pflanze (generativ)"
 
-#: herbaria/models/specimen.py:25
+#: herbaria/models/specimen.py:26
 msgid "Plant (vegetative)"
 msgstr "Pflanze (vegetativ)"
 
-#: herbaria/models/specimen.py:26
+#: herbaria/models/specimen.py:27
 msgid "Blossoms"
 msgstr "Blüten"
 
-#: herbaria/models/specimen.py:27
+#: herbaria/models/specimen.py:28
 msgid "Leaves"
 msgstr "Blätter"
 
-#: herbaria/models/specimen.py:28
+#: herbaria/models/specimen.py:29
 msgid "Fruits"
 msgstr "Früchte"
 
-#: herbaria/models/specimen.py:50 herbaria/models/specimen.py:102
-#: herbaria/models/specimen.py:136 labels/models.py:21
+#: herbaria/models/specimen.py:51 herbaria/models/specimen.py:103
+#: herbaria/models/specimen.py:137 labels/models.py:21
 msgid "Specimen"
 msgstr "Herbarbeleg"
 
-#: herbaria/models/specimen.py:51
+#: herbaria/models/specimen.py:52
 msgid "Specimens"
 msgstr "Herbarbelege"
 
-#: herbaria/models/specimen.py:70
+#: herbaria/models/specimen.py:71
 msgid "Collector"
 msgstr "Sammler"
 
-#: herbaria/models/specimen.py:79
+#: herbaria/models/specimen.py:80
 msgid "Collection date"
 msgstr "Sammeldatum"
 
-#: herbaria/models/specimen.py:84
+#: herbaria/models/specimen.py:85
 msgid "Specimen type"
 msgstr "Belegtyp"
 
-#: herbaria/models/specimen.py:99
+#: herbaria/models/specimen.py:100
 msgid "Specimen of {}"
 msgstr "Herbarbeleg von {}"
 
-#: herbaria/models/specimen.py:130 individuals/models/individual.py:14
+#: herbaria/models/specimen.py:131 individuals/models/individual.py:14
 #: individuals/models/outplanting.py:19 individuals/models/outplanting.py:69
 #: tickets/models.py:141
 msgid "individual"
 msgstr "Individuum"
 
-#: herbaria/models/specimen.py:175
+#: herbaria/models/specimen.py:176
 msgid "Please select..."
 msgstr "Bitte auswählen..."
 
@@ -791,8 +785,8 @@ msgstr "Ausgewählte Samen zum aktuellen Katalog hinzufügen"
 msgid "Remove selected seeds from current catalog"
 msgstr "Ausgewählte Samen aus dem aktuellen Katalog entfernen"
 
-#: individuals/actions.py:32 individuals/actions.py:52 seedcatalog/views.py:53
-#: seedcatalog/views.py:75 seedcatalog/views.py:93 seedcatalog/views.py:119
+#: individuals/actions.py:32 individuals/actions.py:52 seedcatalog/views.py:52
+#: seedcatalog/views.py:74 seedcatalog/views.py:92 seedcatalog/views.py:118
 msgid "Seed catalog not found"
 msgstr "Samenkatalog nicht gefunden"
 
@@ -906,7 +900,7 @@ msgstr "im Katalog enthalten"
 msgid "All"
 msgstr "Alle"
 
-#: individuals/models/individual.py:430 seedcatalog/models.py:50
+#: individuals/models/individual.py:430 seedcatalog/models.py:55
 msgid "seed"
 msgstr "Samen"
 
@@ -1133,20 +1127,6 @@ msgstr "Die Liste muß mindestens zwei Werte enthalten"
 msgid "The list must contain \"department\"."
 msgstr "Die Liste muß \"department\" enthalten"
 
-#: individuals/models/territory.py:173
-msgid ""
-"Generation of a full code for a department. A list is expected.<br>\n"
-"    Valid values for the list items are:\n"
-"    <dl> \n"
-"    <dt>territory</dt><dd>for the territory code,</dd> \n"
-"    <dt>department</dt><dd>for the department code.</dd>\n"
-"    </dl> \n"
-"    Any other string will be concatenated into the full code.<br> \n"
-"    Note that changes affect only newly created departments. To change "
-"existing departments run<br> \n"
-"    <b>./manage.py botgard_data_all</b>"
-msgstr ""
-
 #: individuals/models/territory.py:295
 #, python-format
 msgid "A Department with code %(code)s in territory %(terr)s already exists"
@@ -1186,11 +1166,11 @@ msgstr ""
 
 #: individuals/numbers.py:34
 msgid "The method used for generating new accession numbers"
-msgstr ""
+msgstr "Die Methode um neue Akzessionsnummern zu erzeugen"
 
 #: individuals/numbers.py:41
 msgid "The method used for generating new order numbers"
-msgstr ""
+msgstr "Die Methode um neue Bestellnummern zu erzeugen"
 
 #: individuals/numbers.py:145
 msgid "Could not find a free accession_number in time, sorry"
@@ -1547,7 +1527,7 @@ msgstr "Ungültige Herbarbeleg-ID"
 
 #: plantimages/admin.py:30
 msgid "Error"
-msgstr ""
+msgstr "Fehler"
 
 #: plantimages/models.py:9
 msgid "images"
@@ -1569,81 +1549,86 @@ msgstr "Text"
 msgid "Seed catalogs"
 msgstr "Samenkataloge"
 
-#: seedcatalog/models.py:27 seedcatalog/models.py:55
+#: seedcatalog/models.py:32 seedcatalog/models.py:60
 msgid "seed catalog"
 msgstr "Samenkatalog"
 
-#: seedcatalog/models.py:28
+#: seedcatalog/models.py:33
 msgid "seed catalogs"
 msgstr "Samenkataloge"
 
-#: seedcatalog/models.py:29
+#: seedcatalog/models.py:34
 msgid "can finalize a seed catalog"
 msgstr "Samenkatalog finalisieren"
 
-#: seedcatalog/models.py:34
+#: seedcatalog/models.py:39
 msgid "release date"
 msgstr "erstellt am"
 
-#: seedcatalog/models.py:35
+#: seedcatalog/models.py:40
 msgid "valid until"
 msgstr "gültig bis"
 
-#: seedcatalog/models.py:36 seedcatalog/models.py:60
+#: seedcatalog/models.py:41
+#: seedcatalog/templates/seedcatalog/edit_inline.html:3
 msgid "finalized"
 msgstr "finalisiert"
 
-#: seedcatalog/models.py:39
+#: seedcatalog/models.py:44
 msgid "Title of catalog"
 msgstr "Titel des Katalogs"
 
-#: seedcatalog/models.py:40
+#: seedcatalog/models.py:45
 msgid "Sub-title of catalog"
 msgstr "Untertitel des Katalogs"
 
-#: seedcatalog/models.py:42
+#: seedcatalog/models.py:47
 msgid "copyright note"
 msgstr "Urheberrechtsanmkerkung"
 
-#: seedcatalog/models.py:43 seedcatalog/models.py:45 seedcatalog/models.py:47
+#: seedcatalog/models.py:48 seedcatalog/models.py:50 seedcatalog/models.py:52
 msgid "LaTeX syntax allowed"
 msgstr "LaTeX syntax akzeptiert"
 
-#: seedcatalog/models.py:44
+#: seedcatalog/models.py:49
 msgid "preface"
 msgstr "Einleitung"
 
-#: seedcatalog/models.py:46
+#: seedcatalog/models.py:51
 msgid "notes"
 msgstr "Anmerkungen"
 
-#: seedcatalog/models.py:52
+#: seedcatalog/models.py:57
 msgid "debug output"
 msgstr "Debug-Ausgabe"
 
-#: seedcatalog/models.py:62
+#: seedcatalog/models.py:65
+msgid "finalized (%d seeds in catalog)"
+msgstr "Finalisiert (%d Samen im Katalog)"
+
+#: seedcatalog/models.py:67
 #, python-format
 msgid "Edit %d seeds in catalog"
 msgstr "%d Samen im Katalog bearbeiten"
 
-#: seedcatalog/models.py:63
+#: seedcatalog/models.py:68
 msgid "Edit seeds in catalog"
 msgstr "Samen im Katalog bearbeiten"
 
-#: seedcatalog/models.py:76
+#: seedcatalog/models.py:81
 msgid "not yet created"
 msgstr "noch nicht erstellt"
 
 #. Translators: show seed catalog debug output link hover text
-#: seedcatalog/models.py:80
+#: seedcatalog/models.py:85
 msgid "show debug output"
 msgstr "Zeige debug-output"
 
-#: seedcatalog/models.py:87
+#: seedcatalog/models.py:92
 msgid "generate catalog"
 msgstr "Katalog erstellen"
 
-#: seedcatalog/models.py:88
+#: seedcatalog/models.py:93
 msgid "create"
 msgstr "erstellen"
 
@@ -1675,28 +1660,28 @@ msgstr "Erstellt einen neuen Katalog mit den selben Samen"
 msgid "Duplicate catalog"
 msgstr "Katalog duplizieren"
 
-#: seedcatalog/views.py:20
+#: seedcatalog/views.py:19
 msgid "Samen im Katalog bearbeiten"
 msgstr "Samen im Katalog bearbeiten"
 
-#: seedcatalog/views.py:38
+#: seedcatalog/views.py:37
 msgid "Catalog not found."
 msgstr "Katalog nicht gefunden."
 
-#: seedcatalog/views.py:48
+#: seedcatalog/views.py:47
 msgid "Individual/Seed not found"
 msgstr "Individuum/Samen nicht gefunden"
 
-#: seedcatalog/views.py:61
+#: seedcatalog/views.py:60
 #, python-format
 msgid "%(seed)s removed from %(catalog)s"
 msgstr "%(seed)s aus Katalog %(catalog)s entfernt"
 
-#: seedcatalog/views.py:88
+#: seedcatalog/views.py:87
 msgid "Individual/seed not found."
 msgstr "Individuum/Samen nicht gefunden"
 
-#: seedcatalog/views.py:105
+#: seedcatalog/views.py:104
 #, python-format
 msgid ""
 "added %(seed)s to %(catalog)s (seeds are automatically marked as present)"
@@ -1704,35 +1689,35 @@ msgstr ""
 "Samen %(seed)s zu %(catalog)s hinzugefügt (Samen sind automatisch als "
 "vorhanden markiert)"
 
-#: seedcatalog/views.py:114
+#: seedcatalog/views.py:113
 msgid "Individual/seed not found"
 msgstr "Individuum/Samen nicht gefunden"
 
-#: seedcatalog/views.py:127
+#: seedcatalog/views.py:126
 #, python-format
 msgid "%(seed)s added to %(catalog)s"
 msgstr "%(seed)s zu %(catalog)s hinzugefügt"
 
-#: seedcatalog/views.py:211
+#: seedcatalog/views.py:210
 #, python-format
 msgid "Could not move %(pdf)s to %(targetpdf)s"
 msgstr "%(pdf)s konnte nicht nach %(targetpdf)s verschoben werden"
 
-#: seedcatalog/views.py:235 seedcatalog/views.py:247 seedcatalog/views.py:262
-#: seedcatalog/views.py:276
+#: seedcatalog/views.py:234 seedcatalog/views.py:246 seedcatalog/views.py:261
+#: seedcatalog/views.py:275
 #, python-format
 msgid "Unknown seed catalog %s"
 msgstr "Unbekannte Samenkatalognummer %s"
 
-#: seedcatalog/views.py:249
+#: seedcatalog/views.py:248
 msgid "LateX debug output"
 msgstr "LaTeX-Debug-Ausgabe"
 
-#: seedcatalog/views.py:280
+#: seedcatalog/views.py:279
 msgid "Sorry, you do not have the permission to finalize the catalog."
 msgstr "Sie haben leider keine Berechtigung, den Katalog zu finalisieren"
 
-#: seedcatalog/views.py:283
+#: seedcatalog/views.py:282
 msgid "Return to catalog"
 msgstr "Zurück zu Katalog"
 
@@ -2400,11 +2385,6 @@ msgstr "Ticket anzeigen: "
 
 #~ msgid "family & genus"
 #~ msgstr "Art & Gattung"
-
-#, fuzzy
-#~| msgid "territory"
-#~ msgid "Territory"
-#~ msgstr "Revier"
 
 #~ msgid "IPEN Country must not be \"UNKNOWN\""
 #~ msgstr "IPEN Land darf nicht \"UNKNOWN\" sein"
