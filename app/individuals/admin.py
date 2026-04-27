@@ -20,6 +20,21 @@ from .actions import add_seed_catalog_actions
 from .models.individual import SeedInLatestCatalogFilter
 
 
+INDIVIDUAL_SEARCH_FIELDS = search_fields_compatible((
+    'accession_number',
+    'ipen_generated',
+    '@species__species',
+    '@species__subspecies',
+    '@species__variety',
+    '@species__form',
+    '@species__family__genus',
+    '@species__family__family',
+    '@species__full_name_generated',
+    '@species__deutscher_name',
+    '@species__synonyme',
+    '@source__name',
+))
+
 class DepartmentAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
     form = DepartmentForm
     list_display = ('change_link_decorator', 'territory', 'code', 'name', 'list_link_decorator',
@@ -85,10 +100,10 @@ class SeedAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
                  'ipen_country', 'departments_generated', 'territories_generated', 'species',
                  'outplantings_generated', 'alive_outplantings_generated', 'is_alive_generated',)
 
-    search_fields = search_fields_compatible([
-        'order_number', '@species__species', 'accession_number', '@species__family__genus',
-        '@species__family__family', 'ipen_generated', '@source__name', '@species__deutscher_name'
-    ])
+    search_fields = (
+        'order_number',
+        *INDIVIDUAL_SEARCH_FIELDS,
+    )
     ordering = ('accession_number',)
     list_editable = ('seed_available', 'seed_in_stock')
     fieldsets = (
@@ -188,17 +203,7 @@ class IndividualAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable)
                  'outplantings_generated', 'alive_outplantings_generated', 'is_alive_generated',)
 
     list_display_links = ()
-    search_fields = search_fields_compatible(('accession_number', 'ipen_generated',
-                     '@species__species',
-                     '@species__subspecies',
-                     '@species__variety',
-                     '@species__form',
-                     '@species__family__genus',
-                     '@species__family__family',
-                     '@species__full_name_generated',
-                     '@species__deutscher_name',
-                     '@source__name',
-                     ))
+    search_fields = INDIVIDUAL_SEARCH_FIELDS
     ordering = ('accession_number',)
     fieldsets = (
         (None, {
