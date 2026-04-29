@@ -56,7 +56,10 @@ class TestBase(TestCase):
             f"failed to log in {username}"
         )
 
-    def get_form_data(self, form: bs4.PageElement) -> dict:
+    def get_form_data(self, form: Union[str, bytes, bs4.PageElement]) -> dict:
+        if isinstance(form, (str, bytes)):
+            form = bs4.BeautifulSoup(form, features="html.parser").find("form")
+
         data = {}
 
         def _add_data(key: str, value):

@@ -210,7 +210,9 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
         return s.strip(' --> ')
 
     def configuretable_view(self, request, extra_context=None):
-        if not self.has_change_permission(request) or not self.has_add_permission(request):
+        if not (
+            self.has_view_or_change_permission(request) or self.has_add_permission(request)
+        ):
             raise PermissionDenied
 
         # POST (save)
@@ -332,7 +334,9 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
         """
         Render a treepart of configurable attributes.
         """
-        if not self.has_change_permission(request) or not self.has_add_permission(request):
+        if not (
+            self.has_view_or_change_permission(request) or self.has_add_permission(request)
+        ):
             raise PermissionDenied
 
         path = request.GET.get('ttt')

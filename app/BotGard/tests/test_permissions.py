@@ -1,3 +1,8 @@
+import json
+from typing import Literal
+
+from bs4 import BeautifulSoup
+
 from .base import *
 
 
@@ -20,6 +25,20 @@ GARDENER_PERMISSIONS = {
     'tickets.basicticket': {'add', 'change', 'delete'},
     'tickets.lasergravurticket': {'add', 'change'},
     'tickets.myticket': {'add', 'change', 'delete'}
+}
+
+GUEST_PERMISSIONS = {
+    'botman.bgcigarden': {'view'},
+    'botman.botanicgarden': {'view'},
+    'entrybook.entry': {'view'},
+    'individuals.department': {'view'},
+    'individuals.individual': {'view'},
+    'individuals.outplanting': {'view'},
+    'individuals.seed': {'view'},
+    'individuals.territory': {'view'},
+    'seedcatalog.seedcatalog': {'view'},
+    'species.family': {'view'},
+    'species.species': {'view'},
 }
 
 class TestPermissions(TestBase):
@@ -88,6 +107,22 @@ class TestPermissions(TestBase):
             content_type__model="species",
             codename="can_check_nomenclature",
         ))
+
+        user = get_user_model().objects.create_user(
+            username="guest",
+            email="guest@example.com",
+            password=cls.PW,
+            is_staff=True,
+        )
+        guest_group = create_permission_group(
+            "guests",
+            GUEST_PERMISSIONS,
+        )
+        user.groups.add(guest_group)
+        BasicTicket.objects.create(
+            created_by=user,
+            directed_to=user, due_date="2100-01-01", title="Ticket for guest",
+        )
 
         user = get_user_model().objects.create_user(
             username="noaccess",
@@ -177,6 +212,18 @@ class TestPermissions(TestBase):
             ]
         )
 
+    def test_guest_model_access(self):
+        self.login("guest")
+        self.assert_models_access(
+            can_change_models=[],
+            can_view_models=[
+                BGCIGarden, BotanicGarden,
+                Species, Family,
+                Entry, Department, Territory, Individual, Seed, Outplanting,
+                SeedCatalog,
+            ]
+        )
+
     def test_species_nomenclature_permission_gardener(self):
         self._test_species_nomenclature_permission("gardener", expect_permission=False)
 
@@ -239,11 +286,13 @@ class TestPermissions(TestBase):
             self.assert_model_changelist(model_class, expect_no_access=True)
             model = self.get_model_for_user(model_class, self.current_user)
             self.assert_model_changeview(model_class, model.pk, expect_read_access=False, expect_write_access=False)
+            self.assert_config_table(model_class, expect_no_access=True)
 
         for model_class in change_models:
             self.assert_model_changelist(model_class)
             model = self.get_model_for_user(model_class, self.current_user)
             self.assert_model_changeview(model_class, model.pk, expect_read_access=True, expect_write_access=True)
+            self.assert_config_table(model_class)
 
         for model_class in not_change_models:
             model = self.get_model_for_user(model_class, self.current_user)
@@ -252,6 +301,20 @@ class TestPermissions(TestBase):
                 expect_read_access=model_class in view_models,
                 expect_write_access=False,
             )
+            self.assert_config_table(model_class, expect_no_access=model_class not in view_models)
+
+    def assert_config_table(self, model_class: Type[models.Model], expect_no_access: bool = False):
+        if not issubclass(model_class, Configurable):
+            return
+        app_name = model_class._meta.app_label
+        model_name = model_class._meta.model_name
+        url = reverse(f"admin:{app_name}_{model_name}_configuretable")
+        response = self.get_response(url, expect_no_access=expect_no_access)
+        if not expect_no_access:
+            form = bs4.BeautifulSoup(response.content, features="html.parser").find("form", {"class": "config_table_form"})
+            data = self.get_form_data(form)
+            data["settings"] = json.dumps(eval(data["settings"]))
+            self.get_response(url, method="post", data=data)
 
     def get_model_for_user(self, model_class: Type[models.Model], username: str):
         qset = model_class.objects.all()
@@ -312,22 +375,38 @@ class TestPermissions(TestBase):
             self,
             url: str,
             expect_no_access: bool = False,
+            method: Literal["get", "post"] = "get",
+            data = None,
             msg: str = "",
     ):
         if msg:
             msg = f", {msg}"
 
-        response = self.client.get(url)
+        try:
+            if method == "get":
+                response = self.client.get(url)
+            elif method == "post":
+                response = self.client.post(url, data)
+            else:
+                raise NotImplementedError(method)
+        except Exception:
+            print(f"\n\nFor url {url}\n\n")
+            raise
+        
         if expect_no_access:
             if (not (
                     (response.status_code == 302 and "/admin/login/" in response.headers.get("Location", ""))
                     or response.status_code == 403
             )):
-                raise AssertionError(f"Expected 302 or 403, got status {response.status_code} for url {url}{msg}")
+                raise AssertionError(f"Expected 302 or 403, got status {response.status_code} for {method} url {url}{msg}")
             return response
         else:
             if response.status_code != 200:
-              raise AssertionError(f"Expected 200, got {response.status_code} for url {url}{msg}")
+                if (
+                    response.status_code == 302 and "/admin/login/" not in response.headers.get("Location", "")
+                ):
+                    return response
+                raise AssertionError(f"Expected 200, got {response.status_code} for {method} url {url}{msg}")
         return response
 
     def create_model(
