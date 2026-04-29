@@ -102,7 +102,8 @@ class EntryAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
         Pre-fill `user` field
         """
         form = super().get_form(request, obj, change, **kwargs)
-        form.base_fields['user'].initial = request.user.pk
+        if "user" in form.base_fields:
+            form.base_fields["user"].initial = request.user.pk
         return form
 
     def get_urls(self):
