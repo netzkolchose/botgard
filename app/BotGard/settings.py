@@ -25,8 +25,12 @@ SECRET_KEY = decouple.config(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = decouple.config("DJANGO_DEBUG", default=True, cast=bool)
 
+FULL_SERVER_HOST = decouple.config('FULL_SERVER_HOST', default="http://localhost:8000")
+if "://" not in FULL_SERVER_HOST:
+    raise ValueError(f"FULL_SERVER_HOST is expected to contain <scheme>://<host>, got '{FULL_SERVER_HOST}'")
+
 ALLOWED_HOSTS = decouple.config('DJANGO_ALLOWED_HOSTS', default="*").split()
-CSRF_TRUSTED_ORIGINS = decouple.config("DJANGO_CSRF_TRUSTED_ORIGINS", default="").split()
+CSRF_TRUSTED_ORIGINS = decouple.config("DJANGO_CSRF_TRUSTED_ORIGINS", default=FULL_SERVER_HOST).split()
 
 TIME_ZONE = decouple.config('DJANGO_TIME_ZONE', default='Europe/Berlin')
 

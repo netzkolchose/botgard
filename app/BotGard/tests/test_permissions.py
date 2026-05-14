@@ -41,6 +41,28 @@ GUEST_PERMISSIONS = {
     'species.species': {'view'},
 }
 
+# models that are not represented in the admin views
+INVISIBLE_MODELS = (
+    "admin.logentry",
+    "sessions.session",
+    "auth.permission",
+    "auth.user_groups",
+    "auth.user_user_permissions",
+    "auth.group_permissions",
+    "contenttypes.contenttype",
+    "easy_thumbnails.source",
+    "easy_thumbnails.thumbnail",
+    "easy_thumbnails.thumbnaildimensions",
+    "config_tables.tablesettings",
+    "sidebar.bookmark",
+    "sidebar.note",
+    "tickets.etikett_individual",
+    "seedcatalog.seedcatalog_seed",
+    "plantimages.plantimage",
+    "BotGard.passwordresetcode",
+)
+
+
 class TestPermissions(TestBase):
     PW = "the-secret"
 
@@ -53,24 +75,7 @@ class TestPermissions(TestBase):
         for app_name, models in apps.all_models.items():
             for model_name, model in models.items():
                 # filter for models that are visible as changelist/changeview
-                if f"{app_name}.{model_name}" not in (
-                        "admin.logentry",
-                        "sessions.session",
-                        "auth.permission",
-                        "auth.user_groups",
-                        "auth.user_user_permissions",
-                        "auth.group_permissions",
-                        "contenttypes.contenttype",
-                        "easy_thumbnails.source",
-                        "easy_thumbnails.thumbnail",
-                        "easy_thumbnails.thumbnaildimensions",
-                        "config_tables.tablesettings",
-                        "sidebar.bookmark",
-                        "sidebar.note",
-                        "tickets.etikett_individual",
-                        "seedcatalog.seedcatalog_seed",
-                        "plantimages.plantimage",
-                ):
+                if f"{app_name}.{model_name}" not in INVISIBLE_MODELS:
                     cls.ALL_MODELS[f"{app_name}.{model_name}"] = model
 
         get_user_model().objects.create_superuser(
