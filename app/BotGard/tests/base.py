@@ -52,13 +52,18 @@ class TestBase(TestCase):
 
     def login(self, username: str, password: str = "the-secret"):
         self.assertTrue(
-            self.client.login(username=username, password="the-secret"),
+            self.client.login(username=username, password=password),
             f"failed to log in {username}"
         )
 
+    def get_soup(self, content: Union[str, bytes]) -> bs4.PageElement:
+        if isinstance(content, bytes):
+            content = content.decode()
+        return bs4.BeautifulSoup(content, features="html.parser")
+
     def get_form_data(self, form: Union[str, bytes, bs4.PageElement]) -> dict:
         if isinstance(form, (str, bytes)):
-            form = bs4.BeautifulSoup(form, features="html.parser").find("form")
+            form = self.get_soup(form).find("form")
 
         data = {}
 
@@ -162,7 +167,7 @@ class TestBase(TestCase):
                     raise AssertionError(
                         f"Expected mass-label confirmation page for {label_model} with objects {object_model}"
                     )
-                soup = bs4.BeautifulSoup(response.content.decode(), features="html.parser")
+                soup = self.get_soup(response.content)
                 form = soup.find("form", {"id": "label-confirmation-form"})
                 post_data = self.get_form_data(form)
                 post_data["_confirmation_yes_button"] = ""
@@ -273,7 +278,7 @@ class ChangeListForm:
         self.parent.assert_no_warning(response)
         self.parse(response.content.decode())
 
-    def parse(self, html):
+    def parse(self, html: str):
         self.soup = bs4.BeautifulSoup(html, features="html.parser")
         self.fields = []
         self.rows = []

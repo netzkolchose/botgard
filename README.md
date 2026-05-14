@@ -40,9 +40,11 @@ You can copy the [app/.env-example](app/.env-example) file to `app/.env` and adj
 - `POSTGRES_DATABASE`: Name of the postgres database, defaults to `postgres`
 - `POSTGRES_HOST`: Name of the postgres host, defaults to `localhost`
 - `POSTGRES_PORT`: Name of the postgres host port, defaults to `5432`
+- `FULL_SERVER_HOST`: Full hostname of the server (e.g. https://your-botgard.com), **must be provided for deployments!**
 - `DJANGO_SECRET_KEY`: Overrides the `SECRET_KEY`, defaults to a fixed sequence
 - `DJANGO_TIME_ZONE`: The default timezone, defaults to `Europe/Berlin`
 - `DJANGO_ALLOWED_HOSTS`: A list of hosts separated by spaces, defaults to empty list
+- `DJANGO_CSRF_TRUSTED_ORIGINS`: A list of hosts separated by spaces, defaults to `FULL_SERVER_HOST`
 - `DJANGO_DEBUG`: Set Django debug mode, defaults to `True`
 
 

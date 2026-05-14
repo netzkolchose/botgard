@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-02 10:09+0200\n"
+"POT-Creation-Date: 2026-05-14 17:21+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,13 +16,41 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: BotGard/settings.py:178
+#: BotGard/settings.py:182
 msgid "German"
 msgstr "Deutsch"
 
-#: BotGard/settings.py:179
+#: BotGard/settings.py:183
 msgid "English"
 msgstr "Englisch"
+
+#: BotGard/templates/BotGard/generate-password-reset.html:7
+msgid "User"
+msgstr "Benutzer"
+
+#: BotGard/templates/BotGard/generate-password-reset.html:11
+msgid "The user can now reset the password with this link"
+msgstr "Der/Die Benutzer/in kann das Passwort mit diesem Link neu vergeben"
+
+#: BotGard/templates/BotGard/generate-password-reset.html:16
+msgid "Send email"
+msgstr "Email senden"
+
+#: BotGard/templates/BotGard/generate-password-reset.html:22
+msgid "Create Link"
+msgstr "Link erstellen"
+
+#: BotGard/templates/BotGard/password-reset.html:11
+msgid "Go to login"
+msgstr "Zum Login"
+
+#: BotGard/templates/BotGard/password-reset.html:17
+msgid "Please enter the details to set your new password:"
+msgstr "Bitte geben Sie die Details ein um Ihr neues Passwort zu setzen:"
+
+#: BotGard/templates/BotGard/password-reset.html:22
+msgid "Submit"
+msgstr "Übermitteln"
 
 #: BotGard/tests/data/label-individual-complex.html:5
 #: demo-data/labels/individual-multipage-inner.html:5
@@ -63,8 +91,8 @@ msgstr "Verbreitung"
 
 #: BotGard/tests/data/label-individual-complex.html:30
 #: demo-data/labels/individual-multipage-inner.html:30 entrybook/admin.py:65
-#: entrybook/models/entry.py:57 individuals/admin.py:105
-#: individuals/admin.py:214 individuals/models/individual.py:36
+#: entrybook/models/entry.py:57 individuals/admin.py:120
+#: individuals/admin.py:219 individuals/models/individual.py:36
 msgid "source"
 msgstr "Quelle"
 
@@ -84,6 +112,44 @@ msgstr "Eingangsform"
 #: demo-data/labels/individual-multipage-outer.html:24
 msgid "page"
 msgstr "Seite"
+
+#: BotGard/views/password_views.py:24
+msgid "Create a one-time password reset link"
+msgstr "Einen Ein-mal-Passwort-Reset Link erstellen"
+
+#: BotGard/views/password_views.py:39
+msgid "BotGard password reset link"
+msgstr "BotGard Link zum Passwort erneuern"
+
+#: BotGard/views/password_views.py:50
+msgid "Email"
+msgstr "Email"
+
+#: BotGard/views/password_views.py:55
+msgid "Password"
+msgstr "Passwort"
+
+#: BotGard/views/password_views.py:61
+msgid "Password (again)"
+msgstr "Passwort (nochmal)"
+
+#: BotGard/views/password_views.py:75
+msgid "The two password fields didn’t match."
+msgstr "Die zwei Passwörter stimmten nicht überein."
+
+#: BotGard/views/password_views.py:88
+msgid "Reset password"
+msgstr "Passwort ändern"
+
+#: BotGard/views/password_views.py:94
+msgid ""
+"The password reset link has expired, please request a new one from your "
+"administrator."
+msgstr "Der Passwort-Reset Link ist abgelaufen. Bitte fordern Sie einen neuen von ihrem Administrator an."
+
+#: BotGard/views/password_views.py:102
+msgid "Your password has been changed"
+msgstr "Ihr Passwort wurde geändert"
 
 #: ajax/autocomplete.py:63
 msgid "Type to search"
@@ -502,21 +568,21 @@ msgstr "Typ \"%s\" unbekannt"
 msgid "Invalid type in KeyValue \"%s\""
 msgstr "Unbekannter Typ in KeyValue \"%s\""
 
-#: config_tables/admin.py:254 config_tables/admin.py:286
+#: config_tables/admin.py:256 config_tables/admin.py:288
 #, python-format
 msgid "Configure table %(name)s"
 msgstr "%(name)s-Tabelle bearbeiten"
 
-#: config_tables/admin.py:488
+#: config_tables/admin.py:492
 #, python-format
 msgid "Remove filter for %s"
 msgstr "Filter für %s entfernen"
 
-#: config_tables/admin.py:527
+#: config_tables/admin.py:531
 msgid "yes"
 msgstr "Ja"
 
-#: config_tables/admin.py:528
+#: config_tables/admin.py:532
 msgid "no"
 msgstr "Nein"
 
@@ -639,15 +705,15 @@ msgstr "90 (Kulturpflanze/Samen wechselnder Herkünfte)"
 msgid "W (Wildsamen)"
 msgstr "W (Wildsamen)"
 
-#: entrybook/admin.py:74 individuals/admin.py:102 individuals/admin.py:211
+#: entrybook/admin.py:74 individuals/admin.py:117 individuals/admin.py:216
 msgid "habitat"
 msgstr "Herkunft"
 
-#: entrybook/admin.py:77 individuals/admin.py:108 individuals/admin.py:217
+#: entrybook/admin.py:77 individuals/admin.py:123 individuals/admin.py:222
 msgid "miscellaneous"
 msgstr "Verschiedenes"
 
-#: entrybook/admin.py:81 individuals/admin.py:112 individuals/admin.py:221
+#: entrybook/admin.py:81 individuals/admin.py:127 individuals/admin.py:226
 #: individuals/models/individual.py:431 species/models.py:271
 msgid "seeds"
 msgstr "Samen"
@@ -798,7 +864,7 @@ msgstr "{} Samen zu {} hinzugefügt"
 msgid "{} seeds removed from {}"
 msgstr "{} Samen aus {} entfernt"
 
-#: individuals/admin.py:99
+#: individuals/admin.py:114
 msgid "IPEN"
 msgstr "IPEN"
 
@@ -1868,6 +1934,10 @@ msgstr "Individuen durchsuchen"
 #: species/models.py:269
 msgid "search seeds"
 msgstr "Samen durchsuchen"
+
+#: templates/admin/auth/change_form.html:7
+msgid "Generate password reset link"
+msgstr ""
 
 #: tickets/admin.py:96
 msgid "change many"
