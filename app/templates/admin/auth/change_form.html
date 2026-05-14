@@ -3,7 +3,7 @@
 
 {% block object-tools-items %}
     {{ block.super }}
-    {% if opts.model_name == 'user' and user.pk %}
-        <li><a href="{% url 'generate-reset-password' user.pk %}">{% trans 'Generate password reset link' %}</a></li>
+    {% if opts.model_name == 'user' and original.pk %}
+        <li><a href="{% url 'generate-reset-password' original.pk %}">{% trans 'Generate password reset link' %}</a></li>
     {% endif %}
 {% endblock %}
