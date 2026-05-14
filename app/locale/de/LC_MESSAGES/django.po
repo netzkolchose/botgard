@@ -1937,7 +1937,7 @@ msgstr "Samen durchsuchen"
 
 #: templates/admin/auth/change_form.html:7
 msgid "Generate password reset link"
-msgstr ""
+msgstr "Passwort-Reset-Link erstellen"
 
 #: tickets/admin.py:96
 msgid "change many"
