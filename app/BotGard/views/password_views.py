@@ -72,7 +72,7 @@ class PasswordResetForm(forms.Form):
 
         if password1 and password2 and password1 != password2:
             error = ValidationError(
-                self.error_messages["password_mismatch"],
+                _("The two password fields didn’t match."),
                 code="password_mismatch",
             )
             self.add_error("password2", error)
