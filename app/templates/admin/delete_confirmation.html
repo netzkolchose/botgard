@@ -1,0 +1,15 @@
+{% extends 'admin/delete_confirmation.html' %}
+{% load i18n %}
+
+{% block delete_confirm %}
+    {% if is_archive_model %}
+        <b>
+            {% blocktranslate %}
+                <p>This is will only archive the object - NOT delete it.</p>
+                <p>The object will be flagged as <i>deleted</i> and will not be visible by default.</p>
+            {% endblocktranslate %}
+        </b>
+        <br>
+    {% endif %}
+    {{ block.super }}
+{% endblock %}

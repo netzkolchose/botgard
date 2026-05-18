@@ -16,6 +16,7 @@ from operator import itemgetter
 import django.core.exceptions
 from django.contrib.admin.utils import label_for_field
 
+from BotGard.archiveadmin import ArchiveModelAdmin
 from .forms import TableSettingsForm
 from .models import TableSettings
 from tools.csv_response import csv_response
@@ -141,7 +142,7 @@ class CustomSelectHeaderFilter(CustomHeaderFilter):
         )
 
 
-class ConfigurableTable(admin.ModelAdmin, Configurable):
+class ConfigurableTable(ArchiveModelAdmin, Configurable):
     change_list_template = 'config_tables/change_list.html'
     configuretable_template = 'config_tables/configuretable.html'
 

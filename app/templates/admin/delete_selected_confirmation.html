@@ -1,0 +1,19 @@
+{% extends "admin/delete_selected_confirmation.html" %}
+{% load i18n %}
+
+{% block content %}
+    {% if perms_lacking %}
+    {% elif protected %}
+    {% else %}
+        {% if is_archive_model %}
+            <b>
+                {% blocktranslate %}
+                    <p>This is will only archive the objects - NOT delete it.</p>
+                    <p>The object will be flagged as <i>deleted</i> and will not be visible by default.</p>
+                {% endblocktranslate %}
+            </b>
+            <br>
+        {% endif %}
+    {% endif %}
+    {{ block.super }}
+{% endblock %}
