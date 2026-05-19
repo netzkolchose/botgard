@@ -148,17 +148,29 @@ class ConfigurableTable(ArchiveModelAdmin, Configurable):
 
     def _get_actual_tablesettings_object(self, request):
         user = request.user
-        modelstring = '%s.%s' % (self.model._meta.app_label, self.model._meta.model_name)
+        modelstring = '%s.%s' % (self.opts.app_label, self.opts.model_name)
         try:
             tablesettings = TableSettings.objects.get(user=user, model=modelstring)
         except TableSettings.DoesNotExist:
-            tablesettings = TableSettings(user=user, model=modelstring, settings=self.apply_blacklist(self.list_display))
+            tablesettings = TableSettings(
+                user=user,
+                model=modelstring,
+                settings=self.apply_blacklist(super().get_list_display(request)),
+            )
         return tablesettings
 
     def get_list_display(self, request):
         names = self._get_actual_tablesettings_object(request).settings
         # fix old configurations that require fields that are gone
         names = [n for n in names if hasattr(self.model, n)]
+        # add `is_deleted` fields for users that have that permission
+        # (this adds the fields in case a previous TableSettings was stored without the fields)
+        if self.is_archive_model() and self.has_show_deleted_permission(request.user):
+            for key in ("is_deleted", "date_deleted"):
+                if key not in names:
+                    if isinstance(names, tuple):
+                        names = list(names)
+                    names.append(key)
         return names
 
     def get_list_display_csv(self, request):

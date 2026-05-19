@@ -1,3 +1,5 @@
+from typing import Union
+
 from django.core.exceptions import PermissionDenied
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_protect
@@ -12,6 +14,7 @@ from django.contrib.admin.utils import unquote, model_ngettext
 from django.contrib.admin.exceptions import DisallowedModelAdminToField
 from django.contrib.admin.options import TO_FIELD_VAR, IS_POPUP_VAR
 from django.contrib.admin.decorators import action
+from django.contrib.auth.models import AbstractUser, AnonymousUser
 
 from BotGard.models import ArchiveBaseModel
 
@@ -29,13 +32,31 @@ class ArchiveModelAdmin(admin.ModelAdmin):
     Does not change behaviour is model is not based on ArchiveBaseModel.
     """
     def is_archive_model(self) -> bool:
+        """Returns true of the model of this ModelAdmin class is based on the ArchiveBaseModel"""
         return issubclass(self.model, ArchiveBaseModel)
+
+    def has_show_deleted_permission(self, user: Union[AbstractUser, AnonymousUser]) -> bool:
+        """
+        Returns true if the user has the permission to show deleted objects for this ModelAdmins' class.
+        Administrators have this permission automatically.
+        """
+        return user.has_perm(f"{self.opts.app_label}.show_deleted_{self.opts.model_name}")
 
     def get_queryset(self, request):
         qset = super().get_queryset(request)
-        if self.is_archive_model():
+        if self.is_archive_model() and not self.has_show_deleted_permission(request.user):
             qset = qset.filter(is_deleted=False)
         return qset
+
+    def get_list_display(self, request):
+        names = super().get_list_display(request)
+        if self.is_archive_model() and self.has_show_deleted_permission(request.user):
+            for key in ("is_deleted", "date_deleted"):
+                if key not in names:
+                    if isinstance(names, tuple):
+                        names = list(names)
+                    names.append(key)
+        return names
 
     def get_urls(self):
         urls = super().get_urls()
