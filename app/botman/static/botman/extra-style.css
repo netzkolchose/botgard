@@ -316,6 +316,9 @@ span.icon-no {
     color: black;
 }
 
+.is-deleted-message {
+    color: #a44;
+}
 
 :root {
     --link-fg: #236131;

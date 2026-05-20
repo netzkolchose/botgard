@@ -1,0 +1,10 @@
+{% extends "admin/change_form.html" %}
+{% load i18n %}
+
+{% block content_subtitle %}
+    {% if subtitle %}
+        <h2>{{ subtitle }}{% if original.is_deleted %} - <span class="is-deleted-message">{% trans 'Deleted' %}</span>{% endif %}</h2>
+    {% else %}
+        {% if original.is_deleted %}<h2 class="is-deleted-message">{% trans 'Deleted' %}</h2>{% endif %}
+    {% endif %}
+{% endblock %}

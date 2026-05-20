@@ -17,7 +17,7 @@ class ArchiveBaseModel(models.Model):
                     ("show_deleted_mymodel", _("Show deleted MyModels")),
                 )
 
-    The permission allows to show deleted objects in the changelist
+    The permission allows to show deleted objects in the changelist and undelete it
     """
 
     class Meta:

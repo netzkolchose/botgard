@@ -14,6 +14,7 @@ from django.contrib.admin.utils import unquote, model_ngettext
 from django.contrib.admin.exceptions import DisallowedModelAdminToField
 from django.contrib.admin.options import TO_FIELD_VAR, IS_POPUP_VAR
 from django.contrib.admin.decorators import action
+from django.contrib.admin.models import CHANGE, LogEntry
 from django.contrib.auth.models import AbstractUser, AnonymousUser
 
 from BotGard.models import ArchiveBaseModel
@@ -73,6 +74,70 @@ class ArchiveModelAdmin(admin.ModelAdmin):
                     )
 
         return urls
+
+    def get_actions(self, request) -> dict:
+        actions = super().get_actions(request)
+        if not self.is_archive_model():
+            return actions
+
+        # replace delete-objects action
+        if "delete_selected" in actions:
+            func, name, desc = actions["delete_selected"]
+            actions["delete_selected"] = (archive_selected, name, desc)
+
+        if self.has_show_deleted_permission(request.user):
+            actions["undelete_selected"] = (
+                unarchive_selected,
+                "undelete_selected",
+                _("Undelete selected %(verbose_name_plural)s"),
+            )
+
+        return actions
+
+    def get_fieldsets(self, request, obj=None):
+        fieldsets = super().get_fieldsets(request, obj)
+        # first of all, remove `is_deleted` and `date_deleted` from auto-generated fieldsets
+        for name, options in fieldsets:
+            if options.get("fields"):
+                options["fields"] = [
+                    field for field in options["fields"]
+                    if field not in ("is_deleted", "date_deleted")
+                ]
+        # then add the fields to the bottom if applicable
+        if self.is_archive_model() and self.has_show_deleted_permission(request.user):
+            fieldsets = (
+                *fieldsets,
+                (
+                    _("Deletion status"),
+                    {
+                        "fields": ["is_deleted", "date_deleted"],
+                        "classes": ["collapse"],
+                    }
+                )
+            )
+        return fieldsets
+
+    def save_model(self, request, obj, form, change):
+        # Set `date_deleted` to now if `is_deleted` flag was set in changeview
+        if self.is_archive_model():
+            if obj.is_deleted and not obj.date_deleted:
+                obj.date_deleted = timezone.now()
+        super().save_model(request, obj, form, change)
+
+    @csrf_protect_m
+    def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
+        if self.is_archive_model():
+            if self.has_show_deleted_permission(request.user):
+                if not extra_context:
+                    extra_context = {}
+                extra_context
+
+        if request.method in ("GET", "HEAD", "OPTIONS", "TRACE"):
+            return self._changeform_view(request, object_id, form_url, extra_context)
+
+        with transaction.atomic(using=router.db_for_write(self.model)):
+            return self._changeform_view(request, object_id, form_url, extra_context)
+
 
     @csrf_protect_m
     def archive_instead_of_delete_view(self, request, object_id, extra_context=None):
@@ -158,17 +223,6 @@ class ArchiveModelAdmin(admin.ModelAdmin):
         }
 
         return self.render_delete_form(request, context)
-
-    def get_actions(self, request) -> dict:
-        actions = super().get_actions(request)
-        if not self.is_archive_model():
-            return actions
-
-        if "delete_selected" in actions:
-            func, name, desc = actions["delete_selected"]
-            actions["delete_selected"] = (archive_selected, name, desc)
-
-        return actions
 
 
 
@@ -264,3 +318,27 @@ def archive_selected(modeladmin, request, queryset):
             ],
         context,
         )
+
+
+def unarchive_selected(modeladmin: ArchiveModelAdmin, request, queryset):
+    if not modeladmin.has_show_deleted_permission(request.user):
+        raise PermissionDenied
+
+    if request.method == "POST":
+        n = len(queryset)
+        if n:
+            LogEntry.objects.log_actions(
+                user_id=request.user.pk,
+                queryset=queryset,
+                action_flag=CHANGE,
+                change_message="Undeleted",
+            )
+
+            queryset.update(is_deleted=False)
+
+            modeladmin.message_user(
+                request,
+                _("Successfully undeleted %(count)d %(items)s.")
+                % {"count": n, "items": model_ngettext(modeladmin.opts, n)},
+                messages.SUCCESS,
+            )
