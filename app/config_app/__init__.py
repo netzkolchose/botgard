@@ -26,11 +26,14 @@ def get_value(key):
         val = KeyValue.objects.get(key=key)
         if val.type == 't':
             return val.value
-        if val.type == 'j':
+        elif val.type == 'g':
+            return val.value_geo
+        elif val.type == 'j':
             if isinstance(val.value_json, str):
                 return json.loads(val.value_json)
             return val.value_json
-        raise ValueError('Invalid type \'%s\' in KeyValue \'%s\'' % (val.type, val.key))
+        else:
+            raise ValueError('Invalid type \'%s\' in KeyValue \'%s\'' % (val.type, val.key))
 
     except KeyValue.DoesNotExist:
         return _defaults[key][0]

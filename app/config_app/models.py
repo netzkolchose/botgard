@@ -1,6 +1,7 @@
 from django.utils.translation import gettext_lazy as _
 from django.utils.html import mark_safe
 from django.db import models
+from django.contrib.gis.db.models import PointField
 
 
 class KeyValue(models.Model):
@@ -8,13 +9,24 @@ class KeyValue(models.Model):
         verbose_name = _('Variable')
         verbose_name_plural = _('Variables')
 
-    type = models.CharField(verbose_name=_('type'), max_length=1, default='t',
-                            choices=(('t', _('translateable text')), ('j', _('json')))
-                            )
+    type = models.CharField(
+        verbose_name=_('type'), max_length=1, default='t',
+        choices=(
+            ('t', _('translateable text')),
+            ('j', _('json')),
+            ('g', _('geo coordinate')),
+        )
+    )
     key = models.CharField(verbose_name=_('key'), max_length=255, unique=True, null=False, blank=False)
 
     value = models.TextField(verbose_name=_('value'), default="", blank=True)
     value_json = models.JSONField(verbose_name=_('json value'), null=True, blank=True)
+    value_geo = PointField(
+        verbose_name=_("geo location"),
+        srid=4326,
+        geography=True,
+        null=True, blank=True,
+    )
 
     def clean(self):
         super(KeyValue, self).clean()
@@ -25,6 +37,8 @@ class KeyValue(models.Model):
                 validator(self.value_json)
             elif self.type == 't':
                 validator(self.value)
+            elif self.type == 'g':
+                validator(self.value_json)
             else:
                 raise ValueError(_('Type unknown "%s"') % self.type)
 
@@ -41,9 +55,12 @@ class KeyValue(models.Model):
     def value_decorator(self):
         if self.type == 't':
             return self.value[:100]
-        if self.type == 'j':
+        elif self.type == 'j':
             ret = ("%s" % self.value_json)[:100]
             return ret.replace("{u'", "{'").replace("[u'", "['").replace(": u'", ": '").replace(", u'", ", '")
-        raise ValueError(_('Invalid type in KeyValue "%s"') % self.type)
+        elif self.type == 'g':
+            return self.value_geo
+        else:
+            raise ValueError(_('Invalid type in KeyValue "%s"') % self.type)
     value_decorator.short_description = _("value")
     value_decorator.admin_order_field = "value"

@@ -1,14 +1,15 @@
 from django.contrib import admin
 
 from django.contrib import admin
-from .models import (KeyValue)
-
-from modeltranslation.admin import TranslationAdmin, TranslationTabularInline
-
 from django.contrib import admin
 from django.forms import ModelForm, HiddenInput
 from django.utils.translation import gettext_lazy as _
 from django.conf import settings
+import django.contrib.gis.forms as gis_forms
+from modeltranslation.admin import TranslationAdmin, TranslationTabularInline
+
+from .models import KeyValue
+from geo.widgets import BotGardOpenLayersWidget
 
 
 # Helper for translations
@@ -33,7 +34,12 @@ class TabbedTranslationAdmin(TranslationAdmin):
 class KeyValueForm(ModelForm):
     class Meta:
         model = KeyValue
-        fields = ['type', 'key', 'value', 'value_json']
+        fields = ['type', 'key', 'value', 'value_json', 'value_geo']
+
+    value_geo = gis_forms.PointField(
+        srid=KeyValue.value_geo.field.srid,
+        widget=BotGardOpenLayersWidget(),
+    )
 
     def __init__(self, *args, **kwargs):
         super(KeyValueForm, self).__init__(*args, **kwargs)
@@ -48,12 +54,14 @@ class KeyValueForm(ModelForm):
                 self.disable_field("key")
                 self.disable_field("type")
                 # disable text or json
-                if instance.type == "t":
+                if instance.type in ("t", "g"):
                     self.disable_field("value_json")
-                if instance.type == "j":
+                if instance.type in ("j", "g"):
                     self.disable_field("value")
                     for lang, lang_name in settings.LANGUAGES:
                         self.disable_field("value_%s" % lang)
+                if instance.type != "g":
+                    self.disable_field("geo_location")
 
     def disable_field(self, name):
         if name in self.fields:

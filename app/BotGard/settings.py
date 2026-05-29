@@ -34,6 +34,7 @@ CSRF_TRUSTED_ORIGINS = decouple.config("DJANGO_CSRF_TRUSTED_ORIGINS", default=FU
 
 TIME_ZONE = decouple.config('DJANGO_TIME_ZONE', default='Europe/Berlin')
 
+MAP_TILE_URL = decouple.config("MAP_TILE_URL", default="https://tile.openstreetmap.org/{z}/{x}/{y}.png")
 
 # ------------
 
@@ -58,6 +59,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.postgres',
+    'django.contrib.gis',
 
     'config_tables.apps.ConfigTablesConfig',
     'species.apps.SpeciesConfig',
@@ -69,6 +71,7 @@ INSTALLED_APPS = [
     'labels.apps.LabelsConfig',
     'herbaria.apps.HerbariaConfig',
     'ajax.apps.AjaxConfig',
+    'geo.apps.GeoConfig',
     'easy_thumbnails',
     'BotGard',
 ]
@@ -132,7 +135,7 @@ WSGI_APPLICATION = 'BotGard.wsgi.application'
 if POSTGRES_PASSWORD:
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.postgresql',
+            'ENGINE': 'django.contrib.gis.db.backends.postgis',
             'NAME': POSTGRES_DATABASE,
             'USER': POSTGRES_USER,
             'PASSWORD': POSTGRES_PASSWORD,
