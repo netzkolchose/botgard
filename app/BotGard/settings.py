@@ -51,7 +51,8 @@ INSTALLED_APPS = [
     'config_app.apps.ConfigAppConfig',
     'botman.apps.BotmanConfig',
     'sidebar',
-    'django.contrib.admin',
+    # 'django.contrib.admin',  # replaced by BotGardAdminSite
+    'BotGard.apps.BotGardAdminConfig',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.humanize',
@@ -73,7 +74,7 @@ INSTALLED_APPS = [
     'ajax.apps.AjaxConfig',
     'geo.apps.GeoConfig',
     'easy_thumbnails',
-    'BotGard',
+    'BotGard.apps.BotGardAppConfig',
 ]
 
 
