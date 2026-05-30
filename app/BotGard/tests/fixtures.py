@@ -322,14 +322,15 @@ def create_permission_group(name: str, permissions: Dict[str, Set[str]]) -> Grou
     perms = []
     for key, levels in permissions.items():
         app_name, model_name = key.split(".")
-        for level in levels:
-            perms.append(
-                Permission.objects.get(
-                    content_type__app_label=app_name,
-                    content_type__model=model_name,
-                    codename=f"{level}_{model_name}",
+        if model_name:
+            for level in levels:
+                perms.append(
+                    Permission.objects.get(
+                        content_type__app_label=app_name,
+                        content_type__model=model_name,
+                        codename=f"{level}_{model_name}",
+                    )
                 )
-            )
 
     group.permissions.set(perms)
 

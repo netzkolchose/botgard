@@ -28,11 +28,12 @@ class BotGardAdminSite(admin.AdminSite):
         dic = super()._build_app_dict(request, label)
 
         for link in self.extra_app_links():
-            dic[link["app"]]["models"].append({
-                "model": None,
-                "admin_url": link["url"],
-                'name': link["name"],
-                'add_url': None,
-            })
+            if link["app"] in dic:
+                dic[link["app"]]["models"].append({
+                    "model": None,
+                    "admin_url": link["url"],
+                    'name': link["name"],
+                    'add_url': None,
+                })
 
         return dic
