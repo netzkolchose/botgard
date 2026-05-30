@@ -6,6 +6,7 @@ from django.utils.translation import gettext_lazy as _
 from django.contrib.admin import SimpleListFilter
 from django import forms
 from django.db import transaction
+from django.urls import reverse
 
 from .models import *
 from plantimages.admin import PlantImageInline
@@ -35,7 +36,9 @@ INDIVIDUAL_SEARCH_FIELDS = search_fields_compatible((
     '@source__name',
 ))
 
+
 class DepartmentAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
+
     form = DepartmentForm
     list_display = ('change_link_decorator', 'territory', 'code', 'name', 'list_link_decorator',
                     'num_individuals_alive', 'num_species_alive',
@@ -50,6 +53,16 @@ class DepartmentAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable)
     blacklist = ("id", "__str__",)
 
     change_form_template = "individuals/change_form_plant_stats.html"
+    change_list_template = "individuals/change_list_edit_map.html"
+
+    # TODO: just an idea how to generically add extra action buttons,
+    #   however, the changelist_view code would need to be adjusted and
+    #   change_list_template must be overridden in a clever way to
+    #   keep all the extras that the derrived ModelAdmin class might have already done
+    # def extra_action_buttons(self):
+    #     return [
+    #        {"name": _("Garden map"), "url": reverse("individuals:gard_map")},
+    #     ]
 
     class Media:
         css = {"screen": ('individuals/change_form_plant_stats.css',)}
@@ -66,6 +79,7 @@ class TerritoryAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
     blacklist = ("id", "name_generated", )
 
     change_form_template = "individuals/change_form_plant_stats.html"
+    change_list_template = "individuals/change_list_edit_map.html"
 
     class Media:
         css = {"screen": ('individuals/change_form_plant_stats.css',)}
@@ -353,3 +367,4 @@ class OutplantingAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable
     )
     blacklist = ('id', 'individual', 'department')
 admin.site.register(Outplanting, OutplantingAdmin)
+

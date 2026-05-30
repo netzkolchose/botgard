@@ -1,0 +1,47 @@
+{% extends admin_base_tmpl %}
+{% load i18n l10n static %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static 'geo/ol-v7.2.2.css' %}" />
+    <script type="text/javascript" src="{% static 'geo/ol-v7.2.2.js' %}"></script>
+    <script type="text/javascript" src="{% static 'geo/OLMapWidget.js' %}"></script>
+    <link rel="stylesheet" type="text/css" href="{% static 'gis/ol3.css' %}" />
+    <link rel="stylesheet" type="text/css" href="{% static 'individuals/garden_map.css' %}" />
+    <script type="text/javascript" src="{% static 'individuals/garden_map.js' %}"></script>
+{% endblock %}
+
+{% block page_content %}
+
+    <div class="object-tools" style="float: right;">
+        <li><a href="#">{% trans 'Save' %}</a></li>
+    </div>
+
+    <div id="controls">
+        <select id="current_department">
+            {% for dep in departments %}
+                <option value="{{ dep.pk }}">{{ dep.full_code }} | {{ dep.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <br/>
+
+    <div id="div_map" class="dj_map_wrapper">
+        <div id="map" class="dj_map"></div>
+        <script>
+            const map_widget = new BotGardMapWidget({
+                base_layer: new ol.layer.Tile({source: new ol.source.OSM({url: "{{ map_tile_url }}"})}),
+                geom_name: 'MultiPolygon',
+                id: 'map',
+                map_id: 'map',
+                map_srid: {{ map_srid|unlocalize }},
+                name: 'map',
+                default_lat: {{ default_location.1|unlocalize }},
+                default_lon: {{ default_location.0|unlocalize }},
+                default_zoom: 16.7,
+            });
+        </script>
+    </div>
+
+{% endblock %}

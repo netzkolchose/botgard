@@ -4,9 +4,12 @@ from django.utils.translation import ngettext_lazy as __
 from django.utils.safestring import mark_safe
 from django.urls import reverse
 from django import forms
+import django.contrib.gis.db.models as gis_models
+import django.contrib.gis.forms as gis_forms
 
 from ajax.autocomplete import AutoCompleteForm
 from config_tables.admin import configurable, Configurable
+from geo.widgets import BotGardOpenLayersWidget
 import config_app
 
 
@@ -198,6 +201,12 @@ class Department(CalcOutplantingsMixin, models.Model, Configurable):
 
     full_code = models.CharField(max_length=30, default="", editable=False)
 
+    polygon = gis_models.MultiPolygonField(
+        verbose_name=_("polygon"),
+        srid=4326,
+        geography=True,
+        null=True, blank=True,
+    )
     _id_field = "full_code"
 
     def _get_outplanting_filter(self):
@@ -280,6 +289,12 @@ class Department(CalcOutplantingsMixin, models.Model, Configurable):
 
 
 class DepartmentForm(AutoCompleteForm(Department)):
+
+    polygon = gis_forms.MultiPolygonField(
+        srid=Department.polygon.field.srid,
+        widget=BotGardOpenLayersWidget(),
+        required=False,
+    )
 
     def clean(self):
         super(DepartmentForm, self).clean()
