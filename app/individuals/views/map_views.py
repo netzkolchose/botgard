@@ -22,6 +22,13 @@ def garden_map_view(request):
             "map_srid": 3857,
             "map_tile_url": settings.MAP_TILE_URL,
             "default_location": config_app.get_value("geo_location"),
+            "territories": list(
+                Territory.objects.all()
+                .order_by("code")
+                .values(
+                    "pk", "code", "name",
+                )
+            ),
             "departments": list(
                 Department.objects.all()
                 .order_by("full_code")
@@ -29,7 +36,7 @@ def garden_map_view(request):
                     "territory__code", "territory__name", "territory__pk",
                     "pk", "code", "name", "full_code", "polygon"
                 )
-            )
+            ),
         },
     )
     return render(request, 'individuals/garden_map.html', ctx)

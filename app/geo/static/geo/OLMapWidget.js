@@ -66,10 +66,14 @@ class GardenMapInterface {
         this.territories = territories;
         this.departments = departments;
         this.on_selected = (values) => null;
-        this.widget = null;
+        this.widget = null; // filled by BotGardMapWidget
+        this.current_model = null;
+        this.current_model_pk = null;
     }
 
     select(model_name, pk) {
+        this.current_model = model_name;
+        this.current_model_pk = pk;
         let selected = false;
         for (const feature of this.widget.garden_map_feature_collection.getArray()) {
             if (feature.values_.model === model_name && feature.values_.pk == pk) {
@@ -82,21 +86,40 @@ class GardenMapInterface {
             this.widget.interactions.select.clearSelection();
         }
     }
+
+    get_data() {
+        console.log("FEATUES:")
+        for (const feature of this.widget.garden_map_feature_collection.getArray()) {
+            console.log(feature.values_);
+        }
+    }
+
+    get_current_values() {
+        if (this.current_model === "department") {
+            for (const dep of this.departments) {
+                if (dep.pk === this.current_model_pk) {
+                    return dep;
+                }
+            }
+        }
+    }
 }
 
 
-function create_garden_map_polygon_style(is_selected) {
+function create_garden_map_polygon_style(style_type) {
     return new ol.style.Style({
         renderer(coordinates, state) {
             const ctx = state.context;
-            const code = state.feature.getId();
+            const pk = state.feature.getId();
+            const is_selected = style_type === "selected";
 
             ctx.fillStyle = is_selected ? "rgba(150, 150, 250, .5)" : "rgba(100, 100, 200, .5)";
             ctx.strokeStyle = is_selected ? "rgba(100, 100, 255, .7)" : "rgba(50, 50, 255, .7)";
             ctx.lineWidth = is_selected ? 4 : 2;
             for (const polygon of coordinates) {
-                if (typeof polygon !== "object")
+                if (!(typeof polygon === "object" && typeof polygon[0] === "object")) {
                     return;
+                }
                 for (const coords of polygon) {
                     ctx.beginPath();
                     for (const coord of coords) {
@@ -192,7 +215,7 @@ class BotGardMapWidget {
             this.garden_map_feature_collection = new ol.Collection();
             this.garden_map_feature_overlay = new ol.layer.Vector({
                 map: this.map,
-                style: create_garden_map_polygon_style(false),
+                style: create_garden_map_polygon_style(),
                 source: new ol.source.Vector({
                     features: this.garden_map_feature_collection,
                     useSpatialIndex: false // improve performance,
@@ -267,7 +290,7 @@ class BotGardMapWidget {
             const widget = this;
             this.interactions.select = new ol.interaction.Select({
                 condition: ol.interaction.singleClick,
-                style: create_garden_map_polygon_style(true),
+                style: create_garden_map_polygon_style("selected"),
             });
             this.interactions.select.on("select", (e)=> {
                 if (e.mapBrowserEvent && e.selected && e.selected.length) {
@@ -281,6 +304,26 @@ class BotGardMapWidget {
                         ol.events.condition.singleClick(event);
                 }
             });
+            this.interactions.draw = new ol.interaction.Draw({
+                type: "MultiPolygon",
+                features: this.garden_map_feature_collection,
+                //style: create_garden_map_polygon_style("draw"),
+            });
+            this.interactions.draw.on("drawstart", (e) => {
+                // copy current selected object values on draw-start
+                const cur_values = widget.garden_map.get_current_values();
+                if (cur_values) {
+                    // setting ID somehow breaks the drawning interaction
+                    //e.feature.setId(cur_values.pk);
+                    for (const key of Object.keys(cur_values)) {
+                        if (key !== "features") {
+                            //console.log({key, value: cur_values[key]});
+                            e.feature.set(key, cur_values[key]);
+                        }
+                    }
+                }
+            });
+            this.map.addInteraction(this.interactions.draw);
             this.map.addInteraction(this.interactions.modify);
             this.map.addInteraction(this.interactions.select);
         }
