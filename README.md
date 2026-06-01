@@ -46,7 +46,8 @@ You can copy the [app/.env-example](app/.env-example) file to `app/.env` and adj
 - `DJANGO_ALLOWED_HOSTS`: A list of hosts separated by spaces, defaults to empty list
 - `DJANGO_CSRF_TRUSTED_ORIGINS`: A list of hosts separated by spaces, defaults to `FULL_SERVER_HOST`
 - `DJANGO_DEBUG`: Set Django debug mode, defaults to `True`
-
+- `MAP_TILE_URL`: The URL for using OpenStreetMap raster tiles, defaults to `/geo/raster-tiles/{z}/{x}/{y}.png`,
+  in live deployment this should be set to an nginx cached proxy url (see https://operations.osmfoundation.org/policies/tiles/) 
 
 To initially set up the development server create a **virtual environment** using tools like
 [venv](https://docs.python.org/3/library/venv.html) 
@@ -94,6 +95,7 @@ sudo -u postgres psql
 # create user and database
 CREATE USER "botgard-user" WITH PASSWORD "botgard-password";
 CREATE DATABASE "botgard" ENCODING=UTF8 TEMPLATE=template0 OWNER="botgard-user";
+CREATE EXTENSION IF NOT EXISTS postgis;
 
 # allow the user to create databases (for unit-testing)
 ALTER USER "botgard-user" CREATEDB;
@@ -102,6 +104,9 @@ ALTER USER "botgard-user" CREATEDB;
 ### To run the unit-tests:
 
 ```bash
+# run once to add postgis to all django-created test databases
+sudo -u postgres psql -c "CREATE EXTENSION IF NOT EXISTS postgis;" template1
+
 ./manage.py collectstatic  # needs to be run once before testing
 ./manage.py test
 ```

@@ -19,6 +19,7 @@ urlpatterns = i18n_patterns(
     re_path(r'^labels/',        include('labels.urls')),
     re_path(r'^sidebar/',       include('sidebar.urls')),
     re_path(r'^ajax/',          include('ajax.urls')),
+    re_path(r'^geo/',           include('geo.urls')),
 
     path('generate-reset-password/<int:user_pk>', password_views.generate_password_reset_view, name="generate-reset-password"),
     path('reset-password/<slug:code>', password_views.password_reset_view, name="reset-password"),

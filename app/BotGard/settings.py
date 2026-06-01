@@ -34,7 +34,7 @@ CSRF_TRUSTED_ORIGINS = decouple.config("DJANGO_CSRF_TRUSTED_ORIGINS", default=FU
 
 TIME_ZONE = decouple.config('DJANGO_TIME_ZONE', default='Europe/Berlin')
 
-MAP_TILE_URL = decouple.config("MAP_TILE_URL", default="https://tile.openstreetmap.org/{z}/{x}/{y}.png")
+MAP_TILE_URL = decouple.config("MAP_TILE_URL", default="/geo/raster-tiles/{z}/{x}/{y}.png")
 
 # ------------
 
