@@ -79,6 +79,22 @@ function select_model_layer(model) {
     map_widget.garden_map.select(model, pk);
 }
 
+function save_map() {
+    const feature_list = map_widget.garden_map.get_data();
+    const form = document.querySelector("#map-submit-form");
+    const inp = document.createElement('input');
+    inp.setAttribute("hidden", "hidden");
+    inp.setAttribute("name", "features");
+    inp.setAttribute("value", JSON.stringify({"features": feature_list}));
+    form.appendChild(inp);
+    form.submit();
+    /*fetch({
+        method: "post",
+        url: document.querySelector("#map").getAttribute("data-save-url"),
+        body: ,
+    })*/
+}
+
 function hook_ui_elements() {
     let first_ter_pk = null;
     for (const elem of document.querySelectorAll("#current_territory option")) {
@@ -103,7 +119,7 @@ function hook_ui_elements() {
     };
 
     document.querySelector("#save-button").onclick = () => {
-        map_widget.garden_map.get_data();
+        save_map();
     };
 
     document.querySelector("#mode_select").onclick = () => {

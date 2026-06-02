@@ -6,85 +6,91 @@
     <link rel="stylesheet" type="text/css" href="{% static 'geo/ol-v10.9.0.css' %}" />
     <script type="text/javascript" src="{% static 'geo/ol-v10.9.0.js' %}"></script>
     <script type="text/javascript" src="{% static 'geo/OLMapWidget.js' %}"></script>
-    <link rel="stylesheet" type="text/css" href="{% static 'gis/ol3.css' %}" />
     <link rel="stylesheet" type="text/css" href="{% static 'geo/garden_map.css' %}" />
     <script type="text/javascript" src="{% static 'geo/garden_map.js' %}"></script>
 {% endblock %}
 
 {% block page_content %}
 
-    <div class="object-tools" style="float: right;">
-        <li><a href="#" id="save-button">{% trans 'Save' %}</a></li>
-    </div>
+    {% if territories %}
 
-    <div id="controls">
-        <div class="flex-row">
-            <div>
-                <div><label for="current_territory">{% trans 'territory' %}</label></div>
-                <select id="current_territory">
-                    {% for ter in territories %}
-                        <option
-                            value="{{ ter.pk }}"
-                            data-pk="{{ ter.pk }}"
-                            data-code="{{ ter.code }}"
-                            data-name="{{ ter.name }}"
-                            data-polygon="{{ ter.polygon }}"
-                        >
-                            {{ ter.code }} | {{ ter.name }}{% if ter.polygon %} *{% endif %}
-                        </option>
-                    {% endfor %}
-                </select>
+        <div class="object-tools" style="float: right;">
+            <li><a href="#" id="save-button">{% trans 'Save' %}</a></li>
+        </div>
+
+        <form method="post" action="{% url 'geo:garden_map' %}" id="map-submit-form">
+            <input name="csrfmiddlewaretoken" value="{{ csrf_token }}" hidden="hidden">
+        </form>
+
+        <div id="controls">
+            <div class="flex-row">
+                <div>
+                    <div><label for="current_territory">{% trans 'territory' %}</label></div>
+                    <select id="current_territory">
+                        {% for ter in territories %}
+                            <option
+                                value="{{ ter.pk }}"
+                                data-pk="{{ ter.pk }}"
+                                data-code="{{ ter.code }}"
+                                data-name="{{ ter.name }}"
+                                data-polygon="{{ ter.polygon }}"
+                            >
+                                {{ ter.code }} | {{ ter.name }}{% if ter.polygon %} *{% endif %}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <div><label for="current_department">{% trans 'department' %}</label></div>
+                    <select id="current_department">
+                        {% for dep in departments %}
+                            <option
+                                value="{{ dep.pk }}"
+                                data-pk="{{ dep.pk }}"
+                                data-territory-pk="{{ dep.territory__pk }}"
+                                data-code="{{ dep.code }}"
+                                data-name="{{ dep.name }}"
+                                data-polygon="{{ dep.polygon }}"
+                            >
+                                {{ dep.full_code }} | {{ dep.name }}{% if dep.polygon %} *{% endif %}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
             </div>
-            <div>
-                <div><label for="current_department">{% trans 'department' %}</label></div>
-                <select id="current_department">
-                    {% for dep in departments %}
-                        <option
-                            value="{{ dep.pk }}"
-                            data-pk="{{ dep.pk }}"
-                            data-territory-pk="{{ dep.territory__pk }}"
-                            data-code="{{ dep.code }}"
-                            data-name="{{ dep.name }}"
-                            data-polygon="{{ dep.polygon }}"
-                        >
-                            {{ dep.full_code }} | {{ dep.name }}{% if dep.polygon %} *{% endif %}
-                        </option>
-                    {% endfor %}
-                </select>
+
+            <div class="flex-row">
+                <div style="line-height: 28px;"><label for="current_model">{% trans 'editing' %}</label>:</div>
+                <div>
+                    <select id="current_model">
+                        <option value="territory">{% trans 'territories' %}</option>
+                        <option value="department">{% trans 'departments' %}</option>
+                    </select>
+                </div>
+                <div class="flex-grow"></div>
+                <div><input id="mode_select" type="radio" name="mode" checked> <label for="mode_select">{% trans 'select' %}</label></div>
+                <div><input id="mode_draw" type="radio" name="mode"> <label for="mode_draw">{% trans 'draw' %}</label></div>
             </div>
         </div>
 
-        <div class="flex-row">
-            <div style="line-height: 28px;"><label for="current_model">{% trans 'editing' %}</label>:</div>
-            <div>
-                <select id="current_model">
-                    <option value="territory">{% trans 'territories' %}</option>
-                    <option value="department">{% trans 'departments' %}</option>
-                </select>
-            </div>
-            <div class="flex-grow"></div>
-            <div><input id="mode_select" type="radio" name="mode" checked> <label for="mode_select">{% trans 'select' %}</label></div>
-            <div><input id="mode_draw" type="radio" name="mode"> <label for="mode_draw">{% trans 'draw' %}</label></div>
+        <div id="div_map" class="dj_map_wrapper">
+            <div id="map" class="dj_map" data-save-url="{% url 'geo:garden_map' %}"></div>
+            <script>
+                const map_widget = new BotGardMapWidget({
+                    base_layer: new ol.layer.Tile({source: new ol.source.OSM({url: "{{ map_tile_url }}"})}),
+                    geom_name: 'MultiPolygon',
+                    id: 'map',
+                    map_id: 'map',
+                    map_srid: {{ map_srid|unlocalize }},
+                    name: 'map',
+                    default_lat: {{ default_location.1|unlocalize }},
+                    default_lon: {{ default_location.0|unlocalize }},
+                    default_zoom: 16.7,
+                    garden_map: create_garden_map_interface(),
+                });
+                map_widget.disableDrawing();
+            </script>
         </div>
-    </div>
-
-    <div id="div_map" class="dj_map_wrapper">
-        <div id="map" class="dj_map"></div>
-        <script>
-            const map_widget = new BotGardMapWidget({
-                base_layer: new ol.layer.Tile({source: new ol.source.OSM({url: "{{ map_tile_url }}"})}),
-                geom_name: 'MultiPolygon',
-                id: 'map',
-                map_id: 'map',
-                map_srid: {{ map_srid|unlocalize }},
-                name: 'map',
-                default_lat: {{ default_location.1|unlocalize }},
-                default_lon: {{ default_location.0|unlocalize }},
-                default_zoom: 16.7,
-                garden_map: create_garden_map_interface(),
-            });
-            map_widget.disableDrawing();
-        </script>
-    </div>
+    {% endif %}
 
 {% endblock %}

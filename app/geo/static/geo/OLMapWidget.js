@@ -91,10 +91,18 @@ class GardenMapInterface {
     }
 
     get_data() {
-        console.log("FEATURES:")
-        for (const feature of this.widget.garden_map_feature_collection.getArray()) {
-            console.log(feature.values_);
+        const formatter = new ol.format.WKT();
+        const feature_list = [];
+        for (let feature of this.widget.garden_map_feature_collection.getArray()) {
+            feature = feature.clone();
+            feature.getGeometry().transform(MAP_SRID, "EPSG:4326");
+            feature_list.push({
+                model: feature.values_.model,
+                pk: feature.values_.pk,
+                wkt: "SRID=4326;" + formatter.writeFeature(feature),
+            });
         }
+        return feature_list;
     }
 
     get_current_values() {
