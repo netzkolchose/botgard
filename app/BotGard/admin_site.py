@@ -20,7 +20,7 @@ class BotGardAdminSite(admin.AdminSite):
             {
                 "app": "individuals",
                 "name": _("Garden map"),
-                "url": reverse("individuals:garden_map"),
+                "url": reverse("geo:garden_map"),
             },
         ]
 

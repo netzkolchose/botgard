@@ -61,7 +61,7 @@ class DepartmentAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable)
     #   keep all the extras that the derrived ModelAdmin class might have already done
     # def extra_action_buttons(self):
     #     return [
-    #        {"name": _("Garden map"), "url": reverse("individuals:gard_map")},
+    #        {"name": _("Garden map"), "url": reverse("geo:garden_map")},
     #     ]
 
     class Media:

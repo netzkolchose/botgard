@@ -39,4 +39,4 @@ def garden_map_view(request):
             ),
         },
     )
-    return render(request, 'individuals/garden_map.html', ctx)
+    return render(request, 'geo/garden_map.html', ctx)

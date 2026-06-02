@@ -103,7 +103,7 @@ class GardenMapInterface {
                 return m;
             }
         }
-        console.log("NOT FOUND", this.current_model, this.current_model_pk);
+        //console.log("NOT FOUND", this.current_model, this.current_model_pk);
     }
 }
 
@@ -205,6 +205,14 @@ class BotGardMapWidget {
             this.options.base_layer = new ol.layer.Tile({source: new ol.source.OSM()});
         }
 
+        this.map_interactions = undefined;
+        if (options.garden_map) {
+            this.map_interactions = ol.interaction.defaults.defaults({
+                shiftDragZoom: false,
+                pinchZoom: false,
+            });
+        }
+
         this.map = this.createMap();
         //console.log("X", this.map.getView().getProjection());
         this.featureCollection = new ol.Collection();
@@ -295,6 +303,7 @@ class BotGardMapWidget {
         return new ol.Map({
             target: this.options.map_id,
             layers: [this.options.base_layer],
+            interactions: this.map_interactions,
             view: new ol.View({
                 zoom: this.options.default_zoom
             })
@@ -335,12 +344,11 @@ class BotGardMapWidget {
         {
             const widget = this;
             this.interactions.select = new ol.interaction.Select({
-                condition: ol.interaction.singleClick,
+                condition: ol.events.condition.singleClick,
                 style: create_garden_map_polygon_style("selected"),
                 multi: true,
             });
             this.interactions.select.on("select", (e)=> {
-                console.log("S", e.selected);
                 if (e.mapBrowserEvent && e.selected && e.selected.length) {
                     for (let i = e.selected.length - 1; i >= 0; --i) {
                         if (e.selected[i].values_.model === widget.garden_map.current_model_layer) {
@@ -360,7 +368,9 @@ class BotGardMapWidget {
             this.interactions.draw = new ol.interaction.Draw({
                 type: "MultiPolygon",
                 features: this.garden_map_feature_collection,
-                //condition: event => ol.events.condition.singleClick(event) && ol.events.condition.altKey(event),
+                //condition: ol.events.condition.shiftKey,
+                //condition: event => ol.events.condition.singleClick(event) && ol.events.condition.shiftKey(event),
+                freehandCondition: event => false,
                 //style: create_garden_map_polygon_style("draw"),
             });
             this.interactions.draw.on("drawstart", (e) => {
@@ -378,9 +388,9 @@ class BotGardMapWidget {
                     }
                 }
             });
-            this.map.addInteraction(this.interactions.draw);
             this.map.addInteraction(this.interactions.modify);
             this.map.addInteraction(this.interactions.select);
+            this.map.addInteraction(this.interactions.draw);
         }
     }
 

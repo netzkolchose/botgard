@@ -33,7 +33,7 @@ function create_garden_map_interface() {
 }
 
 function select_territory(pk, no_select_department) {
-    console.log("select_territory", pk, no_select_department);
+    //console.log("select_territory", pk, no_select_department);
     document.querySelector("#current_territory").value = pk;
 
     let first_dep_pk = null;
@@ -54,7 +54,7 @@ function select_territory(pk, no_select_department) {
 }
 
 function select_department(pk) {
-    console.log("select_department", pk);
+    //console.log("select_department", pk);
     let ter_pk = null;
     for (const elem of document.querySelectorAll("#current_department option")) {
         if (elem.getAttribute("data-pk") == pk) {
@@ -71,7 +71,7 @@ function select_department(pk) {
 }
 
 function select_model_layer(model) {
-    console.log("select_model_layer", model);
+    //console.log("select_model_layer", model);
     document.querySelector("#current_model").value = model;
     map_widget.garden_map.set_model_layer(model);
     const pk = document.querySelector("#current_" + model).value;
@@ -104,6 +104,14 @@ function hook_ui_elements() {
 
     document.querySelector("#save-button").onclick = () => {
         map_widget.garden_map.get_data();
+    };
+
+    document.querySelector("#mode_select").onclick = () => {
+        map_widget.disableDrawing();
+    };
+
+    document.querySelector("#mode_draw").onclick = () => {
+        map_widget.enableDrawing();
     };
 }
 
