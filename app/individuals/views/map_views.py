@@ -26,7 +26,7 @@ def garden_map_view(request):
                 Territory.objects.all()
                 .order_by("code")
                 .values(
-                    "pk", "code", "name",
+                    "pk", "code", "name", "polygon",
                 )
             ),
             "departments": list(

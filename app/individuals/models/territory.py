@@ -102,6 +102,13 @@ class Territory(CalcOutplantingsMixin, models.Model, Configurable):
 
     name_generated = models.CharField(max_length=120, verbose_name=_("display name"), default="", editable=False)
 
+    polygon = gis_models.MultiPolygonField(
+        verbose_name=_("polygon"),
+        srid=4326,
+        geography=True,
+        null=True, blank=True,
+    )
+
     _id_field = "name_generated"
 
     def __str__(self):
@@ -158,7 +165,11 @@ class Territory(CalcOutplantingsMixin, models.Model, Configurable):
 
 
 class TerritoryForm(AutoCompleteForm(Territory)):
-    pass
+    polygon = gis_forms.MultiPolygonField(
+        srid=Territory.polygon.field.srid,
+        widget=BotGardOpenLayersWidget(),
+        required=False,
+    )
 
 
 def _department_full_code_validator(val):
@@ -207,6 +218,7 @@ class Department(CalcOutplantingsMixin, models.Model, Configurable):
         geography=True,
         null=True, blank=True,
     )
+
     _id_field = "full_code"
 
     def _get_outplanting_filter(self):

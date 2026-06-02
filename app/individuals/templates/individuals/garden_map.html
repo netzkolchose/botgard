@@ -29,21 +29,23 @@
     <div id="controls">
         <div class="flex-row">
             <div>
-                <div>{% trans 'territory' %}</div>
+                <div><label for="current_territory">{% trans 'territory' %}</label></div>
                 <select id="current_territory">
                     {% for ter in territories %}
                         <option
                             value="{{ ter.pk }}"
+                            data-pk="{{ ter.pk }}"
                             data-code="{{ ter.code }}"
                             data-name="{{ ter.name }}"
+                            data-polygon="{{ ter.polygon }}"
                         >
-                            {{ ter.code }} | {{ ter.name }}
+                            {{ ter.code }} | {{ ter.name }}{% if ter.polygon %} *{% endif %}
                         </option>
                     {% endfor %}
                 </select>
             </div>
             <div>
-                <div>{% trans 'department' %}</div>
+                <div><label for="current_department">{% trans 'department' %}</label></div>
                 <select id="current_department">
                     {% for dep in departments %}
                         <option
@@ -54,9 +56,19 @@
                             data-name="{{ dep.name }}"
                             data-polygon="{{ dep.polygon }}"
                         >
-                            {{ dep.full_code }} | {{ dep.name }}
+                            {{ dep.full_code }} | {{ dep.name }}{% if dep.polygon %} *{% endif %}
                         </option>
                     {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="flex-row">
+            <div><label for="current_model">{% trans 'editing' %}</label>:</div>
+            <div>
+                <select id="current_model">
+                    <option value="territory">{% trans 'territories' %}</option>
+                    <option value="department">{% trans 'departments' %}</option>
                 </select>
             </div>
         </div>

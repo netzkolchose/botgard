@@ -62,18 +62,19 @@ class BotGardGeometryTypeControl extends ol.control.Control {
 
 /** Interface between BotGardMapWidget and garden-map.js */
 class GardenMapInterface {
-    constructor(territories, departments) {
-        this.territories = territories;
-        this.departments = departments;
-        this.on_selected = (values) => null;
+    constructor(models) {
+        this.models = models;
         this.widget = null; // filled by BotGardMapWidget
+        this.current_model_layer = "territory";
         this.current_model = null;
         this.current_model_pk = null;
+        this.on_selected = (values) => null;
     }
 
     select(model_name, pk) {
         this.current_model = model_name;
         this.current_model_pk = pk;
+        this.widget.interactions.select.clearSelection();
         let selected = false;
         for (const feature of this.widget.garden_map_feature_collection.getArray()) {
             if (feature.values_.model === model_name && feature.values_.pk == pk) {
@@ -82,51 +83,95 @@ class GardenMapInterface {
                 break;
             }
         }
-        if (!selected) {
-            this.widget.interactions.select.clearSelection();
-        }
+    }
+
+    set_model_layer(model_name) {
+        this.current_model_layer = model_name;
+        this.widget.map.render();
     }
 
     get_data() {
-        console.log("FEATUES:")
+        console.log("FEATURES:")
         for (const feature of this.widget.garden_map_feature_collection.getArray()) {
             console.log(feature.values_);
         }
     }
 
     get_current_values() {
-        if (this.current_model === "department") {
-            for (const dep of this.departments) {
-                if (dep.pk === this.current_model_pk) {
-                    return dep;
-                }
+        for (const m of this.models) {
+            if (m.pk === this.current_model_pk && m.model === this.current_model) {
+                return m;
             }
         }
+        console.log("NOT FOUND", this.current_model, this.current_model_pk);
     }
 }
 
+const MAP_COLORS = {
+    "territory": "rgba(100, 200, 100, .5)",
+    "territory_selected": "rgba(150, 250, 150, .5)",
+    "territory_stroke": "rgba(50, 200, 70, .7)",
+    "territory_stroke_selected": "rgba(100, 255, 100, .7)",
+    "department": "rgba(100, 100, 200, .5)",
+    "department_selected": "rgba(150, 150, 250, .5)",
+    "department_stroke": "rgba(50, 50, 255, .7)",
+    "department_stroke_selected": "rgba(100, 100, 255, .7)",
+    "text": "rgba(255, 255, 255, .8)",
+    "text_selected": "rgba(255, 255, 255, 1)",
+    "text_stroke": "rgba(0, 0, 0, .6)",
+    "text_stroke_selected": "rgba(0, 0, 0, 1)",
+};
 
 function create_garden_map_polygon_style(style_type) {
     return new ol.style.Style({
         renderer(coordinates, state) {
             const ctx = state.context;
-            const pk = state.feature.getId();
+            const feature = state.feature;
+            const widget = feature.get("widget");
+            const model = feature.get("model");
+            const code = feature.get("code");
             const is_selected = style_type === "selected";
 
-            ctx.fillStyle = is_selected ? "rgba(150, 150, 250, .5)" : "rgba(100, 100, 200, .5)";
-            ctx.strokeStyle = is_selected ? "rgba(100, 100, 255, .7)" : "rgba(50, 50, 255, .7)";
+            if (!widget)
+                return;
+
+            if (widget.garden_map.current_model_layer === "territory") {
+                if (model === "department")
+                    return;
+            }
+
             ctx.lineWidth = is_selected ? 4 : 2;
+            ctx.font = "bold 16px sans";
             for (const polygon of coordinates) {
                 if (!(typeof polygon === "object" && typeof polygon[0] === "object")) {
                     return;
                 }
+                let min_x = null, min_y = null;
+                let center_x = 0, center_y = 0;
                 for (const coords of polygon) {
                     ctx.beginPath();
                     for (const coord of coords) {
                         ctx.lineTo(coord[0], coord[1]);
+                        if (min_x === null || coord[0] < min_x) min_x = coord[0];
+                        if (min_y === null || coord[1] < min_y) min_y = coord[1];
+                        center_x += coord[0];
+                        center_y += coord[1];
                     }
+                    center_x /= coords.length;
+                    center_y /= coords.length;
+                    ctx.fillStyle = MAP_COLORS[model + (is_selected ? "_selected" : "")];
+                    ctx.strokeStyle = MAP_COLORS[model + "_stroke" + (is_selected ? "_selected" : "")];
                     ctx.fill();
                     ctx.stroke();
+                    if (code !== null) {
+                        const rect = ctx.measureText(code);
+                        const x = center_x - rect.width / 2;
+                        const y = center_y + (rect.actualBoundingBoxAscent + rect.actualBoundingBoxDescent) / 2;
+                        ctx.fillStyle = MAP_COLORS["text" + (is_selected ? "_selected" : "")];
+                        ctx.strokeStyle = MAP_COLORS["text_stroke" + (is_selected ? "_selected" : "")];
+                        ctx.strokeText(code, x, y);
+                        ctx.fillText(code, x, y);
+                    }
                 }
             }
         }
@@ -203,7 +248,7 @@ class BotGardMapWidget {
             this.map.getView().setCenter(this.defaultCenter());
         }
 
-        /* ---- setup GardenMap interaction ---- */
+        /* ---- setup GardenMap data ---- */
 
         this.garden_map = this.options.garden_map;
 
@@ -224,8 +269,9 @@ class BotGardMapWidget {
                 updateWhileInteracting: true // optional, for instant visual feedback
             });
 
-            for (const item of this.garden_map.departments) {
+            for (const item of this.garden_map.models) {
                 if (item.features) {
+                    item.features.forEach(feature => feature.set("widget", this));
                     this.garden_map_feature_overlay.getSource().addFeatures(item.features);
                 }
             }
@@ -291,10 +337,17 @@ class BotGardMapWidget {
             this.interactions.select = new ol.interaction.Select({
                 condition: ol.interaction.singleClick,
                 style: create_garden_map_polygon_style("selected"),
+                multi: true,
             });
             this.interactions.select.on("select", (e)=> {
+                console.log("S", e.selected);
                 if (e.mapBrowserEvent && e.selected && e.selected.length) {
-                    widget.garden_map.on_selected(e.selected[0].values_);
+                    for (let i = e.selected.length - 1; i >= 0; --i) {
+                        if (e.selected[i].values_.model === widget.garden_map.current_model_layer) {
+                            widget.garden_map.on_selected(e.selected[i].values_);
+                            break;
+                        }
+                    }
                 }
             });
             this.interactions.modify = new ol.interaction.Modify({
@@ -307,11 +360,13 @@ class BotGardMapWidget {
             this.interactions.draw = new ol.interaction.Draw({
                 type: "MultiPolygon",
                 features: this.garden_map_feature_collection,
+                //condition: event => ol.events.condition.singleClick(event) && ol.events.condition.altKey(event),
                 //style: create_garden_map_polygon_style("draw"),
             });
             this.interactions.draw.on("drawstart", (e) => {
                 // copy current selected object values on draw-start
                 const cur_values = widget.garden_map.get_current_values();
+                e.feature.set("widget", widget);
                 if (cur_values) {
                     // setting ID somehow breaks the drawning interaction
                     //e.feature.setId(cur_values.pk);
