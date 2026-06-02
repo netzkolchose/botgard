@@ -12,11 +12,16 @@
 
 {% block page_content %}
 
+    <div class="errornote hidden"></div>
+    <div class="info-message hidden"></div>
+
     {% if territories %}
 
+        {% if has_write_permission %}
         <div class="object-tools" style="float: right;">
             <li><a href="#" id="save-button">{% trans 'Save' %}</a></li>
         </div>
+        {% endif %}
 
         <form method="post" action="{% url 'geo:garden_map' %}" id="map-submit-form">
             <input name="csrfmiddlewaretoken" value="{{ csrf_token }}" hidden="hidden">
@@ -60,21 +65,19 @@
             </div>
 
             <div class="flex-row">
-                <div style="line-height: 28px;"><label for="current_model">{% trans 'editing' %}</label>:</div>
+                <div style="margin-top: 15px"><input id="mode_select" type="radio" name="mode" checked> <label for="mode_select">{% trans 'select' %}</label></div>
+                <div style="margin-top: 15px"><input id="mode_draw" type="radio" name="mode"> <label for="mode_draw">{% trans 'draw' %}</label></div>
                 <div>
                     <select id="current_model">
-                        <option value="territory">{% trans 'territories' %}</option>
-                        <option value="department">{% trans 'departments' %}</option>
+                        <option value="territory">{% trans 'territory' %}</option>
+                        <option value="department">{% trans 'department' %}</option>
                     </select>
                 </div>
-                <div class="flex-grow"></div>
-                <div><input id="mode_select" type="radio" name="mode" checked> <label for="mode_select">{% trans 'select' %}</label></div>
-                <div><input id="mode_draw" type="radio" name="mode"> <label for="mode_draw">{% trans 'draw' %}</label></div>
             </div>
         </div>
 
         <div id="div_map" class="dj_map_wrapper">
-            <div id="map" class="dj_map" data-save-url="{% url 'geo:garden_map' %}"></div>
+            <div id="map" class="dj_map" data-save-url="{% url 'geo:garden_map_save' %}"></div>
             <script>
                 const map_widget = new BotGardMapWidget({
                     base_layer: new ol.layer.Tile({source: new ol.source.OSM({url: "{{ map_tile_url }}"})}),

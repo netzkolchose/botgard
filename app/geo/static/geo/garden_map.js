@@ -80,7 +80,38 @@ function select_model_layer(model) {
 }
 
 function save_map() {
+    const error_elem = document.querySelector(".errornote");
+    const info_elem = document.querySelector(".info-message");
+
     const feature_list = map_widget.garden_map.get_data();
+    fetch(
+        document.querySelector("#map").getAttribute("data-save-url"),
+        {
+            method: "post",
+            body: JSON.stringify({features: feature_list}),
+            headers: {
+                "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value,
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                error_elem.innerText = data.error;
+                error_elem.classList.remove("hidden");
+            }
+            if (data.message) {
+                info_elem.innerText = data.message + " " + new Date().toTimeString();
+                info_elem.classList.remove("hidden");
+            }
+        })
+        .catch(error => {
+            error_elem.innerText = error.toString();
+            error_elem.classList.remove("hidden");
+        });
+
+    error_elem.classList.add("hidden");
+    info_elem.classList.add("hidden");
+    /*
     const form = document.querySelector("#map-submit-form");
     const inp = document.createElement('input');
     inp.setAttribute("hidden", "hidden");
@@ -88,11 +119,7 @@ function save_map() {
     inp.setAttribute("value", JSON.stringify({"features": feature_list}));
     form.appendChild(inp);
     form.submit();
-    /*fetch({
-        method: "post",
-        url: document.querySelector("#map").getAttribute("data-save-url"),
-        body: ,
-    })*/
+    */
 }
 
 function hook_ui_elements() {

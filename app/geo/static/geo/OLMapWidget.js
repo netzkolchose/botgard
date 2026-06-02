@@ -92,14 +92,25 @@ class GardenMapInterface {
 
     get_data() {
         const formatter = new ol.format.WKT();
-        const feature_list = [];
+        const geometry_map = {};
         for (let feature of this.widget.garden_map_feature_collection.getArray()) {
             feature = feature.clone();
             feature.getGeometry().transform(MAP_SRID, "EPSG:4326");
+            const key = feature.values_.model + "-" + feature.values_.pk;
+            if (!geometry_map[key]) {
+                geometry_map[key] = feature.getGeometry().clone();
+            } else {
+                for (const poly of feature.getGeometry().getPolygons()) {
+                    geometry_map[key].appendPolygon(poly);
+                }
+            }
+        }
+        const feature_list = [];
+        for (const key of Object.keys(geometry_map)) {
+            const [model, pk] = key.split("-");
             feature_list.push({
-                model: feature.values_.model,
-                pk: feature.values_.pk,
-                wkt: "SRID=4326;" + formatter.writeFeature(feature),
+                model, pk,
+                wkt: "SRID=4326;" + formatter.writeGeometry(geometry_map[key]),
             });
         }
         return feature_list;
