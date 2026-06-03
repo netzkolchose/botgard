@@ -94,6 +94,8 @@ class GardenMapInterface {
         const formatter = new ol.format.WKT();
         const geometry_map = {};
         for (let feature of this.widget.garden_map_feature_collection.getArray()) {
+            if (!feature.get("widget"))
+                continue;
             feature = feature.clone();
             feature.getGeometry().transform(MAP_SRID, "EPSG:4326");
             const key = feature.values_.model + "-" + feature.values_.pk;
@@ -233,7 +235,6 @@ class BotGardMapWidget {
         }
 
         this.map = this.createMap();
-        //console.log("X", this.map.getView().getProjection());
         this.featureCollection = new ol.Collection();
         this.featureOverlay = new ol.layer.Vector({
             map: this.map,
@@ -392,19 +393,39 @@ class BotGardMapWidget {
                 freehandCondition: event => false,
                 //style: create_garden_map_polygon_style("draw"),
             });
+            // add widget and current selected model values on draw-start
             this.interactions.draw.on("drawstart", (e) => {
-                // copy current selected object values on draw-start
                 const cur_values = widget.garden_map.get_current_values();
                 e.feature.set("widget", widget);
                 if (cur_values) {
-                    // setting ID somehow breaks the drawning interaction
-                    //e.feature.setId(cur_values.pk);
                     for (const key of Object.keys(cur_values)) {
                         if (key !== "features") {
                             //console.log({key, value: cur_values[key]});
                             e.feature.set(key, cur_values[key]);
                         }
                     }
+                }
+            });
+            // when finished drawing, move the feature to an existing multipolygon
+            this.interactions.draw.on("drawend", (e) => {
+                const model = e.feature.values_.model;
+                const pk = e.feature.values_.pk;
+                const id = e.feature.ol_uid;
+                let existing_feature = null;
+                for (const feature of widget.garden_map_feature_collection.getArray()) {
+                    if (feature.values_.model === model && feature.values_.pk === pk && feature.ol_uid !== id) {
+                        existing_feature = feature;
+                        break;
+                    }
+                }
+                if (existing_feature) {
+                    for (const poly of e.feature.getGeometry().getPolygons()) {
+                        existing_feature.getGeometry().appendPolygon(poly);
+                    }
+                    // after merging with existing multi-polygon, we'd like to delete the feature from the collection
+                    // unfortunately, at this point it is not part of the collection so we just disable it
+                    // from drawing or exporting
+                    e.feature.set("widget", null);
                 }
             });
             this.map.addInteraction(this.interactions.modify);
@@ -419,6 +440,47 @@ class BotGardMapWidget {
             return ol.proj.transform(center, 'EPSG:4326', this.map.getView().getProjection());
         }
         return center;
+    }
+
+    setMode(mode) {
+        if (mode === "select") {
+            this.enableSelect();
+            this.disableModify();
+            this.disableDrawing();
+        } else if (mode === "modify") {
+            this.disableSelect();
+            this.enableModify();
+            this.disableDrawing();
+        } else if (mode === "draw") {
+            this.disableSelect();
+            this.disableModify();
+            this.enableDrawing();
+        }
+    }
+
+    enableSelect() {
+        if (this.interactions.select) {
+            this.interactions.select.setActive(true);
+        }
+    }
+
+    disableSelect() {
+        if (this.interactions.select) {
+            this.interactions.select.setActive(false);
+        }
+    }
+
+
+    enableModify() {
+        if (this.interactions.modify) {
+            this.interactions.modify.setActive(true);
+        }
+    }
+
+    disableModify() {
+        if (this.interactions.modify) {
+            this.interactions.modify.setActive(false);
+        }
     }
 
     enableDrawing() {

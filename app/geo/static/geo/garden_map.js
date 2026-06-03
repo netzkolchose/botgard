@@ -22,7 +22,7 @@ function create_garden_map_interface() {
     }
     const garden_map = new GardenMapInterface(models);
     garden_map.on_selected = (values) => {
-        //console.log("selected", values.model, values.pk, values);
+        // console.log("selected", values.model, values.pk, values);
         if (values.model === "department") {
             select_department(values.pk);
         } else if (values.model === "territory") {
@@ -111,15 +111,6 @@ function save_map() {
 
     error_elem.classList.add("hidden");
     info_elem.classList.add("hidden");
-    /*
-    const form = document.querySelector("#map-submit-form");
-    const inp = document.createElement('input');
-    inp.setAttribute("hidden", "hidden");
-    inp.setAttribute("name", "features");
-    inp.setAttribute("value", JSON.stringify({"features": feature_list}));
-    form.appendChild(inp);
-    form.submit();
-    */
 }
 
 function hook_ui_elements() {
@@ -150,11 +141,15 @@ function hook_ui_elements() {
     };
 
     document.querySelector("#mode_select").onclick = () => {
-        map_widget.disableDrawing();
+        map_widget.setMode("select");
+    };
+
+    document.querySelector("#mode_modify").onclick = () => {
+        map_widget.setMode("modify");
     };
 
     document.querySelector("#mode_draw").onclick = () => {
-        map_widget.enableDrawing();
+        map_widget.setMode("draw");
     };
 }
 

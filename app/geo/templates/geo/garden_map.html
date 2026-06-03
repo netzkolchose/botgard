@@ -23,9 +23,7 @@
         </div>
         {% endif %}
 
-        <form method="post" action="{% url 'geo:garden_map' %}" id="map-submit-form">
-            <input name="csrfmiddlewaretoken" value="{{ csrf_token }}" hidden="hidden">
-        </form>
+        <input name="csrfmiddlewaretoken" value="{{ csrf_token }}" hidden="hidden">
 
         <div id="controls">
             <div class="flex-row">
@@ -66,6 +64,7 @@
 
             <div class="flex-row">
                 <div style="margin-top: 15px"><input id="mode_select" type="radio" name="mode" checked> <label for="mode_select">{% trans 'select' %}</label></div>
+                <div style="margin-top: 15px"><input id="mode_modify" type="radio" name="mode"> <label for="mode_modify">{% trans 'modify' %}</label></div>
                 <div style="margin-top: 15px"><input id="mode_draw" type="radio" name="mode"> <label for="mode_draw">{% trans 'draw' %}</label></div>
                 <div>
                     <select id="current_model">
@@ -91,7 +90,7 @@
                     default_zoom: 16.7,
                     garden_map: create_garden_map_interface(),
                 });
-                map_widget.disableDrawing();
+                map_widget.setMode("select");
             </script>
         </div>
     {% endif %}
