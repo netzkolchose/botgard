@@ -91,6 +91,19 @@ class GardenMapInterface {
         this.widget.map.render();
     }
 
+    zoom_to_model(model_name, pk) {
+        for (const feature of this.widget.garden_map_feature_collection.getArray()) {
+            if (feature.values_.model === model_name && feature.values_.pk == pk) {
+                const extent = feature.getGeometry().getExtent();
+                this.widget.map.getView().fit(extent, {
+                    //padding: 20,
+                    duration: 200,
+                });
+            }
+        }
+    }
+
+
     get_data() {
         const formatter = new ol.format.WKT();
         const geometry_map = {};

@@ -34,6 +34,7 @@ class BotGardOpenLayersWidget(OpenLayersWidget):
         if self._with_garden_map:
             context.update({
                 "with_garden_map": True,
+                "form_element_name": name,
                 "territories": list(
                     Territory.objects.all()
                     .order_by("code")

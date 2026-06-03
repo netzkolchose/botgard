@@ -36,8 +36,8 @@
             {% endfor %}
         </select>
     {% endif %}
-
-    <script>
+    {# for inline proxies, do not render the script as <script> tag #}
+    {% if "__prefix__" in module %}<div class="script-content" hidden="hidden">{% else %}<script>{% endif %}
         {% block base_layer %}
             var base_layer = new ol.layer.Tile({source: new ol.source.OSM({url: "{{ map_tile_url }}"})});
         {% endblock %}
@@ -51,12 +51,12 @@
             default_lat: {{ default_location.1|unlocalize }},
             default_lon: {{ default_location.0|unlocalize }},
             default_zoom: 16.7,
-            {% if with_garden_map %}garden_map: create_garden_map_interface(false),{% endif %}
+            {% if with_garden_map %}garden_map: create_garden_map_interface(false, "{{ form_element_name }}"),{% endif %}
         };
         {% endblock %}
-        var {{ module }} = new BotGardMapWidget(options);
+        window.{{ module }} = new BotGardMapWidget(options);
         {% if with_garden_map %}
             {{ module }}.garden_map.set_model_layer("department");
         {% endif %}
-    </script>
+    {% if "__prefix__" in module %}</div>{% else %}</script>{% endif %}
 </div>

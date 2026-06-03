@@ -1,7 +1,12 @@
-function create_garden_map_interface(interactive=true) {
+function create_garden_map_interface(interactive=true, form_element_name=null) {
+    //console.log("create_garden_map_interface", form_element_name);
     const models = [];
     for (const model of ["territory", "department"]) {
-        for (const elem of document.querySelectorAll("#current_"+model+" option")) {
+        let selector = "#current_"+model+" option"
+        if (form_element_name) {
+            selector = `#id_${form_element_name}_div_map ${selector}`;
+        }
+        for (const elem of document.querySelectorAll(selector)) {
             const pk = elem.getAttribute("data-pk");
             const code = elem.getAttribute("data-code");
             const name = elem.getAttribute("data-name");
@@ -29,6 +34,23 @@ function create_garden_map_interface(interactive=true) {
             select_territory(values.pk, true);
         }
     }
+
+    if (form_element_name) {
+        if (form_element_name.startsWith("outplanting") && form_element_name.indexOf("__prefix__") < 0) {
+            const elem_name = form_element_name.slice(0, form_element_name.length-9);
+            const elem = document.querySelector(`#id_${elem_name}-department`);
+            if (elem) {
+                const widget_name = `geodjango_${form_element_name.replaceAll("-", "_")}`;
+                elem.onchange = (event) => {
+                    console.log("CHANGE", elem_name, widget_name, event.target.value);
+                    try {
+                        eval(widget_name).garden_map.zoom_to_model("department", event.target.value);
+                    } catch (e) {console.log("ERROR", e)}
+                };
+            }
+        }
+    }
+
     return garden_map;
 }
 
