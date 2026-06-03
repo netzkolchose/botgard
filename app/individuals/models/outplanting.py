@@ -6,11 +6,13 @@ from django.utils.safestring import mark_safe
 from django.dispatch import receiver
 import django.contrib.gis.db.models as gis_models
 from django.contrib.gis.geos import Point
+import django.contrib.gis.forms as gis_forms
 
 from .individual import Individual
 from .territory import Department
 from config_tables.admin import configurable, Configurable
 from ajax.autocomplete import AutoCompleteForm
+from geo.widgets import BotGardOpenLayersWidget
 
 
 class Outplanting(models.Model, Configurable):
@@ -93,6 +95,11 @@ class Outplanting(models.Model, Configurable):
 
 class OutplantingForm(AutoCompleteForm(Outplanting)):
     exclude_autocomplete = ["department"]
+    location = gis_forms.PointField(
+        srid=Outplanting.location.field.srid,
+        widget=BotGardOpenLayersWidget(with_garden_map=True),
+        required=False,
+    )
 
 
 def _recalc_outplanting_fields(outplanting, exclude_outplanting=None):

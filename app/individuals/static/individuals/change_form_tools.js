@@ -17,7 +17,7 @@ $(function() {
         function check_accession_number() {
             const acc_1 = input_accession_number.value;
             const acc_2 = input_ipen_accession_number.value;
-            console.log("X", acc_1, acc_2);
+            //console.log("X", acc_1, acc_2);
 
             const info_boxes = document.querySelectorAll(".submit-row-info-box");
             if (acc_1 !== acc_2) {

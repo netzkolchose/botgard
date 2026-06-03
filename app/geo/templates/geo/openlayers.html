@@ -6,6 +6,37 @@
     {% if display_raw %}<p>{% translate "Debugging window (serialized value)" %}</p>{% endif %}
     <textarea id="{{ id }}" class="vSerializedField required" cols="150" rows="10" name="{{ name }}"
               {% if not display_raw %} hidden{% endif %}>{{ serialized }}</textarea>
+
+    {% if with_garden_map %}
+        <select id="current_territory" class="hidden" hidden="hidden">
+            {% for ter in territories %}
+                <option
+                        value="{{ ter.pk }}"
+                        data-pk="{{ ter.pk }}"
+                        data-code="{{ ter.code }}"
+                        data-name="{{ ter.name }}"
+                        data-polygon="{{ ter.polygon }}"
+                >
+                    {{ ter.code }} | {{ ter.name }}{% if ter.polygon %} *{% endif %}
+                </option>
+            {% endfor %}
+        </select>
+        <select id="current_department" class="hidden" hidden="hidden">
+            {% for dep in departments %}
+                <option
+                        value="{{ dep.pk }}"
+                        data-pk="{{ dep.pk }}"
+                        data-territory-pk="{{ dep.territory__pk }}"
+                        data-code="{{ dep.code }}"
+                        data-name="{{ dep.name }}"
+                        data-polygon="{{ dep.polygon }}"
+                >
+                    {{ dep.full_code }} | {{ dep.name }}{% if dep.polygon %} *{% endif %}
+                </option>
+            {% endfor %}
+        </select>
+    {% endif %}
+
     <script>
         {% block base_layer %}
             var base_layer = new ol.layer.Tile({source: new ol.source.OSM({url: "{{ map_tile_url }}"})});
@@ -20,8 +51,12 @@
             default_lat: {{ default_location.1|unlocalize }},
             default_lon: {{ default_location.0|unlocalize }},
             default_zoom: 16.7,
+            {% if with_garden_map %}garden_map: create_garden_map_interface(false),{% endif %}
         };
         {% endblock %}
         var {{ module }} = new BotGardMapWidget(options);
+        {% if with_garden_map %}
+            {{ module }}.garden_map.set_model_layer("department");
+        {% endif %}
     </script>
 </div>

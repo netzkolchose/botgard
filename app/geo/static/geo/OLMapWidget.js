@@ -62,8 +62,9 @@ class BotGardGeometryTypeControl extends ol.control.Control {
 
 /** Interface between BotGardMapWidget and garden-map.js */
 class GardenMapInterface {
-    constructor(models) {
+    constructor(models, interactive) {
         this.models = models;
+        this.interactive = interactive;
         this.widget = null; // filled by BotGardMapWidget
         this.current_model_layer = "territory";
         this.current_model = null;
@@ -331,7 +332,7 @@ class BotGardMapWidget {
     }
 
     createInteractions() {
-        if (!this.garden_map) {
+        if (!this.garden_map || !this.garden_map.interactive) {
             // Initialize the modify interaction
             this.interactions.modify = new ol.interaction.Modify({
                 features: this.featureCollection,

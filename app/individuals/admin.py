@@ -89,6 +89,7 @@ class OutplantingInline(readOnlyAdmin.ReadOnlyTabularInline):
     form = OutplantingForm
     model = Outplanting
     min_num = 0
+    extra = 0
 
 
 class SeedAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
