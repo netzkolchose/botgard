@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-04 11:11+0200\n"
+"POT-Creation-Date: 2026-06-04 12:16+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -816,6 +816,14 @@ msgstr "Ändern"
 #: geo/templates/geo/garden_map.html:68
 msgid "draw"
 msgstr "Zeichnen"
+
+#: geo/templates/geo/garden_map.html:79
+msgid "delete territory polygons"
+msgstr "Revier-Polygone löschen"
+
+#: geo/templates/geo/garden_map.html:80 geo/templates/geo/garden_map.html:82
+msgid "delete department polygons"
+msgstr "Abteilungs-Polygone löschen"
 
 #: geo/templates/geo/openlayers.html:5
 msgid "Delete all Features"

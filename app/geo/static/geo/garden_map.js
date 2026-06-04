@@ -33,7 +33,17 @@ function create_garden_map_interface(interactive=true, form_element_name=null) {
         } else if (values.model === "territory") {
             select_territory(values.pk, true);
         }
+        const elem = document.querySelector("#delete-polygon-button");
+        if (elem) {
+            elem.removeAttribute("disabled");
+        }
     }
+    garden_map.on_unselected = () => {
+        const elem = document.querySelector("#delete-polygon-button");
+        if (elem) {
+            elem.setAttribute("disabled", "");
+        }
+    };
 
     if (form_element_name) {
         if (form_element_name.startsWith("outplanting") && form_element_name.indexOf("__prefix__") < 0) {
@@ -106,7 +116,7 @@ function select_department(pk) {
 
 function select_model_layer(model) {
     //console.log("select_model_layer", model);
-    const elem = document.querySelector("#current_model");
+    let elem = document.querySelector("#current_model");
     if (!elem) return;
 
     elem.value = model;
@@ -114,6 +124,11 @@ function select_model_layer(model) {
     const pk = document.querySelector("#current_" + model).value;
     // make sure, next drawing draws the right model
     map_widget.garden_map.select(model, pk);
+
+    elem = document.querySelector("#delete-polygon-button");
+    if (elem) {
+        elem.innerText = elem.getAttribute(`data-${model}`);
+    }
 }
 
 function save_map() {
@@ -209,6 +224,18 @@ function hook_ui_elements() {
         elem.onclick = () => {
             map_widget.setMode("draw");
         };
+    }
+
+    elem = document.querySelector("#delete-polygon-button");
+    if (elem) {
+        elem.onclick = () => {
+            if (map_widget.garden_map.current_model && map_widget.garden_map.current_model_pk) {
+                map_widget.garden_map.delete_model(
+                    map_widget.garden_map.current_model,
+                    map_widget.garden_map.current_model_pk,
+                );
+            }
+        }
     }
 }
 

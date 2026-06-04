@@ -70,6 +70,7 @@ class GardenMapInterface {
         this.current_model = null;
         this.current_model_pk = null;
         this.on_selected = (values) => null;
+        this.on_unselected = () => {console.log("BLA")};
     }
 
     select(model_name, pk) {
@@ -103,6 +104,17 @@ class GardenMapInterface {
         }
     }
 
+    delete_model(model_name, pk) {
+        const features_to_delete = [];
+        for (const feature of this.widget.garden_map_feature_collection.getArray()) {
+            if (feature.values_.model === model_name && feature.values_.pk == pk) {
+                features_to_delete.push(feature);
+            }
+        }
+        for (const feature of features_to_delete) {
+            this.widget.garden_map_feature_overlay.getSource().removeFeature(feature);
+        }
+    }
 
     get_data() {
         const formatter = new ol.format.WKT();
@@ -413,6 +425,9 @@ class BotGardMapWidget {
                 multi: true,
             });
             this.interactions.select.on("select", (e)=> {
+                if (e.mapBrowserEvent && (!e.selected || e.selected.length === 0)) {
+                    widget.garden_map.on_unselected();
+                }
                 if (e.mapBrowserEvent && e.selected && e.selected.length) {
                     for (let i = e.selected.length - 1; i >= 0; --i) {
                         if (e.selected[i].values_.model === widget.garden_map.current_model_layer) {
