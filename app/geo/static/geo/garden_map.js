@@ -9,6 +9,7 @@ function create_garden_map_interface(interactive=true, form_element_name=null) {
         for (const elem of document.querySelectorAll(selector)) {
             const pk = elem.getAttribute("data-pk");
             const code = elem.getAttribute("data-code");
+            const full_code = elem.getAttribute("data-full-code");
             const name = elem.getAttribute("data-name");
             const polygon = elem.getAttribute("data-polygon");
 
@@ -18,7 +19,7 @@ function create_garden_map_interface(interactive=true, form_element_name=null) {
                 features.forEach(feature => {
                     feature.set("model", model);
                     feature.set("pk", pk);
-                    feature.set("code", code);
+                    feature.set("code", full_code || code);
                     feature.set("name", name);
                 });
             }
