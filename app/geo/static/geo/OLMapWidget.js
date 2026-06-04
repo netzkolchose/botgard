@@ -213,6 +213,22 @@ function create_garden_map_polygon_style(style_type) {
     });
 }
 
+function create_point_style(is_selected) {
+    return new ol.style.Style({
+        renderer: (coordinates, state) => {
+            const ctx = state.context;
+            const feature = state.feature;
+            ctx.fillStyle = is_selected ? "#f88" : "#f00";
+            ctx.strokeStyle = "black";
+            if (coordinates.length === 2) {
+                ctx.beginPath();
+                ctx.arc(coordinates[0], coordinates[1], 6, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.stroke();
+            }
+        },
+    })
+};
 
 class BotGardMapWidget {
     constructor(options) {
@@ -249,16 +265,58 @@ class BotGardMapWidget {
         }
 
         this.map = this.createMap();
+
+        /* ---- setup GardenMap data ---- */
+
+        this.garden_map = this.options.garden_map;
+
+        if (!this.garden_map) {
+            this.garden_map_feature_overlay = null;
+            this.garden_map_feature_collection = null;
+        } else {
+            this.garden_map.widget = this;
+            this.garden_map_feature_collection = new ol.Collection();
+            this.garden_map_feature_overlay = new ol.layer.Vector({
+                map: this.map,
+                style: create_garden_map_polygon_style(),
+                source: new ol.source.Vector({
+                    features: this.garden_map_feature_collection,
+                    useSpatialIndex: false // improve performance,
+                }),
+                updateWhileAnimating: true, // optional, for instant visual feedback
+                updateWhileInteracting: true // optional, for instant visual feedback
+            });
+
+            for (const item of this.garden_map.models) {
+                if (item.features) {
+                    item.features.forEach(feature => feature.set("widget", this));
+                    this.garden_map_feature_overlay.getSource().addFeatures(item.features);
+                }
+            }
+        }
+
+        /* --- setup django's geometry --- */
+
         this.featureCollection = new ol.Collection();
         this.featureOverlay = new ol.layer.Vector({
             map: this.map,
             source: new ol.source.Vector({
                 features: this.featureCollection,
-                useSpatialIndex: false // improve performance
+                useSpatialIndex: false, // improve performance
             }),
+            style: this.options.red_dots ? create_point_style() : undefined,
             updateWhileAnimating: true, // optional, for instant visual feedback
             updateWhileInteracting: true // optional, for instant visual feedback
         });
+
+        /* --- add Outplantings --- */
+        if (this.options.outplantings) {
+            for (const item of this.options.outplantings) {
+                for (const feature of wkt_to_features(item.location)) {
+                    this.featureOverlay.getSource().addFeature(feature);
+                }
+            }
+        }
 
         // Populate and set handlers for the feature container
         const self = this;
@@ -288,35 +346,6 @@ class BotGardMapWidget {
             this.map.getView().fit(extent, {minResolution: 1});
         } else {
             this.map.getView().setCenter(this.defaultCenter());
-        }
-
-        /* ---- setup GardenMap data ---- */
-
-        this.garden_map = this.options.garden_map;
-
-        if (!this.garden_map) {
-            this.garden_map_feature_overlay = null;
-            this.garden_map_feature_collection = null;
-        } else {
-            this.garden_map.widget = this;
-            this.garden_map_feature_collection = new ol.Collection();
-            this.garden_map_feature_overlay = new ol.layer.Vector({
-                map: this.map,
-                style: create_garden_map_polygon_style(),
-                source: new ol.source.Vector({
-                    features: this.garden_map_feature_collection,
-                    useSpatialIndex: false // improve performance,
-                }),
-                updateWhileAnimating: true, // optional, for instant visual feedback
-                updateWhileInteracting: true // optional, for instant visual feedback
-            });
-
-            for (const item of this.garden_map.models) {
-                if (item.features) {
-                    item.features.forEach(feature => feature.set("widget", this));
-                    this.garden_map_feature_overlay.getSource().addFeatures(item.features);
-                }
-            }
         }
 
         this.createInteractions();
@@ -349,6 +378,7 @@ class BotGardMapWidget {
             // Initialize the modify interaction
             this.interactions.modify = new ol.interaction.Modify({
                 features: this.featureCollection,
+                style: this.options.red_dots ? create_point_style(true) : undefined,
                 deleteCondition: function (event) {
                     return ol.events.condition.shiftKeyOnly(event) &&
                         ol.events.condition.singleClick(event);
@@ -374,7 +404,7 @@ class BotGardMapWidget {
             this.map.addInteraction(this.interactions.draw);
             this.map.addInteraction(this.interactions.modify);
         }
-        else // if this.garden_map
+        else // if this.garden_map && this.interactive
         {
             const widget = this;
             this.interactions.select = new ol.interaction.Select({

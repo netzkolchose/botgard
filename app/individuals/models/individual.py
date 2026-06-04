@@ -1,10 +1,16 @@
+import json
+from typing import List
+
 from django.db.models import QuerySet
 from django.utils.translation import gettext_lazy as _
 from django.utils.translation import ngettext_lazy as __
 from django.contrib.admin.filters import FieldListFilter, AllValuesFieldListFilter
+from django.template import Template, Context, Engine
+from django.core.serializers.json import DjangoJSONEncoder
 
 from config_tables.admin import CustomSelectHeaderFilter
 from species.models import Species
+from tools.admin_extensions import minimal_admin_context
 from .individual_base import *
 
 
@@ -88,7 +94,7 @@ class Individual(IndividualBase, Configurable):
         if do_save:
             self.save()
 
-    def get_outplantings(self, alive_only=True):
+    def get_outplantings(self, alive_only=True) -> list:
         """Returns list of belonging Outplanting instances from database-cache"""
         from .outplanting import Outplanting
         ids = self.alive_outplantings_generated if alive_only else self.outplantings_generated
@@ -101,6 +107,15 @@ class Individual(IndividualBase, Configurable):
             except Outplanting.DoesNotExist:
                 pass
         return outpl
+
+    def get_outplanting_locations(self, alive_only=True) -> List[dict]:
+        """Returns list of belonging Outplanting instances from database-cache"""
+        from .outplanting import Outplanting
+        qset = self.outplanting_set.all()
+        qset = qset.exclude(location=None)
+        if alive_only:
+            qset = qset.filter(plant_died=None)
+        return list(qset.values("pk", "location"))
 
     def _get_departments_html(self):
         links = []
@@ -277,6 +292,34 @@ class Individual(IndividualBase, Configurable):
         #    line2 = ""
         return line1, line2
 
+    @configurable
+    def map_decorator(self):
+        from geo.widgets import get_botgard_map_template_context
+        from .outplanting import Outplanting
+
+        outplantings = self.get_outplanting_locations(alive_only=True)
+        if not outplantings:
+            return ""
+
+        context = {
+            **get_botgard_map_template_context(),
+            "id": f"map-{self.pk}",
+            "name": self.pk,
+            "module": f"geodjango_{self.pk}",
+            "geom_type": "Point",
+            "map_size": [250, 230],
+            "red_dots": True,
+            "read_only": True,
+            "outplantings": json.dumps(
+                [
+                    {**obj, "location": f"SRID={Outplanting.location.field.srid};{obj['location'].wkt}"}
+                    for obj in outplantings
+                ]
+            ),
+        }
+        engine = Engine.get_default()
+        return mark_safe(engine.render_to_string("geo/openlayers.html", context))
+    map_decorator.short_description = _("Map")
 
     def save(self, *args, **kwargs):
         # -- update generated fields --

@@ -246,9 +246,14 @@ class IndividualAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable)
     inlines = [OutplantingInline, PlantImageInline, HerbariumSpecimenInline]
 
     class Media:
-        css = {"screen": ('BotGard/css_dropdown/css_dropdown.css',)}
+        css = {"screen": (
+            "BotGard/css_dropdown/css_dropdown.css",
+            "geo/ol-v10.9.0.css",
+        )}
         js = (
             "individuals/change_form_tools.js",
+            "geo/ol-v10.9.0.js",
+            "geo/OLMapWidget.js",
         )
 
     def get_actions(self, request):

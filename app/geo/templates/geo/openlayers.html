@@ -1,8 +1,8 @@
 {% load i18n l10n %}
 
 <div id="{{ id }}_div_map" class="dj_map_wrapper">
-    <div id="{{ id }}_map" class="dj_map"></div>
-    {% if not disabled %}<span class="clear_features"><a href="">{% translate "Delete all Features" %}</a></span>{% endif %}
+    <div id="{{ id }}_map" class="dj_map" {% if map_size %}style="width: {{ map_size.0 }}px; height: {{ map_size.1 }}px"{% endif %}></div>
+    {% if not disabled and not read_only %}<span class="clear_features"><a href="">{% translate "Delete all Features" %}</a></span>{% endif %}
     {% if display_raw %}<p>{% translate "Debugging window (serialized value)" %}</p>{% endif %}
     <textarea id="{{ id }}" class="vSerializedField required" cols="150" rows="10" name="{{ name }}"
               {% if not display_raw %} hidden{% endif %}>{{ serialized }}</textarea>
@@ -48,15 +48,20 @@
             map_id: '{{ id }}_map',
             map_srid: {{ map_srid|unlocalize }},
             name: '{{ name }}',
+            {% if red_dots %}red_dots: true,{% endif %}
             default_lat: {{ default_location.1|unlocalize }},
             default_lon: {{ default_location.0|unlocalize }},
             default_zoom: 16.7,
+            {% if outplantings %}outplantings: {{ outplantings|safe }},{% endif %}
             {% if with_garden_map %}garden_map: create_garden_map_interface(false, "{{ form_element_name }}"),{% endif %}
         };
         {% endblock %}
         window.{{ module }} = new BotGardMapWidget(options);
         {% if with_garden_map %}
             {{ module }}.garden_map.set_model_layer("department");
+        {% endif %}
+        {% if read_only %}
+            {{ module }}.disableDrawing();
         {% endif %}
     {% if "__prefix__" in module %}</div>{% else %}</script>{% endif %}
 </div>

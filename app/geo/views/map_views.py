@@ -6,12 +6,9 @@ from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from django.shortcuts import render
 from django.urls import reverse
-from django.conf import settings
 from django.db import transaction
-from django.views.decorators.csrf import csrf_exempt
 from django.core.serializers.json import DjangoJSONEncoder
 
-import config_app
 from tools.permissions import login_required
 from tools.admin_extensions import minimal_admin_context
 from individuals.models import Territory, Department
@@ -19,6 +16,7 @@ from individuals.models import Territory, Department
 
 @login_required
 def garden_map_view(request):
+    from geo.widgets import get_botgard_map_template_context
 
     has_write_permission = (
         request.user.has_perm("individuals.add_territory")
@@ -42,25 +40,8 @@ def garden_map_view(request):
         response_status = 403
     else:
         context.update({
-            "map_srid": 3857,
-            "map_tile_url": settings.MAP_TILE_URL,
-            "default_location": config_app.get_value("geo_location"),
             "has_write_permission": has_write_permission,
-            "territories": list(
-                Territory.objects.all()
-                .order_by("code")
-                .values(
-                    "pk", "code", "name", "polygon",
-                )
-            ),
-            "departments": list(
-                Department.objects.all()
-                .order_by("full_code")
-                .values(
-                    "territory__code", "territory__name", "territory__pk",
-                    "pk", "code", "name", "full_code", "polygon"
-                )
-            ),
+            **get_botgard_map_template_context(),
         })
 
     return render(request, 'geo/garden_map.html', context, status=response_status)
