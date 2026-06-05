@@ -148,7 +148,7 @@ else:
     DATABASES = {
         'default': {
             'CONN_MAX_AGE': 0,
-            'ENGINE': 'django.db.backends.sqlite3',
+            'ENGINE': 'django.contrib.gis.db.backends.spatialite',
             'HOST': 'localhost',
             'NAME': 'db.sqlite3',
             'PASSWORD': '',

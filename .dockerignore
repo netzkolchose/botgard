@@ -3,6 +3,7 @@ app/media/
 app/scratchpad/
 app/static/
 app/.env*
+app/.cache/
 .env*
 Dockerfile
-
+scratchpad/

@@ -18,7 +18,8 @@ See [Features wiki page](https://github.com/netzkolchose/botgard/wiki/Features-(
 To run the System in production mode you'll need:
 - Linux or FreeBSD 
 - Python 3.10
-- PostgreSQL (recommended)
+- PostgreSQL and postgis (recommended) (https://docs.djangoproject.com/en/5.2/ref/contrib/gis/install/postgis/)
+- sqlite3 and spatialite as alternative (https://docs.djangoproject.com/en/5.2/ref/contrib/gis/install/spatialite/)
 - nginx
 - latex live
 - `librsvg2-bin` (labels use the `rsvg-convert` commandline tool)
@@ -86,8 +87,8 @@ If you do not need fulltext search, sqlite will work too.
 
 To create a local database:
 ```bash
-sudo apt install postgresql-server-dev-all
-# or any other means to install a local postgres server
+sudo apt install postgresql-server-dev-all postgis
+# or any other means to install a local postgres server with GIS extension
 
 # start psql
 sudo -u postgres psql
@@ -99,6 +100,11 @@ CREATE EXTENSION IF NOT EXISTS postgis;
 
 # allow the user to create databases (for unit-testing)
 ALTER USER "botgard-user" CREATEDB;
+# exit psql ^D
+
+# add GIS extension to new "botgard" database
+sudo -u postgres psql -c "CREATE EXTENSION IF NOT EXISTS postgis;" botgard
+
 ```
 
 ### To run the unit-tests:
@@ -121,11 +127,17 @@ For CI deployment, please use **environment variables** or generate an `.env` fi
 
 #### run unittests in docker image
 
+The unittests use the sqlite backend by default. 
+
 ```shell script
 docker build --tag botgard-dev .
 docker run -ti --env BOTGARD_RUN_TESTS=1 botgard-dev
 ```
 
+To open a shell in the docker image:
+```shell
+docker run -ti --entrypoint /bin/bash botgard-dev
+```
 
 ### Data migration
 
