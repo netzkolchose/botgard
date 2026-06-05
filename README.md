@@ -50,7 +50,9 @@ You can copy the [app/.env-example](app/.env-example) file to `app/.env` and adj
 - `MAP_TILE_URL`: The URL for using OpenStreetMap raster tiles, defaults to `/geo/raster-tiles/{z}/{x}/{y}.png`,
   in live deployment this should be set to an nginx cached proxy url (see https://operations.osmfoundation.org/policies/tiles/) 
 
-To initially set up the development server create a **virtual environment** using tools like
+To initially set up the development environment, 
+[install geo libraries](https://docs.djangoproject.com/en/5.2/ref/contrib/gis/install/geolibs/) 
+and create a **virtual environment** using tools like
 [venv](https://docs.python.org/3/library/venv.html) 
 or [virtualenv](https://virtualenv.pypa.io/en/stable/) and then:
 
