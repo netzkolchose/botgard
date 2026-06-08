@@ -3,6 +3,7 @@ import dataclasses
 import re
 import io
 import csv
+import json
 import pprint
 import zipfile
 import urllib.parse
@@ -14,7 +15,7 @@ from pathlib import Path
 import tempfile
 from typing import Dict, Set, Optional, Type, Callable, Any
 
-from django.test import TestCase, Client
+from django.test import TestCase, Client, override_settings
 from django.test.utils import override_settings
 from django.urls import reverse
 from django.urls.exceptions import NoReverseMatch
@@ -126,6 +127,23 @@ class TestBase(TestCase):
                 idx = response.content.index(pattern)
                 snippet = response.content[idx: idx + 200]
                 raise AssertionError(f"warning/error found in response {response}: {snippet}")
+
+    def get_response_error(self, response: HttpResponse) -> str:
+        """
+        Find the error displayed in the response
+
+        To get details your test function must run in DEBUG mode, e.g.
+
+            @override_settings(DEBUG=True)
+            def test_something(self):
+                ...
+        """
+        soup = self.get_soup(response.content)
+        msg = soup.find("h1").text
+        elem = soup.find("pre", {"class": "exception_value"})
+        if elem:
+            msg = f"{msg}\n{elem.text}"
+        return msg
 
     def get_label_response(
             self,
