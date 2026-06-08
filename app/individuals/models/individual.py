@@ -7,6 +7,7 @@ from django.utils.translation import ngettext_lazy as __
 from django.contrib.admin.filters import FieldListFilter, AllValuesFieldListFilter
 from django.template import Template, Context, Engine
 from django.core.serializers.json import DjangoJSONEncoder
+from django.utils.html import mark_safe
 
 from config_tables.admin import CustomSelectHeaderFilter
 from species.models import Species
@@ -294,31 +295,13 @@ class Individual(IndividualBase, Configurable):
 
     @configurable
     def map_decorator(self):
-        from geo.widgets import get_botgard_map_template_context
-        from .outplanting import Outplanting
+        from geo.columns import map_outplantings_column_decorator
 
         outplantings = self.get_outplanting_locations(alive_only=True)
-        if not outplantings:
-            return ""
-
-        context = {
-            **get_botgard_map_template_context(),
-            "id": f"map-{self.pk}",
-            "name": self.pk,
-            "module": f"geodjango_{self.pk}",
-            "geom_type": "Point",
-            "map_size": [250, 230],
-            "red_dots": True,
-            "read_only": True,
-            "outplantings": json.dumps(
-                [
-                    {**obj, "location": f"SRID={Outplanting.location.field.srid};{obj['location'].wkt}"}
-                    for obj in outplantings
-                ]
-            ),
-        }
-        engine = Engine.get_default()
-        return mark_safe(engine.render_to_string("geo/openlayers.html", context))
+        return map_outplantings_column_decorator(
+            id=self.pk,
+            outplantings=outplantings,
+        )
     map_decorator.short_description = _("Map")
 
     def save(self, *args, **kwargs):

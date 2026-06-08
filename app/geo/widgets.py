@@ -48,7 +48,7 @@ class BotGardOpenLayersWidget(BaseGeometryWidget):
         css = {
             "all": (
                 "geo/ol-v10.9.0.css",
-                # "gis/css/ol3.css",
+                "geo/ol-extra.css",
             )
         }
         js = (

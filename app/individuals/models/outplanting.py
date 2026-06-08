@@ -92,6 +92,31 @@ class Outplanting(models.Model, Configurable):
     genus_single.short_description = _('genus')
     genus_single.admin_order_field = "individual__species__family__genus"
 
+    @configurable
+    def location_decorator(self):
+        if not self.location:
+            return ""
+        osm_url = f"https://www.openstreetmap.org/#map=19/{self.location[1]}/{self.location[0]}"
+        title = _("longitude: {}, latitude: {}").format(self.location[0], self.location[1])
+        return mark_safe(
+            f"""<a href="{osm_url}" target="_blank" title="{title}">{self.location[0]:.3f}/{self.location[1]:.3f}"""
+        )
+    location_decorator.short_description = _("location")
+    location_decorator.admin_order_field = "location"
+
+    @configurable
+    def map_decorator(self):
+        from geo.columns import map_outplantings_column_decorator
+
+        outplantings = []
+        if self.is_alive() and self.location:
+            outplantings = [{"location": self.location}]
+        return map_outplantings_column_decorator(
+            id=self.pk,
+            outplantings=outplantings,
+        )
+    map_decorator.short_description = _("Map")
+
 
 class OutplantingForm(AutoCompleteForm(Outplanting)):
     exclude_autocomplete = ["department"]

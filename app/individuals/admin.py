@@ -19,6 +19,7 @@ from labels.mass_action import add_label_mass_actions
 from herbaria.models.specimen import HerbariumSpecimen, create_herbarium_specimen_form_class
 from .actions import add_seed_catalog_actions
 from .models.individual import SeedInLatestCatalogFilter
+from geo.columns import MAP_COLUMN_CSS, MAP_COLUMN_JS
 
 
 INDIVIDUAL_SEARCH_FIELDS = search_fields_compatible((
@@ -248,12 +249,11 @@ class IndividualAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable)
     class Media:
         css = {"screen": (
             "BotGard/css_dropdown/css_dropdown.css",
-            "geo/ol-v10.9.0.css",
+            *MAP_COLUMN_CSS,
         )}
         js = (
             "individuals/change_form_tools.js",
-            "geo/ol-v10.9.0.js",
-            "geo/OLMapWidget.js",
+            *MAP_COLUMN_JS,
         )
 
     def get_actions(self, request):
@@ -371,6 +371,17 @@ class OutplantingAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable
         ('department__territory__code', ForeignKeyFilter),
         # ('individual__species', ForeignKeyFilter),
     )
-    blacklist = ('id', 'individual', 'department')
+    blacklist = ('id', 'individual', 'department', 'location')
+
+    class Media:
+        css = {"screen": (
+            "BotGard/css_dropdown/css_dropdown.css",
+            *MAP_COLUMN_CSS,
+        )}
+        js = (
+            *MAP_COLUMN_JS,
+        )
+
+
 admin.site.register(Outplanting, OutplantingAdmin)
 
