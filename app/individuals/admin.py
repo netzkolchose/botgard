@@ -369,7 +369,9 @@ class OutplantingAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable
     list_filter = (
         ('department__code', ForeignKeyFilter),
         ('department__territory__code', ForeignKeyFilter),
-        # ('individual__species', ForeignKeyFilter),
+        ('individual__ipen_generated', ForeignKeyFilter),
+        ('individual__species__family__family', ForeignKeyFilter),
+        ('individual__species__family__genus', ForeignKeyFilter),
     )
     blacklist = ('id', 'individual', 'department', 'location')
 

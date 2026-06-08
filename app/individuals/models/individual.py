@@ -508,6 +508,7 @@ class Seed(Individual):
     etikett_detail_decorator.admin_order_field = "species__area_of_distribution_background"
     etikett_detail_decorator.searchable_field = "species__area_of_distribution_background"
 
+    @configurable
     def seed_add_to_latest_catalog_decorator(self):
         catalog = SeedCatalog.objects.latest_editable_catalog()
         if not catalog:
