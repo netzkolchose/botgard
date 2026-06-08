@@ -166,6 +166,15 @@ function save_map() {
     info_elem.classList.add("hidden");
 }
 
+function switch_fullscreen() {
+    const elem = document.querySelector("#container");
+    if (document.fullscreenElement) {
+        document.exitFullscreen();
+    } else {
+        elem.requestFullscreen();
+    }
+}
+
 function hook_ui_elements() {
     let first_ter_pk = null;
     for (const elem of document.querySelectorAll("#current_territory option")) {
@@ -203,6 +212,13 @@ function hook_ui_elements() {
     if (elem) {
         elem.onclick = () => {
             save_map();
+        };
+    }
+
+    elem = document.querySelector("#full-screen");
+    if (elem) {
+        elem.onclick = () => {
+            switch_fullscreen();
         };
     }
 
