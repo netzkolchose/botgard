@@ -122,7 +122,7 @@ class OutplantingForm(AutoCompleteForm(Outplanting)):
     exclude_autocomplete = ["department"]
     location = gis_forms.PointField(
         srid=Outplanting.location.field.srid,
-        widget=BotGardOpenLayersWidget(with_garden_map=True, red_dots=True),
+        widget=BotGardOpenLayersWidget(with_garden_map=True, red_dots=True, map_size=[200, 200]),
         required=False,
     )
 

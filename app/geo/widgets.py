@@ -1,3 +1,5 @@
+from typing import Union, List, Tuple
+
 from django.contrib.gis.forms.widgets import BaseGeometryWidget
 from django.contrib.gis.geometry import json_regex
 from django.conf import settings
@@ -39,10 +41,17 @@ class BotGardOpenLayersWidget(BaseGeometryWidget):
     template_name = "geo/openlayers.html"
     map_srid = 3857
 
-    def __init__(self, attrs=None, with_garden_map: bool = False, red_dots: bool = False):
+    def __init__(
+            self,
+            attrs=None,
+            with_garden_map: bool = False,
+            red_dots: bool = False,
+            map_size: Union[None, Tuple[int, int], List[int]] = None,
+    ):
         super().__init__(attrs)
         self._with_garden_map = with_garden_map
         self._red_dots = red_dots
+        self._map_size = map_size
 
     class Media:
         css = {
@@ -68,6 +77,8 @@ class BotGardOpenLayersWidget(BaseGeometryWidget):
                 "with_garden_map": True,
                 "form_element_name": name,
             })
+        if self._map_size:
+            context["map_size"] = self._map_size
         return context
 
     def serialize(self, value):
