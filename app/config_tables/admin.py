@@ -474,8 +474,7 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
 
                     # TODO-3: if not len(tup) == 2: breaks views in case species__family__family...
                     if not len(tup) >= 2:
-                        raise SyntaxError("%s.list_filter contains illegal syntax '%s' for ForeignKeyFilter, "
-                                          "missing __ redirection" % (type(self), i[0]))
+                        continue
                     if tup[0] == field_name:
                         foreign_field_name = tup[1]
                         break
@@ -612,25 +611,27 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
 
         extra_context = extra_context or {}
         cl = self._get_change_list(request)
-
-        num_items = cl.result_list.count()
         num_items_per_sec = 1000000
+        if not cl:
+            num_items = 0
+        else:
+            num_items = cl.result_list.count()
 
-        # messure time it takes to render the complete django list
-        if num_items > 100:
-            from django.contrib.admin.templatetags.admin_list import results
-            import time
-            starttime = time.time()
-            endtime = starttime
-            count = 0
-            cl.result_list = cl.result_list[:30]
-            for htmlrow in results(cl):
-                count += 1
-                endtime = time.time()
-                if endtime - starttime > 0.2:
-                    break
-            # print(count, endtime-starttime)
-            num_items_per_sec = int(count / max(0.0001, endtime - starttime))
+            # messure time it takes to render the complete django list
+            if num_items > 100:
+                from django.contrib.admin.templatetags.admin_list import results
+                import time
+                starttime = time.time()
+                endtime = starttime
+                count = 0
+                cl.result_list = cl.result_list[:30]
+                for htmlrow in results(cl):
+                    count += 1
+                    endtime = time.time()
+                    if endtime - starttime > 0.2:
+                        break
+                # print(count, endtime-starttime)
+                num_items_per_sec = int(count / max(0.0001, endtime - starttime))
 
         extra_context.update({
             'change_list_searchable_headers': self.header_search_widgets(request),

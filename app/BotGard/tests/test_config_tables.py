@@ -1,16 +1,11 @@
-import json
-from typing import List
+import django.contrib.admin
+import django.apps
 
-from django.test import TestCase, Client
-from django.urls import reverse
-from django.http.response import HttpResponse
-
-import bs4
-
-from .fixtures import create_test_fixtures
+from .base import *
+from config_tables.admin import ConfigurableTable
 
 
-class TestConfigTables(TestCase):
+class TestConfigTables(TestBase):
 
     @classmethod
     def setUpTestData(cls):
@@ -115,4 +110,54 @@ class TestConfigTables(TestCase):
             'delete_link_decorator', 'etikett_detail_decorator',
             'territories_decorator',
         ])
+
+    @override_settings(DEBUG=True)
+    def test_all_filter_columns(self):
+        all_changelist_names = []
+        for url in django.contrib.admin.site.get_urls():
+            if hasattr(url, "urlconf_name"):
+                for n in url.urlconf_name:
+                    if n.name and n.name.endswith("_changelist"):
+                        if not n.name.startswith("config_tables") and not n.name.startswith("config_app"):
+                            all_changelist_names.append(n.name)
+
+        class FakeRequest:
+            user = User.objects.get(username="User1")
+        fake_request = FakeRequest()
+
+        for changelist_name in all_changelist_names:
+            with self.subTest(changelist_name):
+                app_name, model_name, _ = changelist_name.split("_")
+
+                Model = django.apps.apps.get_model(app_name, model_name)
+                admin: django.contrib.admin.ModelAdmin = django.contrib.admin.site.get_model_admin(Model)
+                if not isinstance(admin, ConfigurableTable):
+                    continue
+
+                # fetch all available columns of the model
+                columns = admin.get_modelattributes_treepart(Model)
+                columns += admin.get_decorated_functions(Model)
+                columns = admin.apply_blacklist(columns)
+                columns = [c[1] for c in columns]
+                # change table-settings to include all columns
+                self.assert_change_changelist_columns(app_name, model_name, columns)
+
+                # load changelist and get all column filters
+                response = self.client.get(reverse(f"admin:{changelist_name}"))
+                soup = self.get_soup(response.content)
+
+                column_filters = []
+                for elem in soup.find_all("input", {"class": "filter-form-element"}):
+                    column_filters.append(elem.attrs["name"])
+
+                query_string = "&".join(
+                    f"{key}=x" for key in column_filters
+                )
+                response = self.client.get(reverse(f"admin:{changelist_name}") + "?" + query_string)
+
+                if response.status_code == 302:
+                    raise AssertionError(f"{changelist_name} redirected to {response.headers['location']}")
+
+                if response.status_code != 200:
+                    raise AssertionError(f"{changelist_name} responded with {response.status_code}\n{self.get_response_error(response)}")
 
