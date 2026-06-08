@@ -1,4 +1,5 @@
-from django.contrib.gis.forms.widgets import OpenLayersWidget
+from django.contrib.gis.forms.widgets import BaseGeometryWidget
+from django.contrib.gis.geometry import json_regex
 from django.conf import settings
 
 
@@ -34,8 +35,9 @@ def get_botgard_map_template_context(with_polygons: bool = True) -> dict:
     return context
 
 
-class BotGardOpenLayersWidget(OpenLayersWidget):
+class BotGardOpenLayersWidget(BaseGeometryWidget):
     template_name = "geo/openlayers.html"
+    map_srid = 3857
 
     def __init__(self, attrs=None, with_garden_map: bool = False, red_dots: bool = False):
         super().__init__(attrs)
@@ -45,12 +47,12 @@ class BotGardOpenLayersWidget(OpenLayersWidget):
     class Media:
         css = {
             "all": (
-                "geo/ol-v7.2.2.css",
-                "gis/css/ol3.css",
+                "geo/ol-v10.9.0.css",
+                # "gis/css/ol3.css",
             )
         }
         js = (
-            "geo/ol-v7.2.2.js",
+            "geo/ol-v10.9.0.js",
             "geo/OLMapWidget.js",
             "geo/garden_map.js",
         )
@@ -67,3 +69,13 @@ class BotGardOpenLayersWidget(OpenLayersWidget):
                 "form_element_name": name,
             })
         return context
+
+    def serialize(self, value):
+        return value.json if value else ""
+
+    def deserialize(self, value):
+        geom = super().deserialize(value)
+        # GeoJSON assumes WGS84 (4326). Use the map's SRID instead.
+        if geom and json_regex.match(value) and self.map_srid != 4326:
+            geom.srid = self.map_srid
+        return geom
