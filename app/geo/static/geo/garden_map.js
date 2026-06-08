@@ -23,7 +23,7 @@ function create_garden_map_interface(interactive=true, form_element_name=null) {
                     feature.set("name", name);
                 });
             }
-            models.push({model, pk, code, name, features});
+            models.push({model, pk, code: full_code || code, name, features});
         }
     }
     const garden_map = new GardenMapInterface(models, interactive);
