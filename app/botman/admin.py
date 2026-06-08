@@ -151,7 +151,10 @@ class OutgoingOrderAdmin(ConfigurableTable):
     )
     list_filter = (
         ("garden__full_name_generated", ForeignKeyFilter),
+        ("garden__email", ForeignKeyFilter),
+        ("garden__catalog_date_generated", ForeignKeyFilter),
         ("user__username", ForeignKeyFilter),
+        ("user__email", ForeignKeyFilter),
     )
     actions = ("mark_orders_as_processed", )
 
