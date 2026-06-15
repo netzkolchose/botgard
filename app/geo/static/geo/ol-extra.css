@@ -1,3 +1,4 @@
 .ol-attribution li {
     font-size: 9px;
+    white-space: nowrap;
 }
