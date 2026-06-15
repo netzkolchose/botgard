@@ -10,10 +10,11 @@ RUN apk add binutils geos proj gdal  # for GeoDjango
 RUN apk add libspatialite  # for GeoDjango using sqlite
 
 # make sure django modules find the libraries
-RUN ln -s /usr/lib/libproj.so.25 /usr/lib/libproj.so \
-    && ln -s /usr/lib/libgdal.so.37 /usr/lib/libgdal.so \
-    && ln -s /usr/lib/libgeos_c.so.1 /usr/lib/libgeos_c.so \
-    && ln -s /usr/lib/mod_spatialite.so.8 /usr/lib/mod_spatialite.so
+# (find alphabetically latest entry for each lib, e.g. /usr/lib/libproj.so.39.3.13.0 and symlink to libproj.so)
+RUN ln -sf `ls /usr/lib/libproj.so.* | cut -d' ' -f1 | tail -n 1` /usr/lib/libproj.so
+RUN ln -sf `ls /usr/lib/libgdal.so.* | cut -d' ' -f1 | tail -n 1` /usr/lib/libgdal.so
+RUN ln -sf `ls /usr/lib/libgeos_c.so.* | cut -d' ' -f1 | tail -n 1` /usr/lib/libgeos_c.so
+RUN ln -sf `ls /usr/lib/mod_spatialite.so.* | cut -d' ' -f1 | tail -n 1` /usr/lib/mod_spatialite.so
 
 RUN adduser appuser -D -u 9999
 
