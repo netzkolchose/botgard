@@ -10,6 +10,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.html import mark_safe
 
 from config_tables.admin import CustomSelectHeaderFilter
+from geo.util import geo_coord_to_html
 from species.models import Species
 from tools.admin_extensions import minimal_admin_context
 from .individual_base import *
@@ -294,20 +295,13 @@ class Individual(IndividualBase, Configurable):
         return line1, line2
 
     @configurable
-    def locations_decorator(self, digits: int = 6):
-        """
-        6 digits after comma seems to be good enough for plants
-        check: https://xkcd.com/2170/
-        """
+    def locations_decorator(self):
         outplantings = self.get_outplanting_locations(alive_only=True)
+        if not outplantings:
+            return ""
         links = []
         for outpl in outplantings:
-            location = outpl["location"]
-            osm_url = f"https://www.openstreetmap.org/#map=19/{location[1]}/{location[0]}"
-            title = _("longitude: {}, latitude: {}").format(location[0], location[1])
-            links.append(f"""<a href="{osm_url}" target="_blank" title="{title}">{location[0]:.{digits}f}/{location[1]:.{digits}f}""")
-        if not links:
-            return ""
+            links.append(geo_coord_to_html(outpl["location"]))
         return mark_safe(", ".join(links))
     locations_decorator.short_description = _("locations")
 

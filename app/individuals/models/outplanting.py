@@ -8,6 +8,7 @@ import django.contrib.gis.db.models as gis_models
 from django.contrib.gis.geos import Point
 import django.contrib.gis.forms as gis_forms
 
+from geo.util import geo_coord_to_html
 from .individual import Individual
 from .territory import Department
 from config_tables.admin import configurable, Configurable
@@ -93,18 +94,10 @@ class Outplanting(models.Model, Configurable):
     genus_single.admin_order_field = "individual__species__family__genus"
 
     @configurable
-    def location_decorator(self, digits: int = 6):
-        """
-        6 digits after comma seems to be good enough for plants
-        check: https://xkcd.com/2170/
-        """
+    def location_decorator(self):
         if not self.location:
             return ""
-        osm_url = f"https://www.openstreetmap.org/#map=19/{self.location[1]}/{self.location[0]}"
-        title = _("longitude: {}, latitude: {}").format(self.location[0], self.location[1])
-        return mark_safe(
-            f"""<a href="{osm_url}" target="_blank" title="{title}">{self.location[0]:.{digits}f}/{self.location[1]:.{digits}f}"""
-        )
+        return mark_safe(geo_coord_to_html(self.location))
     location_decorator.short_description = _("location")
     location_decorator.admin_order_field = "location"
 
