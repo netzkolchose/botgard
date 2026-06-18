@@ -93,13 +93,17 @@ class Outplanting(models.Model, Configurable):
     genus_single.admin_order_field = "individual__species__family__genus"
 
     @configurable
-    def location_decorator(self):
+    def location_decorator(self, digits: int = 6):
+        """
+        6 digits after comma seems to be good enough for plants
+        check: https://xkcd.com/2170/
+        """
         if not self.location:
             return ""
         osm_url = f"https://www.openstreetmap.org/#map=19/{self.location[1]}/{self.location[0]}"
         title = _("longitude: {}, latitude: {}").format(self.location[0], self.location[1])
         return mark_safe(
-            f"""<a href="{osm_url}" target="_blank" title="{title}">{self.location[0]:.3f}/{self.location[1]:.3f}"""
+            f"""<a href="{osm_url}" target="_blank" title="{title}">{self.location[0]:.{digits}f}/{self.location[1]:.{digits}f}"""
         )
     location_decorator.short_description = _("location")
     location_decorator.admin_order_field = "location"
@@ -116,7 +120,7 @@ class Outplanting(models.Model, Configurable):
             outplantings=outplantings,
         )
     map_decorator.short_description = _("Map")
-
+    map_decorator.exclude_csv = True
 
 class OutplantingForm(AutoCompleteForm(Outplanting)):
     exclude_autocomplete = ["department"]

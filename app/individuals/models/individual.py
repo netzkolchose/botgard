@@ -294,6 +294,24 @@ class Individual(IndividualBase, Configurable):
         return line1, line2
 
     @configurable
+    def locations_decorator(self, digits: int = 6):
+        """
+        6 digits after comma seems to be good enough for plants
+        check: https://xkcd.com/2170/
+        """
+        outplantings = self.get_outplanting_locations(alive_only=True)
+        links = []
+        for outpl in outplantings:
+            location = outpl["location"]
+            osm_url = f"https://www.openstreetmap.org/#map=19/{location[1]}/{location[0]}"
+            title = _("longitude: {}, latitude: {}").format(location[0], location[1])
+            links.append(f"""<a href="{osm_url}" target="_blank" title="{title}">{location[0]:.{digits}f}/{location[1]:.{digits}f}""")
+        if not links:
+            return ""
+        return mark_safe(", ".join(links))
+    locations_decorator.short_description = _("locations")
+
+    @configurable
     def map_decorator(self):
         from geo.columns import map_outplantings_column_decorator
 
@@ -303,6 +321,7 @@ class Individual(IndividualBase, Configurable):
             outplantings=outplantings,
         )
     map_decorator.short_description = _("Map")
+    map_decorator.exclude_csv = True
 
     def save(self, *args, **kwargs):
         # -- update generated fields --
