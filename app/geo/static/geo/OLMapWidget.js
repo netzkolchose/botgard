@@ -347,6 +347,13 @@ class BotGardMapWidget {
 
         const initial_value = document.getElementById(this.options.id).value;
         if (initial_value) {
+            if (this.options.with_input_fields) {
+                try {
+                    this.setInputFieldsCoords(JSON.parse(initial_value)["coordinates"]);
+                } catch (e) {
+                    console.log("ERROR setting input fields:", e);
+                }
+            }
             const jsonFormat = new ol.format.GeoJSON();
             const features = jsonFormat.readFeatures('{"type": "Feature", "geometry": ' + initial_value + '}');
             const extent = ol.extent.createEmpty();
@@ -372,6 +379,45 @@ class BotGardMapWidget {
             });
         }
         this.ready = true;
+    }
+
+    setInputFieldsCoords(coords) {
+        const elem_lon = document.querySelector(`input[name="geo_lon_${this.options.id}"]`);
+        const elem_lat = document.querySelector(`input[name="geo_lat_${this.options.id}"]`);
+        if (elem_lon && elem_lat) {
+            if (!coords) {
+                elem_lon.value = "";
+                elem_lat.value = "";
+            } else {
+                const coords_4326 = ol.proj.transform(coords, this.map.getView().getProjection(), 'EPSG:4326');
+                elem_lon.value = coords_4326[0];
+                elem_lat.value = coords_4326[1];
+            }
+        }
+    }
+
+    hookInputFieldsChange() {
+        const elem_lon = document.querySelector(`input[name="geo_lon_${this.options.id}"]`);
+        const elem_lat = document.querySelector(`input[name="geo_lat_${this.options.id}"]`);
+        if (elem_lon && elem_lat) {
+            const widget = this;
+            const change_handler = function (e) {
+                const coords_4326 = [parseFloat(elem_lon.value), parseFloat(elem_lat.value)];
+                if (isFinite(coords_4326[0]) && isFinite(coords_4326[1])) {
+                    const coords = ol.proj.transform(coords_4326, 'EPSG:4326', widget.map.getView().getProjection());
+                    const jsonFormat = new ol.format.GeoJSON();
+                    const features = jsonFormat.readFeatures(
+                        `{"type": "Feature", "geometry": {"type": "Point", "coordinates": [${coords[0]}, ${coords[1]}]}}`
+                    );
+                    widget.featureOverlay.getSource().clear();
+                    widget.featureOverlay.getSource().addFeatures(features);
+                    const extent = widget.featureCollection.getArray()[0].getGeometry().getExtent();
+                    widget.map.getView().fit(extent, {minResolution: 1});
+                }
+            }
+            elem_lat.onchange = change_handler;
+            elem_lon.onchange = change_handler;
+        }
     }
 
     createMap() {
@@ -415,6 +461,26 @@ class BotGardMapWidget {
 
             this.map.addInteraction(this.interactions.draw);
             this.map.addInteraction(this.interactions.modify);
+
+            if (this.options.with_input_fields) {
+                // set input-fields on draw
+                this.interactions.draw.on("drawend", (e) => {
+                    const coords = e.feature.getGeometry().getCoordinates();
+                    if (typeof coords === "object" && coords.length === 2) {
+                        this.setInputFieldsCoords(coords);
+                    }
+                });
+                // set input-fields on modify
+                this.interactions.modify.on("modifyend", (e) => {
+                    const coords = e.features.getArray()[0].getGeometry().getCoordinates();
+                    if (typeof coords === "object" && coords.length === 2) {
+                        this.setInputFieldsCoords(coords);
+                    }
+                });
+
+                // hook change-on-input-fields
+                this.hookInputFieldsChange();
+            }
         }
         else // if this.garden_map && this.interactive
         {
@@ -571,6 +637,9 @@ class BotGardMapWidget {
         // Empty textarea widget
         document.getElementById(this.options.id).value = '';
         this.enableDrawing();
+        if (this.options.with_input_fields) {
+            this.setInputFieldsCoords(null);
+        }
     }
 
     serializeFeatures() {

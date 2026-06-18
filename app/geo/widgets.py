@@ -45,11 +45,13 @@ class BotGardOpenLayersWidget(BaseGeometryWidget):
             self,
             attrs=None,
             with_garden_map: bool = False,
+            with_input_fields: bool = False,
             red_dots: bool = False,
             map_size: Union[None, Tuple[int, int], List[int]] = None,
     ):
         super().__init__(attrs)
         self._with_garden_map = with_garden_map
+        self._with_input_fields = with_input_fields
         self._red_dots = red_dots
         self._map_size = map_size
 
@@ -70,6 +72,7 @@ class BotGardOpenLayersWidget(BaseGeometryWidget):
         context = super().get_context(name, value, attrs)
         context.update({
             "red_dots": self._red_dots,
+            "with_input_fields": self._with_input_fields,
             **get_botgard_map_template_context(),
         })
         if self._with_garden_map:

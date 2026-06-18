@@ -53,7 +53,7 @@ function create_garden_map_interface(interactive=true, form_element_name=null) {
             if (elem) {
                 const widget_name = `geodjango_${form_element_name.replaceAll("-", "_")}`;
                 elem.onchange = (event) => {
-                    console.log("CHANGE", elem_name, widget_name, event.target.value);
+                    //console.log("CHANGE", elem_name, widget_name, event.target.value);
                     try {
                         eval(widget_name).garden_map.zoom_to_model("department", event.target.value);
                     } catch (e) {console.log("ERROR", e)}
