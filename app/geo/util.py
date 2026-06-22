@@ -16,6 +16,9 @@ def geo_coord_to_html(
     """
     location_high = (round(location[0], digits_high), round(location[1], digits_high))
     location_low = (round(location[0], digits), round(location[1], digits))
-    osm_url = f"https://www.openstreetmap.org/#map=19/{location_high[1]}/{location_high[0]}"
+    osm_url = "https://www.openstreetmap.org/directions?from={lat}%2C{lon}#map=19/{lat}/{lon}".format(
+        lat=location_high[1],
+        lon=location_high[0],
+    )
     title = _("longitude: {}, latitude: {}").format(location_high[0], location_high[1])
     return f"""<a href="{osm_url}" target="_blank" title="{title}">{location_low[0]}/{location_low[1]}"""
