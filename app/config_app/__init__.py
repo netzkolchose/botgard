@@ -23,11 +23,12 @@ def register_key(
     if is_json_candidate:
         json.dumps(default)
 
-    try:
-        if validator is not None:
-            validator(default)
-    except ImportError:  # running the validator during registering might fail because of circular imports
-        pass
+    # generally not good to call validators through app initialization
+    #try:
+    #    if validator is not None:
+    #        validator(default)
+    #except ImportError:  # running the validator during registering might fail because of circular imports
+    #    pass
 
     _defaults[key] = (default, description, validator, translateable)
 

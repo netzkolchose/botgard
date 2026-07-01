@@ -190,7 +190,8 @@ def _validate_ipen_creation(code):
         ipen_country="XX",
         ipen_transfer_restricted="0",
         ipen_accession_number="1234",
-        ipen_garden_code=BotanicGarden(),
+        ipen_garden_code=BotanicGarden(code="ABC"),
+        accession_extension="10",
     )
     indi.pk = 1
     try:

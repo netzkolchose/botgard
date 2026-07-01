@@ -1,3 +1,5 @@
+from typing import Optional
+
 from django.utils.translation import gettext_lazy as _
 from django.utils.translation import ngettext_lazy as __
 from django.contrib.auth import get_user_model
@@ -7,6 +9,7 @@ from species.models import Species
 from botman.models import BotanicGarden
 from individuals.models.individual_base import *
 from individuals.models.territory import Department
+import config_app
 
 
 class Entry(IndividualBase, Configurable):
@@ -141,8 +144,7 @@ class Entry(IndividualBase, Configurable):
     department_decorator.short_description = _("department")
     department_decorator.admin_order_field = "department__code"
 
-    def save(self, *args, **kwargs):
-        # -- update generated fields --
+    def get_ipen_garden_code(self) -> Optional[str]:
         garden_code = self.ipen_garden_code
         if garden_code:
             garden_code = garden_code.split()[0]
@@ -151,21 +153,17 @@ class Entry(IndividualBase, Configurable):
                 garden_code = BotanicGarden.objects.get(number=garden_number).code
             except (ValueError, BotanicGarden.DoesNotExist) as e:
                 pass
+        return garden_code
 
-        self.ipen_generated = "%s-%s-%s-%s" % (
-            self.ipen_country.split()[0].upper() if self.ipen_country else "xx",
-            self.ipen_transfer_restricted.upper() if self.ipen_transfer_restricted else "x",
-            garden_code or "x",
-            self.ipen_accession_number,
-        )
+    def save(self, *args, **kwargs):
+        # -- update generated fields --
+        self.ipen_generated = generate_entry_ipen(self)
 
-        # -- update id_name_generated --
         self.id_name_generated = str(self.accession_number)
         if self.species:
             self.id_name_generated += f" ({self.species})"
         self.id_name_generated = self.id_name_generated[:100]
 
-        # -- save Individual --
         super(Entry, self).save(*args, **kwargs)
 
 
@@ -195,3 +193,39 @@ class EntryForm(
             )
 
         super(EntryForm, self).__init__(*args, **kwargs)
+
+
+def _validate_ipen_creation(code):
+    from django.forms import ValidationError
+    model = Entry(
+        ipen_country="XX",
+        ipen_transfer_restricted="0",
+        ipen_accession_number="1234",
+        ipen_garden_code="ABC",
+        accession_extension="10",
+    )
+    model.pk = 1
+    try:
+        generate_entry_ipen(model, code=code)
+    except Exception as e:
+        raise ValidationError(f"{type(e).__name__}: {e}")
+
+
+config_app.register_key(
+    "ipen_creation_entry",
+    default=""""{}-{}-{}-{}".format(
+self.ipen_country.split()[0].upper() if self.ipen_country else "xx",
+self.ipen_transfer_restricted.upper() if self.ipen_transfer_restricted else "x",
+self.get_ipen_garden_code() or "x",
+self.ipen_accession_number or "x",
+)""",
+    description="A python expression that generates the full IPEN from an Entry. The Entry instance is available as `self`",
+    validator=_validate_ipen_creation,
+    translateable=False,
+)
+
+
+def generate_entry_ipen(entry: Entry, code=None):
+    if code is None:
+        code = config_app.get_value("ipen_creation_entry")
+    return eval(code, locals={"self": entry})
