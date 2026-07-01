@@ -66,3 +66,26 @@ f"{len(self.ipen_generated)}-Dobbstown-{self.ipen_generated}"
         self.assertEqual("9-Dobbstown-xx-x-x-10", model.ipen_generated)
         model.save()
         self.assertEqual("21-Dobbstown-9-Dobbstown-xx-x-x-10", model.ipen_generated)
+
+    def test_config_app_admin(self):
+        from config_app.management.commands.botgard_update_config import update_config_in_database
+        update_config_in_database()
+
+        for config_key, expected_visible in (
+                ("site_branding", {"value_en": True, "value_json": False, "value_normal_text": False}),
+                ("accession_generation", {"value_en": False, "value_json": True, "value_normal_text": False}),
+                ("ipen_creation_individual", {"value_en": False, "value_json": False, "value_normal_text": True}),
+        ):
+            response = self.client.get(reverse(
+                "admin:config_app_keyvalue_change",
+                args=(KeyValue.objects.get(key=config_key).pk, )
+            ))
+            form = self.get_soup(response.content).find("form", {"id": "keyvalue_form"})
+            for field_name in expected_visible.keys():
+                elem = form.find("div", {"class": f"field-{field_name}"})
+                self.assertTrue(elem, f"config_key='{config_key}', field_name='{field_name}'")
+                class_str = elem.attrs["class"]
+                if expected_visible[field_name]:
+                    self.assertNotIn("hidden", class_str)
+                else:
+                    self.assertIn("hidden", class_str)
