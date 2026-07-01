@@ -66,9 +66,9 @@ ENTRIES = [
 
 INDIVIDUALS = [
     {"accession_number": 1000, "species": "Species 1", "source": "Garden 1", "found_country": "AU"},
-    {"accession_number": 1001, "species": "Species 2", "source": "Garden 2", "found_country": "IT"},
-    {"accession_number": 1002, "species": "Species 3", "source": "Garden 1", "found_country": "CZ"},
-    {"accession_number": 1003, "species": "Species 3", "source": "Garden 2", "found_country": "ES"},
+    {"accession_number": 1001, "species": "Species 2", "source": "Garden 2", "found_country": "IT", "accession_extension": "10"},
+    {"accession_number": 1002, "species": "Species 3", "source": "Garden 1", "found_country": "CZ", "accession_extension": "20"},
+    {"accession_number": 1003, "species": "Species 3", "source": "Garden 2", "found_country": "ES", "accession_extension": "W"},
 ]
 
 OUTPLANTINGS = [
@@ -234,7 +234,7 @@ def create_test_fixtures():
     for i, data in enumerate(INDIVIDUALS):
         Individual.objects.create(
             accession_number=data["accession_number"],
-            accession_extension="",
+            accession_extension=data.get("accession_extension") or "",
             species=Species.objects.get(species=data["species"]),    
             species_checked_by="",
             came_as_species="",
