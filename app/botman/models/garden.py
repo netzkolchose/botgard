@@ -45,7 +45,7 @@ class BotanicGarden(Configurable, models.Model):
 
     _id_field = "full_name_generated"
 
-    name = models.CharField(verbose_name=_('name'), max_length=50, unique=True, db_index=True)
+    name = models.CharField(verbose_name=_('name'), max_length=120, unique=True, db_index=True)
     code = models.CharField(verbose_name=_('IPEN part'), max_length=6, blank=True, null=True, db_index=True)
     number = models.IntegerField(verbose_name=_('garden number'), unique=True, blank=False, default=get_new_number)
     address = models.TextField(verbose_name=_('address'), max_length=255, blank=True, null=True)
