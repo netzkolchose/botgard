@@ -228,4 +228,4 @@ self.ipen_accession_number or "x",
 def generate_entry_ipen(entry: Entry, code=None):
     if code is None:
         code = config_app.get_value("ipen_creation_entry")
-    return eval(code, locals={"self": entry})
+    return eval(code, {"self": entry})

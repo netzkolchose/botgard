@@ -217,4 +217,4 @@ self.ipen_accession_number,
 def generate_individual_ipen(individual, code=None):
     if code is None:
         code = config_app.get_value("ipen_creation_individual")
-    return eval(code, locals={"self": individual})
+    return eval(code, {"self": individual})
