@@ -180,3 +180,40 @@ def get_new_order_number():
     if num is None:
         raise RuntimeError(_('Could not find a free order_number in time, sorry'))
     return num
+
+
+def _validate_ipen_creation(code):
+    from django.forms import ValidationError
+    from individuals.models.individual import Individual
+    from botman.models import BotanicGarden
+    indi = Individual(
+        ipen_country="XX",
+        ipen_transfer_restricted="0",
+        ipen_accession_number="1234",
+        ipen_garden_code=BotanicGarden(),
+    )
+    indi.pk = 1
+    try:
+        generate_individual_ipen(indi, code=code)
+    except Exception as e:
+        raise ValidationError(f"{type(e).__name__}: {e}")
+
+
+config_app.register_key(
+    "ipen_creation_individual",
+    default=""""{}-{}-{}-{}".format(
+str.upper(self.ipen_country),
+str.upper(self.ipen_transfer_restricted),
+str.upper(self.ipen_garden_code.code or "XX"),
+self.ipen_accession_number,
+)""",
+    description="A python one-liner that generates the full IPEN from an individual. The individual is available as `self`",
+    validator=_validate_ipen_creation,
+    translateable=False,
+)
+
+
+def generate_individual_ipen(individual, code=None):
+    if code is None:
+        code = config_app.get_value("ipen_creation_individual")
+    return eval(code, locals={"self": individual})
