@@ -773,7 +773,7 @@ msgstr "Als Individuum speichern"
 #: herbaria/apps.py:7 herbaria/models/herbarium.py:22
 #: herbaria/models/herbarium.py:23 herbaria/models/herbarium.py:49
 msgid "Herbarium"
-msgstr "Harbarium"
+msgstr "Herbarium"
 
 #: herbaria/models/herbarium.py:28
 msgid "Name"
