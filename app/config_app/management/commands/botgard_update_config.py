@@ -37,7 +37,7 @@ def update_config_in_database(verbosity: int = 1, **options):
 
     with transaction.atomic():
         for key in _defaults:
-            value, descr, validator = _defaults[key]
+            value, descr, validator, translateable = _defaults[key]
             is_json = isinstance(value, (list, tuple, dict))
 
             qset = KeyValue.objects.filter(key=key)
@@ -51,7 +51,7 @@ def update_config_in_database(verbosity: int = 1, **options):
                             print("INFO: '%s': database json value is different but will not be updated" % key)
                             missed_updates.append(key)
                 else:
-                    if kv.type != "t":
+                    if kv.type not in ("t", "n"):
                         print("WARNING: '%s' has a text default-value but database has type '%s'" % (key, kv.type))
                     if kv.value != value:
                         if key not in force_update:
@@ -60,9 +60,11 @@ def update_config_in_database(verbosity: int = 1, **options):
 
                 if key in force_update:
                     print("INFO: '%s': overwriting database value from defaults" % key)
-                    kv.type = "j" if is_json else "t"
+                    kv.type = "j" if is_json else ("t" if translateable else "n")
                     if is_json:
                         kv.value_json = value
+                    elif not translateable:
+                        kv.value_normal_text = value
                     else:
                         kv.value = value
                         # get each translated language
@@ -78,6 +80,9 @@ def update_config_in_database(verbosity: int = 1, **options):
                 if is_json:
                     kwargs["value_json"] = value
                     kwargs["type"] = "j"
+                elif not translateable:
+                    kwargs["value_normal_text"] = value
+                    kwargs["type"] = "n"
                 else:
                     kwargs["value"] = value
                     # get each translated language

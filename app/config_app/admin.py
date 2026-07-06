@@ -33,7 +33,7 @@ class TabbedTranslationAdmin(TranslationAdmin):
 class KeyValueForm(ModelForm):
     class Meta:
         model = KeyValue
-        fields = ['type', 'key', 'value', 'value_json']
+        fields = ['type', 'key', 'value', 'value_normal_text', 'value_json']
 
     def __init__(self, *args, **kwargs):
         super(KeyValueForm, self).__init__(*args, **kwargs)
@@ -44,16 +44,18 @@ class KeyValueForm(ModelForm):
             # on-the-fly settings for form-widgets depending on user-created vs. _defaults
             from config_app import _defaults
             if instance.key in _defaults:
-                # can only change value of app-created
+                # can only change key or type of user-created
                 self.disable_field("key")
                 self.disable_field("type")
-                # disable text or json
-                if instance.type == "t":
+                # disable specific fields
+                if instance.type in ("t", "n"):
                     self.disable_field("value_json")
-                if instance.type == "j":
+                if instance.type in ("j", "n"):
                     self.disable_field("value")
                     for lang, lang_name in settings.LANGUAGES:
                         self.disable_field("value_%s" % lang)
+                if instance.type in ("t", "j"):
+                    self.disable_field("value_normal_text")
 
     def disable_field(self, name):
         if name in self.fields:
