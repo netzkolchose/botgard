@@ -34,7 +34,7 @@ class TabbedTranslationAdmin(TranslationAdmin):
 class KeyValueForm(ModelForm):
     class Meta:
         model = KeyValue
-        fields = ['type', 'key', 'value', 'value_json', 'value_geo']
+        fields = ['type', 'key', 'value', 'value_normal_text', 'value_json', 'value_geo']
 
     value_geo = gis_forms.PointField(
         srid=KeyValue.value_geo.field.srid,
@@ -50,22 +50,26 @@ class KeyValueForm(ModelForm):
             # on-the-fly settings for form-widgets depending on user-created vs. _defaults
             from config_app import _defaults
             if instance.key in _defaults:
-                # can only change value of app-created
+                # can only change key or type of user-created
                 self.disable_field("key")
                 self.disable_field("type")
-                # disable text or json
-                if instance.type in ("t", "g"):
+
+                # disable specific fields
+                if instance.type != "j":
                     self.disable_field("value_json")
-                if instance.type in ("j", "g"):
+                if instance.type != "t":
                     self.disable_field("value")
                     for lang, lang_name in settings.LANGUAGES:
                         self.disable_field("value_%s" % lang)
+                if instance.type != "n":
+                    self.disable_field("value_normal_text")
                 if instance.type != "g":
-                    self.disable_field("geo_location")
+                    self.disable_field("value_geo")
 
     def disable_field(self, name):
         if name in self.fields:
             self.fields[name].widget = HiddenInput()
+            self.fields[name].required = False
 
     def clean(self):
         "Need to ignore errors related to disabled fields because django assumes their values to be unset otherwise"

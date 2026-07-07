@@ -89,7 +89,7 @@
          id="tspan3338-6"
          x="105.34578"
          y="1052.2526"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.5px;line-height:1.25;font-family:Helvetica;-inkscape-font-specification:Helvetica">{{ obj.ipen_generated }}-{{ obj.accession_extension }}</tspan></text>
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.5px;line-height:1.25;font-family:Helvetica;-inkscape-font-specification:Helvetica">{{ obj.ipen_generated }}</tspan></text>
     <text
        transform="scale(1.0048327,0.99519054)"
        id="text4191"

@@ -13,6 +13,7 @@ class KeyValue(models.Model):
         verbose_name=_('type'), max_length=1, default='t',
         choices=(
             ('t', _('translateable text')),
+            ('n', _('normal text')),
             ('j', _('json')),
             ('g', _('geo coordinate')),
         )
@@ -20,6 +21,7 @@ class KeyValue(models.Model):
     key = models.CharField(verbose_name=_('key'), max_length=255, unique=True, null=False, blank=False)
 
     value = models.TextField(verbose_name=_('value'), default="", blank=True)
+    value_normal_text = models.TextField(verbose_name=_('value'), default="", blank=True)
     value_json = models.JSONField(verbose_name=_('json value'), null=True, blank=True)
     value_geo = PointField(
         verbose_name=_("geo location"),
@@ -35,6 +37,8 @@ class KeyValue(models.Model):
         if validator:
             if self.type == 'j':
                 validator(self.value_json)
+            elif self.type == 'n':
+                validator(self.value_normal_text)
             elif self.type == 't':
                 validator(self.value)
             elif self.type == 'g':
@@ -55,6 +59,8 @@ class KeyValue(models.Model):
     def value_decorator(self):
         if self.type == 't':
             return self.value[:100]
+        elif self.type == 'n':
+            return self.value_normal_text[:100]
         elif self.type == 'j':
             ret = ("%s" % self.value_json)[:100]
             return ret.replace("{u'", "{'").replace("[u'", "['").replace(": u'", ": '").replace(", u'", ", '")
