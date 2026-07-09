@@ -3,6 +3,7 @@ import json
 import time
 from copy import deepcopy
 from pathlib import Path
+from typing import Literal
 
 from django.core.management.base import BaseCommand, CommandError
 from tqdm import tqdm
@@ -19,21 +20,33 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument(
-            "-c", "--cached", type=bool, nargs="?", default=False, const=True,
-            help="Cache the downloaded data in `<projectdir>/.cache/bgci`",
+            "-d", "--download", type=str, nargs="?", default="none",
+            choices=["none", "all", "gardens", "index"],
+            help="Downloaded data is stored in `<projectdir>/.cache/bgci`. With this option you can "
+                 "reuse the cache completely (none), download everything anew (all), "
+                 "download all gardens anew (gardens) or download the index anew and missing gardens (index)",
         )
 
-    def handle(self, *args, cached: bool = True, **options):
-        import_bgci(cached=cached)
+    def handle(
+            self,
+            *args,
+            download: Literal["none", "all", "gardens", "index"],
+            **options,
+    ):
+        import_bgci(download=download)
 
 
-def import_bgci(cached: bool = False):
+def import_bgci(
+        download: Literal["none", "all", "gardens", "index"],
+):
+    # add some IDs we need which are not listed in search (because, e.g., they have no type)
+    EXTRA_BGCI_IDS = [6416, 7114]
+
     CACHE_PATH = Path(__file__).resolve().parent.parent.parent.parent / ".cache" / "bgci"
     # well, don't be over-polite.. The search interface https://gardensearch.bgci.org/search actually
     #   passes input changes to the backend un-debounced
     POLITE_SECONDS = .3
-    if cached:
-        os.makedirs(CACHE_PATH, exist_ok=True)
+    os.makedirs(CACHE_PATH, exist_ok=True)
 
     page_num = 1
     num_pages = None
@@ -41,13 +54,12 @@ def import_bgci(cached: bool = False):
     with tqdm(desc="get search pages") as progress:
         while True:
             cache_filename = CACHE_PATH / f"search-page-{page_num}.json"
-            if cached and cache_filename.exists():
+            if download not in ("all", "index") and cache_filename.exists():
                 data = json.loads(cache_filename.read_text())
             else:
                 url = f"https://datatools.bgci.org/api/gardens?filter[type]=1,2,3,4,5,6,7,8,9,10,11,12,13,14&sort=relevance&page[number]={page_num}&page[size]=100"
                 data = requests.get(url).json()
-                if cached:
-                    cache_filename.write_text(json.dumps(data))
+                cache_filename.write_text(json.dumps(data))
                 time.sleep(POLITE_SECONDS)
 
             data_list.extend(data["data"])
@@ -62,20 +74,23 @@ def import_bgci(cached: bool = False):
                     page_num += 1
                     progress.update()
 
-    for entry in tqdm(data_list, desc="download gardens"):
-        bgci_id = entry["id"]
+    bgci_ids = set(entry["id"] for entry in data_list)
+    for id in EXTRA_BGCI_IDS:
+        bgci_ids.add(id)
+    bgci_ids = sorted(bgci_ids)
+
+    for bgci_id in tqdm(bgci_ids, desc="download gardens"):
 
         if BGCIGarden.objects.filter(bgci_id=bgci_id).exists():
             continue
 
         cache_filename = CACHE_PATH / f"id-{bgci_id}.json"
-        if cached and cache_filename.exists():
+        if download not in ("all", "gardens") and cache_filename.exists():
             data = json.loads(cache_filename.read_text())
         else:
             url = f"https://datatools.bgci.org/api/gardens/{bgci_id}?all_attributes=true&last_updates=true"
             data = requests.get(url).json()
-            if cached:
-                cache_filename.write_text(json.dumps(data))
+            cache_filename.write_text(json.dumps(data))
             time.sleep(POLITE_SECONDS)
 
         try:
