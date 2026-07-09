@@ -99,6 +99,8 @@ def import_bgci(
             garden_type = data["attributes"]["organisation_type"]["value"]
             if isinstance(garden_type, list):
                 garden_type = "/".join(garden_type)
+            elif not garden_type:
+                garden_type = "Undefined"
             if garden_type and len(garden_type) > 128:
                 garden_type = f"{garden_type[:126]}.."
 
