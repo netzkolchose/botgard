@@ -6,6 +6,7 @@ from django.contrib.admin.filters import FieldListFilter, AllValuesFieldListFilt
 from config_tables.admin import CustomSelectHeaderFilter
 from species.models import Species
 from .individual_base import *
+from individuals.numbers import generate_individual_ipen
 
 
 class Individual(IndividualBase, Configurable):
@@ -280,10 +281,7 @@ class Individual(IndividualBase, Configurable):
 
     def save(self, *args, **kwargs):
         # -- update generated fields --
-        self.ipen_generated = (
-            str.upper(self.ipen_country) + "-" + str.upper(self.ipen_transfer_restricted)
-            + "-" + str.upper(self.ipen_garden_code.code or "XX") + "-" + str(self.ipen_accession_number)
-        )
+        self.ipen_generated = generate_individual_ipen(self)
 
         # -- update id_name_generated --
         self.id_name_generated = (

@@ -259,4 +259,7 @@ ISO_COUNTRY_CODE_NAME_MAPPING = {
 }
 
 def get_iso_country_name(code):
+    from django.utils.translation import gettext_lazy as _
+    if code.lower() == "xx":
+        return _("unknown")
     return ISO_COUNTRY_CODE_NAME_MAPPING.get(code.lower(), code.upper())

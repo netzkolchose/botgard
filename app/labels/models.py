@@ -142,7 +142,12 @@ class LabelDefinition(models.Model):
                 if not self.format == "html" or not self.page_markup or not self.page_markup.strip():
                     return markup
                 else:
-                    t = Template(f"{{% load i18n %}}{self.page_markup}")
+                    t = "{% load i18n %}"
+                    if not without_page_markup:
+                        t = f"{t}\n{self.page_markup}"
+                    else:
+                        t = t + "\n{{content}}"
+                    t = Template(t)
                     return t.render(Context({"content": mark_safe(markup)}))
 
         except Exception as e:

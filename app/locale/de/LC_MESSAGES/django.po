@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-14 17:21+0200\n"
+"POT-Creation-Date: 2026-07-01 19:00+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -145,7 +145,9 @@ msgstr "Passwort ändern"
 msgid ""
 "The password reset link has expired, please request a new one from your "
 "administrator."
-msgstr "Der Passwort-Reset Link ist abgelaufen. Bitte fordern Sie einen neuen von ihrem Administrator an."
+msgstr ""
+"Der Passwort-Reset Link ist abgelaufen. Bitte fordern Sie einen neuen von "
+"ihrem Administrator an."
 
 #: BotGard/views/password_views.py:102
 msgid "Your password has been changed"
@@ -195,11 +197,11 @@ msgstr "Hinzufügen"
 msgid "Move catalogs to archive"
 msgstr "Kataloge ins Archiv bewegen"
 
-#: botman/admin.py:163
+#: botman/admin.py:166
 msgid "Mark orders as processed"
 msgstr "Bestellungen als 'bestellt' markieren"
 
-#: botman/admin.py:169
+#: botman/admin.py:172
 #, python-format
 msgid "%(num_orders)s orders have been marked as processed"
 msgstr "%(num_orders)s Bestellungen wurden als 'bestellt' markiert"
@@ -573,16 +575,16 @@ msgstr "Unbekannter Typ in KeyValue \"%s\""
 msgid "Configure table %(name)s"
 msgstr "%(name)s-Tabelle bearbeiten"
 
-#: config_tables/admin.py:492
+#: config_tables/admin.py:491
 #, python-format
 msgid "Remove filter for %s"
 msgstr "Filter für %s entfernen"
 
-#: config_tables/admin.py:531
+#: config_tables/admin.py:530
 msgid "yes"
 msgstr "Ja"
 
-#: config_tables/admin.py:532
+#: config_tables/admin.py:531
 msgid "no"
 msgstr "Nein"
 
@@ -773,7 +775,7 @@ msgstr "Als Individuum speichern"
 #: herbaria/apps.py:7 herbaria/models/herbarium.py:22
 #: herbaria/models/herbarium.py:23 herbaria/models/herbarium.py:49
 msgid "Herbarium"
-msgstr "Harbarium"
+msgstr "Herbarium"
 
 #: herbaria/models/herbarium.py:28
 msgid "Name"
@@ -970,23 +972,23 @@ msgstr "Alle"
 msgid "seed"
 msgstr "Samen"
 
-#: individuals/models/individual.py:489
+#: individuals/models/individual.py:490
 msgid "Create new catalog."
 msgstr "Neuen Katalog erstellen"
 
-#: individuals/models/individual.py:499 individuals/models/individual.py:504
+#: individuals/models/individual.py:500 individuals/models/individual.py:505
 msgid "catalog"
 msgstr "Katalog"
 
-#: individuals/models/individual.py:499
+#: individuals/models/individual.py:500
 msgid "remove"
 msgstr "entfernen"
 
-#: individuals/models/individual.py:504
+#: individuals/models/individual.py:505
 msgid "add"
 msgstr "hinzufügen"
 
-#: individuals/models/individual.py:507
+#: individuals/models/individual.py:508
 msgid "add to current catalog"
 msgstr "Zu letztem Katalog hinzufügen"
 
@@ -1025,6 +1027,7 @@ msgstr "Sporen"
 #: individuals/models/individual_base.py:42
 #: individuals/models/individual_base.py:49
 #: individuals/models/individual_base.py:162 tickets/models.py:24
+#: tools/countries.py:264
 msgid "unknown"
 msgstr "unbekannt"
 
@@ -1480,7 +1483,7 @@ msgstr ""
 msgid "preview"
 msgstr "Vorschau"
 
-#: labels/models.py:204 labels/models.py:232
+#: labels/models.py:209 labels/models.py:237
 msgid "label.pdf"
 msgstr "Etikett.pdf"
 
@@ -1489,11 +1492,11 @@ msgstr "Etikett.pdf"
 msgid "❓ Documentation"
 msgstr "❓ Dokumentation"
 
-#: labels/templates/labels/change_form.html:45
+#: labels/templates/labels/change_form.html:46
 msgid "original"
 msgstr "Original"
 
-#: labels/templates/labels/change_form.html:54 tickets/models.py:12
+#: labels/templates/labels/change_form.html:55 tickets/models.py:12
 msgid "new"
 msgstr "Neu"
 

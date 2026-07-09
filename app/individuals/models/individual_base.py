@@ -23,7 +23,6 @@ from ajax.autocomplete import AutoCompleteForm
 
 from configuration.accession_extensions import ACCESSION_EXTENSION_CHOICES
 from config_tables.admin import configurable, Configurable
-#from geolocation.models import undefined_geolocation, undefined_osmlocation
 from individuals.numbers import get_new_accession_number, get_new_order_number
 
 
