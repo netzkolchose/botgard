@@ -28,6 +28,9 @@ class Command(BaseCommand):
 
 
 def import_bgci(cached: bool = False):
+    # add some IDs we need which are not listed in search (because, e.g., they have no type)
+    EXTRA_BGCI_IDS = [6416, 7114]
+
     CACHE_PATH = Path(__file__).resolve().parent.parent.parent.parent / ".cache" / "bgci"
     # well, don't be over-polite.. The search interface https://gardensearch.bgci.org/search actually
     #   passes input changes to the backend un-debounced
@@ -62,8 +65,12 @@ def import_bgci(cached: bool = False):
                     page_num += 1
                     progress.update()
 
-    for entry in tqdm(data_list, desc="download gardens"):
-        bgci_id = entry["id"]
+    bgci_ids = set(entry["id"] for entry in data_list)
+    for id in EXTRA_BGCI_IDS:
+        bgci_ids.add(id)
+    bgci_ids = sorted(bgci_ids)
+
+    for bgci_id in tqdm(bgci_ids, desc="download gardens"):
 
         if BGCIGarden.objects.filter(bgci_id=bgci_id).exists():
             continue
@@ -84,6 +91,8 @@ def import_bgci(cached: bool = False):
             garden_type = data["attributes"]["organisation_type"]["value"]
             if isinstance(garden_type, list):
                 garden_type = "/".join(garden_type)
+            elif not garden_type:
+                garden_type = "Undefined"
             if garden_type and len(garden_type) > 128:
                 garden_type = f"{garden_type[:126]}.."
 
