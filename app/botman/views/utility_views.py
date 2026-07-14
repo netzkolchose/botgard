@@ -8,10 +8,8 @@ from django.template import Context, loader
 from django.shortcuts import render
 
 from tools.permissions import *
-
-from .models import *
-
 from tools.admin_extensions import minimal_admin_context
+from botman.models import *
 
 
 # TODO: cleanup
