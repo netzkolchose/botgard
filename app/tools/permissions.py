@@ -5,6 +5,8 @@ from django.http import HttpRequest
 
 
 def check_user_can_write(user):
+    if not user.is_staff or not user.is_active:
+        return False
     if user.groups.filter(name='readOnly').exists():
         return False
     # TODO: This checks for ANY add/delete permission
@@ -14,6 +16,18 @@ def check_user_can_write(user):
     return False
 
 
+def check_user_has_permissions(user, *permissions: str):
+    if not user.is_staff or not user.is_active:
+        return False
+    user_perms = user.get_all_permissions()
+    for p in permissions:
+        if p not in user_perms:
+            # print(f"USER {user} MISSING {p}, has {sorted(user_perms)}")
+            return False
+
+    return True
+
+
 def is_kustos(request_or_user):
     if isinstance(request_or_user, HttpRequest):
         user = request_or_user.user
@@ -21,6 +35,8 @@ def is_kustos(request_or_user):
         user = request_or_user
     else:
         raise ValueError("Expected request or user, got %s" % type(request_or_user))
+    if not user.is_staff or not user.is_active:
+        return False
     return user.groups.filter(name="Kustus").exists()
 
 
@@ -93,6 +109,23 @@ def write_permission_required(function=None,
     )
     if function:
         return actual_decorator(function)
+    return actual_decorator
+
+
+def permission_required(
+        *permissions: str,
+        redirect_field_name=REDIRECT_FIELD_NAME,
+        login_url="/botman/no_permission",
+):
+    """
+    Decorator for views that checks that the user is logged in and has certain permission,
+    redirecting to the log-in page if necessary.
+    """
+    actual_decorator = user_passes_test(
+        lambda u: u.is_authenticated and check_user_has_permissions(u, *permissions),
+        login_url=login_url,
+        redirect_field_name=redirect_field_name
+    )
     return actual_decorator
 
 
