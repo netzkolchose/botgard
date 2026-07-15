@@ -9,7 +9,7 @@ from django.conf import settings
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('botman', '0005_botanicgarden_comment'),
+        ('botman', '0006_botanicgarden_add_bgci_id_alter_comment'),
     ]
 
     operations = (

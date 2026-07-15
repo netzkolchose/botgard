@@ -1,4 +1,4 @@
-from django.urls import re_path
+from django.urls import path, re_path
 
 from . import views
 
@@ -8,6 +8,8 @@ urlpatterns = [
     re_path(r'^no_permission$',                         views.no_permission_page,   name='no_permission'),
 
     re_path(r'^admin/?',                                views.data_admin_view,      name="data_admin"),
-
     re_path(r'^activity/?$',                            views.activity_view,        name='activity'),
+
+    re_path(r'^map-bgci/?$',                            views.map_bgci_view,        name='map_bgci'),
+    re_path(r'^map-bgci/assign/?$',                     views.assign_bgci_view,     name='assign_bgci'),
 ]

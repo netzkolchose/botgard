@@ -11,8 +11,6 @@ from tools.urls import full_url
 
 import config_app
 
-# TODO: replace get_new_number, link methods still needed?, save still needed?
-
 
 config_app.register_key(
     "site_branding",
@@ -51,7 +49,11 @@ class BotanicGarden(Configurable, models.Model):
     phone = models.CharField(verbose_name=_('phone'), max_length=80, blank=True, null=True)
     website = models.URLField(verbose_name=_('website'), blank=True, null=True)
     email = models.EmailField(verbose_name=_('email'), blank=True, null=True)
-    comment = models.CharField(verbose_name=_('comment'), max_length=256, blank=True, null=True)
+    comment = models.TextField(verbose_name=_('comment'), blank=True, null=True)
+    bgci_id = models.IntegerField(
+        verbose_name=_('BGCI ID'), null=True, blank=True,
+        help_text=_("ID of garden in https://gardensearch.bgci.org (0 if garden not in BGCI)"),
+    )
 
     full_name_generated = models.CharField(verbose_name=_('full name'), max_length=150, blank=True)
     num_orders_generated = models.IntegerField(verbose_name=_('number of orders'), default=0)
@@ -87,6 +89,17 @@ class BotanicGarden(Configurable, models.Model):
     website_link_decorator.admin_order_field = 'website'
     website_link_decorator.short_description = _('website')
     website_link_decorator.as_csv = lambda s: s[s.index('<a href')+9:s.index('"', s.index('<a href')+9)] if "<a href" in s else s
+
+    @configurable
+    def bgci_link_decorator(self):
+        if self.bgci_id:
+            url = f"https://gardensearch.bgci.org/garden/{self.bgci_id}"
+            return mark_safe('<a href="%s" target="_blank">%s</a>' % (url, self.bgci_id))
+        else:
+            return "-"
+    bgci_link_decorator.admin_order_field = 'bgci_id'
+    bgci_link_decorator.short_description = _('BGCI website')
+    bgci_link_decorator.as_csv = lambda s: s[s.index('<a href')+9:s.index('"', s.index('<a href')+9)] if "<a href" in s else s
 
     @configurable
     def email_link_decorator(self):
