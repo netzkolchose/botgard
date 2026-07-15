@@ -40,7 +40,7 @@ def import_bgci(
         download: Literal["none", "all", "gardens", "index"],
 ):
     # add some IDs we need which are not listed in search (because, e.g., they have no type)
-    EXTRA_BGCI_IDS = [6416, 7114]
+    EXTRA_BGCI_IDS = [6416, 7114, 7174]
 
     CACHE_PATH = Path(__file__).resolve().parent.parent.parent.parent / ".cache" / "bgci"
     # well, don't be over-polite.. The search interface https://gardensearch.bgci.org/search actually
