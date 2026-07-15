@@ -6,6 +6,7 @@ from django.utils import timezone
 from django.contrib.auth import get_user_model
 from django.dispatch import receiver
 from django.db.models.signals import post_save, pre_delete, post_delete, post_init
+from django import forms
 
 from config_tables.admin import Configurable, configurable
 from ajax.autocomplete import AutoCompleteForm
@@ -52,7 +53,11 @@ class BotanicGarden(Configurable, models.Model):
     phone = models.CharField(verbose_name=_('phone'), max_length=80, blank=True, null=True)
     website = models.URLField(verbose_name=_('website'), blank=True, null=True)
     email = models.EmailField(verbose_name=_('email'), blank=True, null=True)
-    comment = models.CharField(verbose_name=_('comment'), max_length=256, blank=True, null=True)
+    comment = models.TextField(verbose_name=_('comment'), blank=True, null=True)
+    bgci_id = models.IntegerField(
+        verbose_name=_('BGCI ID'), null=True, blank=True,
+        help_text=_("ID of garden in https://gardensearch.bgci.org (0 if garden not in BGCI)"),
+    )
 
     full_name_generated = models.CharField(verbose_name=_('full name'), max_length=150, blank=True)
     num_orders_generated = models.IntegerField(verbose_name=_('number of orders'), default=0)

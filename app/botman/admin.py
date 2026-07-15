@@ -5,7 +5,9 @@ from django.utils.translation import gettext_lazy as _
 from config_tables.admin import ConfigurableTable, configurable, ForeignKeyFilter
 from tools import readOnlyAdmin
 from tools.search_fields import search_fields_compatible
+from tools.permissions import check_user_has_permissions
 from .models import *
+from .views.bgci_views import MAP_BGCI_PERMISSION
 from .utils import move_catalogs_to_archive
 from labels.mass_action import add_label_mass_actions
 
@@ -51,7 +53,8 @@ class BotanicGardenAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTab
         (None, {
             'fields': (
                 'number',
-                ('name', 'code',),
+                'name',
+                ('code', 'bgci_id'),
                 'address',
                 ('phone', 'website', 'email',),
                 'comment',
@@ -85,7 +88,15 @@ class BotanicGardenAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTab
         else:
             super().save_formset(request, form, formset, change)
 
+    change_list_template = "botman/garden-change-list.html"
     change_form_template = "botman/garden-change-form.html"
+
+    def changelist_view(self, request, extra_context=None):
+        if check_user_has_permissions(request.user, *MAP_BGCI_PERMISSION):
+            if BGCIGarden.objects.exists():
+                extra_context = extra_context or {}
+                extra_context["map_bgci_gardens"] = True
+        return super().changelist_view(request, extra_context)
 
 
 admin.site.register(BotanicGarden, BotanicGardenAdmin)

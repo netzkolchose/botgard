@@ -1,0 +1,61 @@
+{% extends admin_base_tmpl %}
+{% load i18n static %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static 'botman/map-bgci.css' %}" />
+    <script type="text/javascript" src="{% static "botman/map-bgci.js"%}"></script>
+{% endblock %}
+
+
+{% block page_content %}
+
+    <div class="pages-header">{% trans 'number of pages to assign' %}: {{ num_pages }}</div>
+
+    <div
+        class="garden-mapping"
+        data-url="{% url 'botman:assign_bgci' %}"
+        data-error-text="{% trans 'Sorry, but something went wrong' %}"
+    >
+        <form style="display: none">
+            {% csrf_token %}
+        </form>
+
+        <div class="garden-row">
+            <div class="garden"><b>{% trans 'botanic garden' %}</b></div>
+            <div class="bgci-gardens">
+                <b>{% trans 'Suggestions from BGCI' %}</b>
+                <br/>{% trans 'Click on one of the suggestions to map your garden to a garden in the BGCI database' %}
+            </div>
+        </div>
+        {% for garden in gardens %}
+            <div class="garden-row" data-garden-pk="{{ garden.pk }}">
+                <div class="garden">
+                    <div class="name">{{ garden.name }}</div>
+                    <div class="address">{{ garden.address }}</div>
+                </div>
+                <div class="bgci-gardens">
+                    {% for bgci in garden.bgci %}
+                        <div
+                            class="bgci-garden highlight-{{ bgci.color }}"
+                            data-garden-pk="{{ garden.pk }}"
+                            data-bgci-id="{{ bgci.id }}"
+                            title="{{ bgci.title }}"
+                        >
+                            {{ bgci.name }}
+                        </div>
+                    {% endfor %}
+                    <div
+                        class="bgci-garden highlight-1 no-assignment"
+                        data-garden-pk="{{ garden.pk }}"
+                        data-bgci-id="0"
+                    >
+                        {% trans 'no assignment' %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+        <div><a href="{% url 'botman:map_bgci' %}">{% trans 'reload page' %}</a></div>
+    </div>
+
+{% endblock %}
