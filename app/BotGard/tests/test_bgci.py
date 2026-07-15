@@ -11,12 +11,23 @@ class TestBGCI(TestBase):
         UserModel.objects.create_superuser(
             username="User1", password="the-secret"
         )
-
-    def setUp(self):
-        self.assertTrue(
-            self.client.login(username="User1", password="the-secret"),
-            "failed to log in"
+        user = UserModel.objects.create_user(
+            username="User2", password="the-secret", is_staff=True,
         )
+        group = create_permission_group("gardens", {
+            "botman.botanicgarden": {"add", "view", "change"},
+            "botman.bgcigarden": {"view"},
+        })
+        user.groups.add(group)
+
+        user = UserModel.objects.create_user(
+            username="User3", password="the-secret", is_staff=True,
+        )
+        group = create_permission_group("gardens-readonly", {
+            "botman.botanicgarden": {"view"},
+            "botman.bgcigarden": {"view"},
+        })
+        user.groups.add(group)
 
     def create_gardens(self, *names: str) -> List[BotanicGarden]:
         gardens = []
@@ -27,7 +38,6 @@ class TestBGCI(TestBase):
                 number=BotanicGarden.objects.count() + 1,
             ))
         return gardens
-
 
     def create_bgci_gardens(self, *names_or_names_and_cities: Union[str, Tuple[str, str]]) -> List[BGCIGarden]:
         gardens = []
@@ -94,3 +104,47 @@ class TestBGCI(TestBase):
                 ],
                 fuzzy_find_bgci_garden("ABC", "D", with_scores=True),
             )
+
+    def test_map_bgci_permissions(self):
+        self.create_gardens("Garden1", "Garden2")
+        self.create_bgci_gardens("Garden1", "Garden2")
+
+        for username, expect_access in (
+            ("User1", True),
+            ("User2", True),
+            ("User3", False),
+        ):
+            with self.subTest(username):
+                self.login(username)
+
+                response = self.client.get(reverse("botman:map_bgci"))
+                if expect_access:
+                    self.assertEqual(200, response.status_code)
+                else:
+                    self.assertEqual(302, response.status_code)
+                    self.assertIn("no_permission", response.headers.get("Location") or "")
+
+    def test_map_bgci_admin_permissions(self):
+        """
+        Check that the map-bgci-gardens action button is only visible to users with matching permissions
+        """
+        self.create_gardens("Garden1", "Garden2")
+        self.create_bgci_gardens("Garden1", "Garden2")
+
+        for username, expect_access in (
+                ("User1", True),
+                ("User2", True),
+                ("User3", False),
+        ):
+            with self.subTest(username):
+                self.login(username)
+                try:
+                    response = self.client.get(reverse("admin:botman_botanicgarden_changelist"))
+                    self.assertEqual(200, response.status_code)
+                    if expect_access:
+                        self.assertIn(reverse("botman:map_bgci").encode(), response.content)
+                    else:
+                        self.assertNotIn(reverse("botman:map_bgci").encode(), response.content)
+
+                finally:
+                    self.client.logout()

@@ -97,6 +97,10 @@ class TestAllViews(TestBase):
                 ):
                     expected_status = 302
 
+                # this one requires query params and existing BGCIGardens, tested elsewhere..
+                if url_name == "botman:assign_bgci":
+                    expected_status = 400
+
                 self.assertStatus(expected_status, response, f"in {url_name} {url}")
 
             except Exception as e:
