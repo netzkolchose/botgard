@@ -132,7 +132,10 @@ class Territory(CalcOutplantingsMixin, models.Model, Configurable):
     def save(self, *args, **kwargs):
         # update name_generated
         if hasattr(self, "name_generated"):
-            self.name_generated = "%s (%s)" % (self.code, self.name)
+            name = self.code
+            if self.name != self.code:
+                name = f"{name} ({self.name})"
+            self.name_generated = name
 
         has_changed = False
         if self.id:
@@ -205,7 +208,10 @@ class Department(CalcOutplantingsMixin, models.Model, Configurable):
 
     @configurable
     def __str__(self):
-        return "%s (%s)" % (self.full_code, self.name)
+        name = self.full_code
+        if self.name != self.full_code:
+            name = f"{name} ({self.name})"
+        return name
     __str__.admin_order_field = 'full_code'
 
     @configurable
