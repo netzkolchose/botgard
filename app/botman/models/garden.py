@@ -95,6 +95,17 @@ class BotanicGarden(Configurable, models.Model):
     website_link_decorator.as_csv = lambda s: s[s.index('<a href')+9:s.index('"', s.index('<a href')+9)] if "<a href" in s else s
 
     @configurable
+    def bgci_link_decorator(self):
+        if self.bgci_id:
+            url = f"https://gardensearch.bgci.org/garden/{self.bgci_id}"
+            return mark_safe('<a href="%s" target="_blank">%s</a>' % (url, self.bgci_id))
+        else:
+            return "-"
+    bgci_link_decorator.admin_order_field = 'bgci_id'
+    bgci_link_decorator.short_description = _('BGCI website')
+    bgci_link_decorator.as_csv = lambda s: s[s.index('<a href')+9:s.index('"', s.index('<a href')+9)] if "<a href" in s else s
+
+    @configurable
     def email_link_decorator(self):
         if self.email:
             return mark_safe('<a href="mailto:%s">%s</a>' % (self.email, self.email[0:75]))

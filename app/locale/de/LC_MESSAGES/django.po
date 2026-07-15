@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-15 13:00+0200\n"
+"POT-Creation-Date: 2026-07-15 15:17+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -246,7 +246,7 @@ msgid "phone"
 msgstr "Telefon"
 
 #: botman/models/bgci_gardens.py:27 botman/models/bgci_gardens.py:55
-#: botman/models/garden.py:55 botman/models/garden.py:104
+#: botman/models/garden.py:55 botman/models/garden.py:115
 msgid "email"
 msgstr "eMail"
 
@@ -270,7 +270,7 @@ msgstr "Adresse"
 msgid "BGCI data"
 msgstr "BGCI Daten"
 
-#: botman/models/bgci_gardens.py:45
+#: botman/models/bgci_gardens.py:45 botman/models/garden.py:105
 msgid "BGCI website"
 msgstr "BGCI Webseite"
 
@@ -303,7 +303,7 @@ msgid "garden catalog/%(date)s"
 msgstr "Katalog/%(date)s"
 
 #: botman/models/catalogs.py:53 botman/models/catalogs.py:54
-#: botman/models/garden.py:124 botman/models/garden.py:125
+#: botman/models/garden.py:135 botman/models/garden.py:136
 #: entrybook/models/entry.py:118 entrybook/models/entry.py:119
 #: herbaria/models/herbarium.py:61 herbaria/models/herbarium.py:63
 #: herbaria/models/specimen.py:115 herbaria/models/specimen.py:117
@@ -409,7 +409,9 @@ msgstr "BGCI ID"
 
 #: botman/models/garden.py:59
 msgid "ID of garden in https://gardensearch.bgci.org (0 if garden not in BGCI)"
-msgstr "ID des Gartens in https://gardensearch.bgci.org (0 wenn der Garten nicht in BGCI aufgeführt ist)"
+msgstr ""
+"ID des Gartens in https://gardensearch.bgci.org (0 wenn der Garten nicht in "
+"BGCI aufgeführt ist)"
 
 #: botman/models/garden.py:62 species/models.py:68 species/models.py:134
 msgid "full name"
@@ -425,12 +427,12 @@ msgstr ""
 "{{obj.botanicgarden.address_lines.0}}, "
 "{{obj.botanicgarden.address_lines.1}}, usw."
 
-#: botman/models/garden.py:113 individuals/models/individual.py:450
+#: botman/models/garden.py:124 individuals/models/individual.py:450
 #: labels/__init__.py:81
 msgid "label"
 msgstr "Etikett"
 
-#: botman/models/garden.py:118 botman/models/garden.py:119
+#: botman/models/garden.py:129 botman/models/garden.py:130
 #: entrybook/models/entry.py:111 entrybook/models/entry.py:112
 #: herbaria/models/herbarium.py:53 herbaria/models/herbarium.py:55
 #: herbaria/models/specimen.py:107 herbaria/models/specimen.py:109
@@ -521,7 +523,9 @@ msgstr "Vorschläge aus BGCI"
 msgid ""
 "Click on one of the suggestions to map your garden to a garden in the BGCI "
 "database"
-msgstr "Klicken Sie auf einen der Vorschläge um Ihren Garten einem Garten der BGCI-Datenbank zuzuweisen"
+msgstr ""
+"Klicken Sie auf einen der Vorschläge um Ihren Garten einem Garten der BGCI-"
+"Datenbank zuzuweisen"
 
 #: botman/templates/botman/map-bgci.html:53
 msgid "no assignment"
