@@ -93,7 +93,7 @@ class BotanicGardenAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTab
 
     def changelist_view(self, request, extra_context=None):
         if check_user_has_permissions(request.user, *MAP_BGCI_PERMISSION):
-            if BGCIGarden.objects.exists():
+            if BGCIGarden.objects.exists() and BotanicGarden.objects.filter(bgci_id=None).exists():
                 extra_context = extra_context or {}
                 extra_context["map_bgci_gardens"] = True
         return super().changelist_view(request, extra_context)
