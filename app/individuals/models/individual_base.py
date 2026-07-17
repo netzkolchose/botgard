@@ -71,7 +71,8 @@ class IndividualBase(models.Model):
     accession_number = models.CharField(
         verbose_name=_("accession #"), blank=False, null=True, db_index=True,
         max_length=30,
-        default=get_new_accession_number, unique=True
+        default=get_new_accession_number, unique=True,
+        db_collation="natural_sort" if settings.IS_POSTGRES else None,
     )
 
     accession_extension = models.CharField(
@@ -81,7 +82,8 @@ class IndividualBase(models.Model):
 
     id_name_generated = models.CharField(
         max_length=100, verbose_name=_("name"),
-        default="", editable=False
+        default="", editable=False,
+        db_collation="natural_sort" if settings.IS_POSTGRES else None,
     )
 
     species_checked_by = models.CharField(
@@ -116,7 +118,10 @@ class IndividualBase(models.Model):
     )
     found_text = models.TextField(max_length=10000, verbose_name=_("collecting place description"), blank=True)
     collector_name = models.CharField(max_length=100, verbose_name=_("collector's name"), blank=True, null=False)
-    collector_number = models.CharField(max_length=100, verbose_name=_("collection number"), blank=True)
+    collector_number = models.CharField(
+        max_length=100, verbose_name=_("collection number"), blank=True,
+        db_collation="natural_sort" if settings.IS_POSTGRES else None,
+    )
     collector_date = models.DateField(verbose_name=_("collection date"), blank=True, null=True)
 
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES, verbose_name=_("gender"), blank=True)
@@ -129,12 +134,18 @@ class IndividualBase(models.Model):
     )
 
     seed_available = models.BooleanField(verbose_name=_("seed available"))
-    order_number = models.CharField(verbose_name=_("order number"), max_length=20, unique=True, default=get_new_order_number)
+    order_number = models.CharField(
+        verbose_name=_("order number"), max_length=20, unique=True, default=get_new_order_number,
+        db_collation="natural_sort" if settings.IS_POSTGRES else None,
+    )
 
     seed_collector_date = models.DateField(verbose_name=_("seed's collection date"), blank=True, null=True)
     seed_in_stock = models.BooleanField(verbose_name=_("seed in stock"))
 
-    sowing_number = models.CharField(verbose_name=_("sowing number"), max_length=100, blank=True)
+    sowing_number = models.CharField(
+        verbose_name=_("sowing number"), max_length=100, blank=True,
+        db_collation="natural_sort" if settings.IS_POSTGRES else None,
+    )
 
     import_reference = models.CharField(
         verbose_name=_("import reference"),

@@ -10,7 +10,8 @@ import config_app
 
 
 VALID_NUMBER_METHODS = (
-    'random_range', 'incremental', 'incremental_tight', 'empty'
+    'random_range', 'incremental', 'incremental_tight', 'empty',
+    'year_id',
 )
 
 NUMBER_METHOD_HELP_TEXT = (
@@ -20,6 +21,7 @@ NUMBER_METHOD_HELP_TEXT = (
     "<li><b>random_range</b>: A random number between attributes 'min' and 'max'</li>\n"
     "<li><b>incremental</b>: Increasing numbers starting at 'min' (skips existing number gaps)</li>\n"
     "<li><b>incremental_tight</b>: Increasing numbers starting at 'min' (will also pick free numbers in existing gaps)</li>\n"
+    "<li><b>year_id</b>: Make the accession number from current year and an increasing number-per-year starting at 'min'</li>\n"
     "</ul>"
 )
 
@@ -28,16 +30,19 @@ def _number_generation_validator(val):
 
     if "method" not in val:
         raise ValidationError(_('Method must be defined'))
+
     if val['method'] not in VALID_NUMBER_METHODS:
         raise ValidationError(_('Unknown method "%s". Supported values are %s.') % (
             val['method'],
             ", ".join(f'"{m}"' for m in VALID_NUMBER_METHODS)
         ))
+
     if val['method'] not in ("empty",):
         if 'min' not in val:
             raise ValidationError(_('Property "min" must be specified.'))
         if not isinstance(val['min'], int):
             raise ValidationError(_('Property "min" must be of type int or long.'))
+
     if val['method'] in ('random_range', ):
         if 'max' not in val or 'min' not in val:
             raise ValidationError(_('Method specified requires "min" and "max" properties.'))
@@ -150,6 +155,31 @@ def _get_new_number(
 
     elif method["method"] == "empty":
         return ""
+
+    elif method["method"] == "year_id":
+
+        is_empty = True
+        for Model in model_classes:
+            qset = Model.objects.all()
+            if qset.exists():
+                is_empty = False
+                break
+
+        year = datetime.date.today().year
+        max_num = method["min"]
+
+        if not is_empty:
+            for Model in model_classes:
+                qset = Model.objects.filter(**{f"{fieldname}__regex": f"^{year}-\\d+$"}).order_by(f"-{fieldname}")
+                if qset.exists():
+                    value = qset.values_list(fieldname, flat=True).first()
+                    try:
+                        value = int(value.split("-")[1])
+                        max_num = max(max_num, value + 1)
+                    except ValueError:
+                        pass
+
+        return f"{year}-{max_num}"
 
     raise ValueError("Unknown number generation method '%s'" % method["method"])
 

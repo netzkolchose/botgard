@@ -1,9 +1,11 @@
+import datetime
 import random
 from typing import Union
 
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.admindocs.views import simplify_regex
+from django.conf import settings
 
 from botman.models import BotanicGarden
 from species.models import Family, Species
@@ -23,7 +25,14 @@ class TestNumberGenerator(TestCase):
     def setUpTestData(cls):
         create_test_fixtures()
 
-    def create_entry(self, accession_number: Union[int, str], order_number: Union[int, str]):
+    def create_entry(
+            self,
+            accession_number: Union[int, str],
+            order_number: Union[int, str, None] = None,
+    ):
+        if order_number is None:
+            order_number = accession_number
+
         return Entry.objects.create(
             accession_number=accession_number,
             ipen_accession_number=accession_number,
@@ -32,7 +41,13 @@ class TestNumberGenerator(TestCase):
             seed_in_stock=False,
         )
 
-    def create_individual(self, accession_number: Union[int, str], order_number: Union[int, str]):
+    def create_individual(
+            self,
+            accession_number: Union[int, str],
+            order_number: Union[int, str, None] = None,
+    ):
+        if order_number is None:
+            order_number = accession_number
         species = random.choice(list(Species.objects.all()))
         garden = random.choice(list(BotanicGarden.objects.all()))
 
@@ -229,3 +244,55 @@ class TestNumberGenerator(TestCase):
 
         self.assertEqual("", numbers.get_new_accession_number())
         self.assertEqual("", numbers.get_new_order_number())
+
+    def test_number_gen_year_id(self):
+        KeyValue.objects.create(
+            type="j",
+            key="accession_generation",
+            value_json={
+                "method": "year_id",
+                "min": 1,
+            },
+        )
+        KeyValue.objects.create(
+            type="j",
+            key="order_number_generation",
+            value_json={
+                "method": "year_id",
+                "min": 1,
+            },
+        )
+        year = datetime.date.today().year
+
+        # take min value if no collision yet
+        self.assertEqual(f"{year}-1", numbers.get_new_accession_number())
+        self.assertEqual(f"{year}-1", numbers.get_new_order_number())
+
+        self.create_individual(f"{year}-1")
+        # create some other accession numbers as well
+        # they should not interfere with the year_id counter
+        self.create_individual("test1")
+        self.create_individual("XY-1992")
+        self.create_individual(f"{year-1}-23")
+
+        self.assertEqual(f"{year}-2", numbers.get_new_accession_number())
+        self.assertEqual(f"{year}-2", numbers.get_new_order_number())
+
+        self.create_individual(f"{year}-3")
+        self.create_entry(f"{year}-4", f"{year}-5")
+        self.create_individual("ABC")
+        self.create_entry("XY-1998")
+
+        self.assertEqual(f"{year}-5", numbers.get_new_accession_number())
+        self.assertEqual(f"{year}-6", numbers.get_new_order_number())
+
+        # check that natural sorting is used
+        self.create_individual(f"{year}-10")
+
+        if settings.IS_POSTGRES:
+            self.assertEqual(f"{year}-11", numbers.get_new_accession_number())
+            self.assertEqual(f"{year}-11", numbers.get_new_order_number())
+        else:
+            # without natural sort we have 1, 10, 2, 3, 4
+            self.assertEqual(f"{year}-5", numbers.get_new_accession_number())
+            self.assertEqual(f"{year}-6", numbers.get_new_order_number())
