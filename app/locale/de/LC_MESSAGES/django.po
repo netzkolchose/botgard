@@ -885,7 +885,7 @@ msgstr "Längengrad"
 
 #: geo/templates/geo/openlayers.html:6
 msgid "latitude"
-msgstr "Längengrad"
+msgstr "Breitengrad"
 
 #: geo/templates/geo/openlayers.html:9
 msgid "Delete all Features"
