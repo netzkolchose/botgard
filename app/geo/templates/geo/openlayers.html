@@ -1,0 +1,74 @@
+{% load i18n l10n %}
+
+<div id="{{ id }}_div_map" class="dj_map_wrapper">
+    {% if with_input_fields %}
+        <input type="number" name="geo_lon_{{ id }}" title="{% trans 'longitude' %}" placeholder="{% trans 'longitude' %}"><br/>
+        <input type="number" name="geo_lat_{{ id }}" title="{% trans 'latitude' %}" placeholder="{% trans 'latitude' %}">
+    {% endif %}
+    <div id="{{ id }}_map" class="dj_map" {% if map_size %}style="width: {{ map_size.0 }}px; height: {{ map_size.1 }}px"{% endif %}></div>
+    {% if not disabled and not read_only %}<span class="clear_features"><a href="">{% translate "Delete all Features" %}</a></span>{% endif %}
+    {% if display_raw %}<p>{% translate "Debugging window (serialized value)" %}</p>{% endif %}
+    <textarea id="{{ id }}" class="vSerializedField required" cols="150" rows="10" name="{{ name }}"
+              {% if not display_raw %} hidden{% endif %}>{{ serialized }}</textarea>
+
+    {% if with_garden_map %}
+        <select id="current_territory" class="hidden" hidden="hidden">
+            {% for ter in territories %}
+                <option
+                        value="{{ ter.pk }}"
+                        data-pk="{{ ter.pk }}"
+                        data-code="{{ ter.code }}"
+                        data-name="{{ ter.name }}"
+                        data-polygon="{{ ter.polygon }}"
+                >
+                    {{ ter.code }} | {{ ter.name }}{% if ter.polygon %} *{% endif %}
+                </option>
+            {% endfor %}
+        </select>
+        <select id="current_department" class="hidden" hidden="hidden">
+            {% for dep in departments %}
+                <option
+                        value="{{ dep.pk }}"
+                        data-pk="{{ dep.pk }}"
+                        data-territory-pk="{{ dep.territory__pk }}"
+                        data-code="{{ dep.code }}"
+                        data-full-code="{{ dep.full_code }}"
+                        data-name="{{ dep.name }}"
+                        data-polygon="{{ dep.polygon }}"
+                >
+                    {{ dep.full_code }} | {{ dep.name }}{% if dep.polygon %} *{% endif %}
+                </option>
+            {% endfor %}
+        </select>
+    {% endif %}
+    {# for inline proxies, do not render the script as <script> tag #}
+    {% if "__prefix__" in module %}<div class="script-content" hidden="hidden">{% else %}<script>{% endif %}
+        {% block base_layer %}
+            var base_layer = new ol.layer.Tile({source: new ol.source.OSM({url: "{{ map_tile_url }}"})});
+        {% endblock %}
+        {% block options %}var options = {
+            base_layer: base_layer,
+            geom_name: '{{ geom_type }}',
+            id: '{{ id }}',
+            map_id: '{{ id }}_map',
+            map_srid: {{ map_srid|unlocalize }},
+            name: '{{ name }}',
+            {% if red_dots %}red_dots: true,{% endif %}
+            default_lat: {{ default_location.1|unlocalize }},
+            default_lon: {{ default_location.0|unlocalize }},
+            default_zoom: 16.7,
+            {% if outplantings %}outplantings: {{ outplantings|safe }},{% endif %}
+            {% if with_input_fields %}with_input_fields: true,{% endif %}
+            {% if with_garden_map %}garden_map: create_garden_map_interface(false, "{{ form_element_name }}"),{% endif %}
+        };
+        {% endblock %}
+        window.{{ module }} = new BotGardMapWidget(options);
+        {% if with_garden_map %}
+            {{ module }}.garden_map.set_model_layer("department");
+        {% endif %}
+        {% if read_only %}
+            {{ module }}.disableDrawing();
+            {{ module }}.disableModify();
+        {% endif %}
+    {% if "__prefix__" in module %}</div>{% else %}</script>{% endif %}
+</div>

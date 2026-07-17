@@ -18,6 +18,7 @@ GARDENER_PERMISSIONS = {
     'individuals.outplanting': {'add', 'change'},
     'individuals.seed': {'add', 'change'},
     'individuals.territory': {'add', 'change'},
+    'individuals.': {'change'},
     'labels.labeldefinition': {'view'},
     'seedcatalog.seedcatalog': {'view'},
     'species.family': {'add', 'change'},
@@ -36,6 +37,7 @@ GUEST_PERMISSIONS = {
     'individuals.outplanting': {'view'},
     'individuals.seed': {'view'},
     'individuals.territory': {'view'},
+    'individuals.': {'change'},
     'seedcatalog.seedcatalog': {'view'},
     'species.family': {'view'},
     'species.species': {'view'},
@@ -60,6 +62,8 @@ INVISIBLE_MODELS = (
     "seedcatalog.seedcatalog_seed",
     "plantimages.plantimage",
     "BotGard.passwordresetcode",
+    "gis.postgisspatialrefsys",
+    "gis.postgisgeometrycolumns",
 )
 
 
@@ -166,6 +170,7 @@ class TestPermissions(TestBase):
             'individuals.outplanting': {'add', 'change'},
             'individuals.seed': {'add', 'change'},
             'individuals.territory': {'add', 'change'},
+            'individuals.': {'change'},
             'labels.labeldefinition': {'add', 'change'},
             'seedcatalog.seedcatalog': {'add', 'change'},
             'species.family': {'add', 'change'},
@@ -193,6 +198,7 @@ class TestPermissions(TestBase):
             'individuals.outplanting': {'add', 'change'},
             'individuals.seed': {'add', 'change'},
             'individuals.territory': {'add', 'change'},
+            'individuals.': {'change'},
             'labels.labeldefinition': {'change'},
             'seedcatalog.seedcatalog': {'change'},
             'species.family': {'add', 'change'},

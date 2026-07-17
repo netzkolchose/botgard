@@ -6,6 +6,7 @@ from django.utils.translation import gettext_lazy as _
 from django.contrib.admin import SimpleListFilter
 from django import forms
 from django.db import transaction
+from django.urls import reverse
 
 from .models import *
 from plantimages.admin import PlantImageInline
@@ -18,6 +19,7 @@ from labels.mass_action import add_label_mass_actions
 from herbaria.models.specimen import HerbariumSpecimen, create_herbarium_specimen_form_class
 from .actions import add_seed_catalog_actions
 from .models.individual import SeedInLatestCatalogFilter
+from geo.columns import MAP_COLUMN_CSS, MAP_COLUMN_JS
 
 
 INDIVIDUAL_SEARCH_FIELDS = search_fields_compatible((
@@ -35,7 +37,9 @@ INDIVIDUAL_SEARCH_FIELDS = search_fields_compatible((
     '@source__name',
 ))
 
+
 class DepartmentAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
+
     form = DepartmentForm
     list_display = ('change_link_decorator', 'territory', 'code', 'name', 'list_link_decorator',
                     'num_individuals_alive', 'num_species_alive',
@@ -50,6 +54,16 @@ class DepartmentAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable)
     blacklist = ("id", "__str__",)
 
     change_form_template = "individuals/change_form_plant_stats.html"
+    change_list_template = "individuals/change_list_edit_map.html"
+
+    # TODO: just an idea how to generically add extra action buttons,
+    #   however, the changelist_view code would need to be adjusted and
+    #   change_list_template must be overridden in a clever way to
+    #   keep all the extras that the derrived ModelAdmin class might have already done
+    # def extra_action_buttons(self):
+    #     return [
+    #        {"name": _("Garden map"), "url": reverse("geo:garden_map")},
+    #     ]
 
     class Media:
         css = {"screen": ('individuals/change_form_plant_stats.css',)}
@@ -66,6 +80,7 @@ class TerritoryAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
     blacklist = ("id", "name_generated", )
 
     change_form_template = "individuals/change_form_plant_stats.html"
+    change_list_template = "individuals/change_list_edit_map.html"
 
     class Media:
         css = {"screen": ('individuals/change_form_plant_stats.css',)}
@@ -75,6 +90,7 @@ class OutplantingInline(readOnlyAdmin.ReadOnlyTabularInline):
     form = OutplantingForm
     model = Outplanting
     min_num = 0
+    extra = 0
 
 
 class SeedAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
@@ -231,9 +247,13 @@ class IndividualAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable)
     inlines = [OutplantingInline, PlantImageInline, HerbariumSpecimenInline]
 
     class Media:
-        css = {"screen": ('BotGard/css_dropdown/css_dropdown.css',)}
+        css = {"screen": (
+            "BotGard/css_dropdown/css_dropdown.css",
+            *MAP_COLUMN_CSS,
+        )}
         js = (
             "individuals/change_form_tools.js",
+            *MAP_COLUMN_JS,
         )
 
     def get_actions(self, request):
@@ -353,5 +373,17 @@ class OutplantingAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable
         ('individual__species__family__family', ForeignKeyFilter),
         ('individual__species__family__genus', ForeignKeyFilter),
     )
-    blacklist = ('id', 'individual', 'department')
+    blacklist = ('id', 'individual', 'department', 'location')
+
+    class Media:
+        css = {"screen": (
+            "BotGard/css_dropdown/css_dropdown.css",
+            *MAP_COLUMN_CSS,
+        )}
+        js = (
+            *MAP_COLUMN_JS,
+        )
+
+
 admin.site.register(Outplanting, OutplantingAdmin)
+

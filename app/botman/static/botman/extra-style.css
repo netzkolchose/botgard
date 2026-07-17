@@ -316,6 +316,16 @@ span.icon-no {
     color: black;
 }
 
+.info-message {
+    font-size: 14px;
+    font-weight: 700;
+    display: block;
+    padding: 10px 12px;
+    margin: 0 0 10px 0;
+    border: 1px solid #593;
+    border-radius: 4px;
+    background-color: #fff3;
+}
 
 :root {
     --link-fg: #236131;

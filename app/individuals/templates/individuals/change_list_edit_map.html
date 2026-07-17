@@ -1,0 +1,10 @@
+{% extends "config_tables/change_list.html" %}
+{% load i18n admin_urls admin_list result_list_searchable %}
+
+{% block object-tools-items %}
+
+    <li><a href="{% url 'geo:garden_map' %}">{% trans 'Garden map' %}</a></li>
+
+    {{block.super}}
+
+{% endblock %}

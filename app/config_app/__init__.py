@@ -1,5 +1,5 @@
 import json
-from django.utils.translation import gettext_lazy as _
+
 
 _defaults = {}
 
@@ -39,13 +39,16 @@ def get_value(key):
         val = KeyValue.objects.get(key=key)
         if val.type == 't':
             return val.value
-        if val.type == 'n':
+        elif val.type == 'g':
+            return val.value_geo
+        elif val.type == 'n':
             return val.value_normal_text
-        if val.type == 'j':
+        elif val.type == 'j':
             if isinstance(val.value_json, str):
                 return json.loads(val.value_json)
             return val.value_json
-        raise ValueError('Invalid type \'%s\' in KeyValue \'%s\'' % (val.type, val.key))
+        else:
+            raise ValueError('Invalid type \'%s\' in KeyValue \'%s\'' % (val.type, val.key))
 
     except KeyValue.DoesNotExist:
         return _defaults[key][0]
