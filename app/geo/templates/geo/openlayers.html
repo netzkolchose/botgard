@@ -68,6 +68,7 @@
         {% endif %}
         {% if read_only %}
             {{ module }}.disableDrawing();
+            {{ module }}.disableModify();
         {% endif %}
     {% if "__prefix__" in module %}</div>{% else %}</script>{% endif %}
 </div>

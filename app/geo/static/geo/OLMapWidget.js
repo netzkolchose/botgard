@@ -609,7 +609,9 @@ class BotGardMapWidget {
     }
 
     enableDrawing() {
-        this.interactions.draw.setActive(true);
+        if (this.interactions.draw) {
+            this.interactions.draw.setActive(true);
+        }
         if (this.typeChoices) {
             // Show geometry type icons
             const divs = document.getElementsByClassName("switch-type");

@@ -22,6 +22,7 @@ def map_outplantings_column_decorator(
 ):
     """
     changelist column code for showing Outplantings in a map
+
     :param id: some identifier to distinguish different maps
     :param outplantings: list of dict.
         required field is "location" of type geos.Point

@@ -47,6 +47,7 @@ class BotGardOpenLayersWidget(BaseGeometryWidget):
             with_garden_map: bool = False,
             with_input_fields: bool = False,
             red_dots: bool = False,
+            read_only: bool = False,
             map_size: Union[None, Tuple[int, int], List[int]] = None,
     ):
         super().__init__(attrs)
@@ -54,6 +55,7 @@ class BotGardOpenLayersWidget(BaseGeometryWidget):
         self._with_input_fields = with_input_fields
         self._red_dots = red_dots
         self._map_size = map_size
+        self._read_only = read_only
 
     class Media:
         css = {
@@ -73,6 +75,7 @@ class BotGardOpenLayersWidget(BaseGeometryWidget):
         context.update({
             "red_dots": self._red_dots,
             "with_input_fields": self._with_input_fields,
+            "read_only": self._read_only,
             **get_botgard_map_template_context(),
         })
         if self._with_garden_map:
