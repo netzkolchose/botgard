@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-07 02:03+0200\n"
+"POT-Creation-Date: 2026-07-17 21:02+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -202,15 +202,15 @@ msgstr "Neue %(model)s-Instanz erzeugen"
 msgid "Add"
 msgstr "Hinzufügen"
 
-#: botman/admin.py:112
+#: botman/admin.py:123
 msgid "Move catalogs to archive"
 msgstr "Kataloge ins Archiv bewegen"
 
-#: botman/admin.py:166
+#: botman/admin.py:177
 msgid "Mark orders as processed"
 msgstr "Bestellungen als 'bestellt' markieren"
 
-#: botman/admin.py:172
+#: botman/admin.py:183
 #, python-format
 msgid "%(num_orders)s orders have been marked as processed"
 msgstr "%(num_orders)s Bestellungen wurden als 'bestellt' markiert"
@@ -231,11 +231,11 @@ msgstr "BGCI Gärten"
 msgid "BGCI id"
 msgstr "BGCI ID"
 
-#: botman/models/bgci_gardens.py:21 botman/models/garden.py:49
+#: botman/models/bgci_gardens.py:21 botman/models/garden.py:50
 msgid "IPEN part"
 msgstr "IPEN-Kürzel"
 
-#: botman/models/bgci_gardens.py:22 botman/models/garden.py:48
+#: botman/models/bgci_gardens.py:22 botman/models/garden.py:49
 #: individuals/models/individual_base.py:83
 msgid "name"
 msgstr "Name"
@@ -246,16 +246,16 @@ msgid "type"
 msgstr "Typ"
 
 #: botman/models/bgci_gardens.py:25 botman/models/bgci_gardens.py:43
-#: botman/models/garden.py:53 botman/models/garden.py:89
+#: botman/models/garden.py:54 botman/models/garden.py:94
 msgid "website"
 msgstr "Webseite"
 
-#: botman/models/bgci_gardens.py:26 botman/models/garden.py:52
+#: botman/models/bgci_gardens.py:26 botman/models/garden.py:53
 msgid "phone"
 msgstr "Telefon"
 
 #: botman/models/bgci_gardens.py:27 botman/models/bgci_gardens.py:55
-#: botman/models/garden.py:54 botman/models/garden.py:99
+#: botman/models/garden.py:55 botman/models/garden.py:115
 msgid "email"
 msgstr "eMail"
 
@@ -271,7 +271,7 @@ msgstr "Stadt"
 msgid "postal code"
 msgstr "Postleitzahl"
 
-#: botman/models/bgci_gardens.py:33 botman/models/garden.py:51
+#: botman/models/bgci_gardens.py:33 botman/models/garden.py:52
 msgid "address"
 msgstr "Adresse"
 
@@ -279,7 +279,7 @@ msgstr "Adresse"
 msgid "BGCI data"
 msgstr "BGCI Daten"
 
-#: botman/models/bgci_gardens.py:45
+#: botman/models/bgci_gardens.py:45 botman/models/garden.py:105
 msgid "BGCI website"
 msgstr "BGCI Webseite"
 
@@ -312,7 +312,7 @@ msgid "garden catalog/%(date)s"
 msgstr "Katalog/%(date)s"
 
 #: botman/models/catalogs.py:53 botman/models/catalogs.py:54
-#: botman/models/garden.py:119 botman/models/garden.py:120
+#: botman/models/garden.py:135 botman/models/garden.py:136
 #: entrybook/models/entry.py:118 entrybook/models/entry.py:119
 #: herbaria/models/herbarium.py:61 herbaria/models/herbarium.py:63
 #: herbaria/models/specimen.py:115 herbaria/models/specimen.py:117
@@ -324,7 +324,7 @@ msgstr "Katalog/%(date)s"
 msgid "delete"
 msgstr "Löschen"
 
-#: botman/models/catalogs.py:69 botman/models/garden.py:58
+#: botman/models/catalogs.py:69 botman/models/garden.py:63
 msgid "number of orders"
 msgstr "Anzahl der Bestellungen"
 
@@ -381,41 +381,52 @@ msgstr "Garten eMail"
 msgid "user email"
 msgstr "Benutzer eMail"
 
-#: botman/models/catalogs.py:194 botman/models/garden.py:59
+#: botman/models/catalogs.py:194 botman/models/garden.py:64
 msgid "latest catalog date"
 msgstr "Aktuelles Katalogdatum"
 
-#: botman/models/garden.py:21 labels/models.py:18
+#: botman/models/garden.py:22 labels/models.py:18
 msgid "Botanic Garden"
 msgstr "Botanischer Garten"
 
-#: botman/models/garden.py:22
+#: botman/models/garden.py:23
 msgid "This name will appear at the top of all pages"
 msgstr "Dieser Name steht in der Kopfzeile jeder Seite"
 
-#: botman/models/garden.py:40 botman/models/garden.py:64
+#: botman/models/garden.py:41 botman/models/garden.py:69
+#: botman/templates/botman/map-bgci.html:25
 msgid "botanic garden"
 msgstr "Botanischer Garten"
 
-#: botman/models/garden.py:41
+#: botman/models/garden.py:42
 msgid "botanic gardens"
 msgstr "Botanische Gärten"
 
-#: botman/models/garden.py:50
+#: botman/models/garden.py:51
 msgid "garden number"
 msgstr "Gartennummer"
 
-#: botman/models/garden.py:55 individuals/models/individual_base.py:123
+#: botman/models/garden.py:56 individuals/models/individual_base.py:123
 #: individuals/models/outplanting.py:38 plantimages/models.py:12
 #: species/models.py:154
 msgid "comment"
 msgstr "Bemerkungen"
 
-#: botman/models/garden.py:57 species/models.py:68 species/models.py:134
+#: botman/models/garden.py:58
+msgid "BGCI ID"
+msgstr "BGCI ID"
+
+#: botman/models/garden.py:59
+msgid "ID of garden in https://gardensearch.bgci.org (0 if garden not in BGCI)"
+msgstr ""
+"ID des Gartens in https://gardensearch.bgci.org (0 wenn der Garten nicht in "
+"BGCI aufgeführt ist)"
+
+#: botman/models/garden.py:62 species/models.py:68 species/models.py:134
 msgid "full name"
 msgstr "ganzer Name"
 
-#: botman/models/garden.py:79
+#: botman/models/garden.py:84
 msgid ""
 "Each line in the address is available separately, e.g. "
 "{{obj.botanicgarden.address_lines.0}}, "
@@ -425,12 +436,12 @@ msgstr ""
 "{{obj.botanicgarden.address_lines.0}}, "
 "{{obj.botanicgarden.address_lines.1}}, usw."
 
-#: botman/models/garden.py:108 individuals/models/individual.py:489
+#: botman/models/garden.py:124 individuals/models/individual.py:489
 #: labels/__init__.py:81
 msgid "label"
 msgstr "Etikett"
 
-#: botman/models/garden.py:113 botman/models/garden.py:114
+#: botman/models/garden.py:129 botman/models/garden.py:130
 #: entrybook/models/entry.py:111 entrybook/models/entry.py:112
 #: herbaria/models/herbarium.py:53 herbaria/models/herbarium.py:55
 #: herbaria/models/specimen.py:107 herbaria/models/specimen.py:109
@@ -500,40 +511,75 @@ msgstr "Models in der %(name)s Applikation"
 msgid "You don't have permission to edit anything."
 msgstr "Sie haben leider keine Berechtigung, etwas zu ändern"
 
+#: botman/templates/botman/garden-change-list.html:7
+#: botman/views/bgci_views.py:62
+msgid "Map BGCI gardens"
+msgstr "BGCI Gärten zuweisen"
+
+#: botman/templates/botman/map-bgci.html:13
+msgid "number of pages to assign"
+msgstr "Anzahl offener Seiten"
+
+#: botman/templates/botman/map-bgci.html:18
+msgid "Sorry, but something went wrong"
+msgstr "Entschuldigung aber irgendwas ist schief gelaufen"
+
+#: botman/templates/botman/map-bgci.html:27
+msgid "Suggestions from BGCI"
+msgstr "Vorschläge aus BGCI"
+
+#: botman/templates/botman/map-bgci.html:28
+msgid ""
+"Click on one of the suggestions to map your garden to a garden in the BGCI "
+"database"
+msgstr ""
+"Klicken Sie auf einen der Vorschläge um Ihren Garten einem Garten der BGCI-"
+"Datenbank zuzuweisen"
+
+#: botman/templates/botman/map-bgci.html:53
+msgid "no assignment"
+msgstr "keine Zuweisung"
+
+#: botman/templates/botman/map-bgci.html:58
+msgid "reload page"
+msgstr "Seite neu laden"
+
 #: botman/templates/botman/minimal-admin.html:15
 #: config_tables/templates/config_tables/configuretable.html:15
 #: listview/templates/change_list.html:40
 msgid "Home"
 msgstr "Home"
 
-#: botman/templates/botman/no-permission.html:6 botman/views.py:27
+#: botman/templates/botman/no-permission.html:6
+#: botman/views/utility_views.py:25
 msgid "Sorry, but you do not have write permission!"
 msgstr "Sie haben leider keine Schreibberechtigung"
 
-#: botman/templates/botman/no-permission.html:8 botman/views.py:28
+#: botman/templates/botman/no-permission.html:8
+#: botman/views/utility_views.py:26
 msgid "Log out and change user"
 msgstr "Abmelden und Benutzer wechseln"
 
-#: botman/utils.py:27
+#: botman/utils.py:30
 #, python-format
 msgid "Moved %s catalogs to archive"
 msgstr "%s Kataloge ins Archiv bewegt"
 
-#: botman/utils.py:34
+#: botman/utils.py:37
 #, python-format
 msgid "Error moving catalogs: %s"
 msgstr "Fehler beim Verschieben der Kataloge: %s"
 
-#: botman/views.py:69
+#: botman/views/utility_views.py:67
 #, python-format
 msgid "Deleted <b>%s</b>"
 msgstr "<b>%s</b> gelöscht"
 
-#: botman/views.py:71
+#: botman/views/utility_views.py:69
 msgid "Invalid id"
 msgstr "ungültige ID"
 
-#: botman/views.py:106
+#: botman/views/utility_views.py:104
 msgid "user activity"
 msgstr "Benutzeraktivität"
 
@@ -554,10 +600,8 @@ msgid "translateable text"
 msgstr "Übersetzbarer Text"
 
 #: config_app/models.py:16
-#, fuzzy
-#| msgid "label text"
 msgid "normal text"
-msgstr "Verbreitung"
+msgstr "Normaler text"
 
 #: config_app/models.py:17
 msgid "json"
@@ -767,7 +811,7 @@ msgstr "Fundort - Land"
 
 #: entrybook/models/entry.py:52 individuals/models/individual.py:41
 msgid "genus & Species"
-msgstr "Familie & Art"
+msgstr "Gattung & Art"
 
 #: entrybook/models/entry.py:75 individuals/models/individual.py:30
 msgid "Created by"

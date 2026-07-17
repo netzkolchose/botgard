@@ -1,0 +1,12 @@
+{% extends "config_tables/change_list.html" %}
+{% load i18n admin_urls admin_list result_list_searchable %}
+
+{% block object-tools-items %}
+
+    {% if map_bgci_gardens %}
+        <li><a href="{% url 'botman:map_bgci' %}">{% trans 'Map BGCI gardens' %}</a></li>
+    {% endif %}
+
+    {{block.super}}
+
+{% endblock %}
