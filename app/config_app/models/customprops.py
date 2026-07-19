@@ -1,7 +1,8 @@
+from typing import Type
+
 from django.db import models
-from picklefield.fields import PickledObjectField
 from django.utils.translation import gettext_lazy as _
-from django.contrib.auth.models import User
+from django.utils.safestring import mark_safe
 
 
 CUSTOM_PROPERTY_TYPE_CHOICES = (
@@ -52,6 +53,18 @@ class CustomProperty(models.Model):
                 break
         return f"{name}.{self.name}"
 
+    def get_value_for_model(self, model: models.Model):
+        if rel_manager := getattr(model, f"custom_values_{self.type}"):
+            v = rel_manager.filter(property=self).first()
+            if v:
+                return v.value
+
+    def get_decorator_value_for_model(self, model: models.Model):
+        if rel_manager := getattr(model, f"custom_values_{self.type}"):
+            v = rel_manager.filter(property=self).first()
+            if v:
+                return v.value_decorator()
+
 
 class PropertyValueBool(models.Model):
     class Meta:
@@ -73,6 +86,10 @@ class PropertyValueBool(models.Model):
     def __str__(self):
         return f"{self.property}"
 
+    def value_decorator(self):
+        return mark_safe('<span class="icon-%s"></span>' % (
+            "yes" if self.value else "no",
+        ))
 
 class PropertyValueText(models.Model):
     class Meta:
@@ -94,3 +111,7 @@ class PropertyValueText(models.Model):
 
     def __str__(self):
         return f"{self.property}"
+
+    def value_decorator(self):
+        return self.value
+

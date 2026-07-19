@@ -19,6 +19,7 @@ from django.contrib.admin.utils import label_for_field
 from .forms import TableSettingsForm
 from .models import TableSettings
 from tools.csv_response import csv_response
+from config_app.models import CUSTOM_PROPERTY_TYPE_CHOICES, CustomProperty
 
 
 class Configurable(object):
@@ -152,12 +153,34 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
             tablesettings = TableSettings.objects.get(user=user, model=modelstring)
         except TableSettings.DoesNotExist:
             tablesettings = TableSettings(user=user, model=modelstring, settings=self.apply_blacklist(self.list_display))
+        for type, label in CUSTOM_PROPERTY_TYPE_CHOICES:
+            key = f"custom_values_{type}"
+            if rel_manager := getattr(self.model, key):
+                for prop in CustomProperty.objects.filter(
+                        model=self.model._meta.label,
+                        type=type,
+                ):
+                    col_name = f"{prop.name}"
+                    if col_name not in tablesettings.settings:
+                        tablesettings.settings = (
+                            *tablesettings.settings,
+                            f"custom_property_decorator_{prop.pk}",
+                        )
         return tablesettings
+
+    def __getattr__(self, key):
+        if not (isinstance(key, str) and key.startswith("custom_property_decorator_")):
+            return super().__getattribute__(key)
+        prop = CustomProperty.objects.get(pk=key[26:])
+        def _func(instance):
+            return prop.get_decorator_value_for_model(instance)
+        _func.short_description = prop.name
+        return _func
 
     def get_list_display(self, request):
         names = self._get_actual_tablesettings_object(request).settings
         # fix old configurations that require fields that are gone
-        names = [n for n in names if hasattr(self.model, n)]
+        #names = [n for n in names if hasattr(self.model, n)]
         return names
 
     def get_list_display_csv(self, request):
