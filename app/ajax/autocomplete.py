@@ -8,6 +8,7 @@ from django.utils.safestring import mark_safe
 from django.utils.html import format_html
 from django.urls import reverse
 from django.db import models
+from django.urls import NoReverseMatch
 
 
 class AutoFieldMixin:
@@ -27,6 +28,9 @@ class AutoFieldMixin:
         # check foreign field
         if getattr(field, "related_model", None):
             self.af_model = field.related_model
+            if isinstance(field, models.ManyToManyField):
+                return
+
             # TODO: all models essentially need '_id_field'
             # so that autocomplete has a valid unique identifier for ForeignKey models
             # currently there is this '_id_field' kludge applied to all relevant models
@@ -182,9 +186,14 @@ class AutoModelWidget(forms.TextInput):
             'name': name,
             'url_params': url_params,
             'model': rel_opts.verbose_name,
-            'url_change_related': self.get_related_url(info, 'change', '__fk__'),
-            'url_add_related': self.get_related_url(info, 'add')
         }
+        try:
+            context.update({
+                'url_change_related': self.get_related_url(info, 'change', '__fk__'),
+                'url_add_related': self.get_related_url(info, 'add')
+            })
+        except NoReverseMatch:
+            pass
         return mark_safe(render_to_string(self.template, context))
 
 

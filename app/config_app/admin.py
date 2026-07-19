@@ -8,7 +8,7 @@ from django.conf import settings
 import django.contrib.gis.forms as gis_forms
 from modeltranslation.admin import TranslationAdmin, TranslationTabularInline
 
-from .models import KeyValue
+from .models import *
 from geo.widgets import BotGardOpenLayersWidget
 
 
@@ -93,3 +93,26 @@ class KeyValueAdmin(TabbedTranslationAdmin):
 
 
 admin.site.register(KeyValue, KeyValueAdmin)
+
+
+
+class CustomPropertyAdmin(admin.ModelAdmin):
+    list_display = ('model', 'name', 'type', 'order', 'date_created')
+    search_fields = ('name', )
+
+admin.site.register(CustomProperty, CustomPropertyAdmin)
+
+
+if 0:
+    class PropertyValueBoolAdmin(admin.ModelAdmin):
+        list_display = ('property__model', 'property__name', 'value')
+        search_fields = ('propery__name', )
+
+    admin.site.register(PropertyValueBool, PropertyValueBoolAdmin)
+
+
+    class PropertyValueTextAdmin(admin.ModelAdmin):
+        list_display = ('property__model', 'property__name', 'value')
+        search_fields = ('propery__name', 'value')
+
+    admin.site.register(PropertyValueText, PropertyValueTextAdmin)

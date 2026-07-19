@@ -341,3 +341,13 @@ span.icon-no {
     }
 }
 
+
+.custom-properties {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+
+    .custom-property {
+        margin: .5rem;
+    }
+}
