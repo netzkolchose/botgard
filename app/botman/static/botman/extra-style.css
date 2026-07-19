@@ -355,3 +355,10 @@ span.icon-no {
 details[data-filter-title="-invisible-"] {
     display: none;
 }
+
+/*
+strangely, that doesn't work
+label[for="id_custom_values_bool"],
+label[for="id_custom_values_text"] {
+    display: none;
+}*/

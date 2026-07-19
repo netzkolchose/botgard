@@ -17,6 +17,7 @@ CUSTOM_PROPERTY_TYPE_CHOICES = (
 CUSTOM_PROPERTY_MODEL_CHOICES = (
     ("species.Family", _("family")),
     ("species.Species", _("species")),
+    ("botman.BotanicGarden", _("botanic garden")),
 )
 
 
@@ -64,7 +65,7 @@ class CustomProperty(models.Model):
         return f"{name}.{self.name}"
 
     @classmethod
-    def get_properties_for_model(self, model: models.Model) -> List["PropertyProperty"]:
+    def get_properties_for_model(self, model: Union[models.Model, Type[models.Model]]) -> List["CustomProperty"]:
         return list(CustomProperty.objects.filter(
             model=model._meta.label,
         ).order_by("order", "name"))

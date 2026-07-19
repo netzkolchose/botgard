@@ -18,7 +18,7 @@ from botman.models import BotanicGarden
 from entrybook.models import Entry
 from herbaria.models import HerbariumSpecimen
 from tools.permissions import login_required
-
+from config_app.models import CustomProperty, PropertyValueBool, PropertyValueText
 
 
 @login_required
@@ -145,6 +145,16 @@ def _get_template_doc_from_model(
                 if instance:
                     desc["example"] = getattr(instance, attr_name)()
                 docs.append(desc)
+
+    for prop in CustomProperty.get_properties_for_model(model):
+        virtual_field_name = f"custom_property_{prop.pk}"
+        desc = {
+            "name": virtual_field_name,
+            "verbose_name": prop.name,
+        }
+        if instance:
+            desc["example"] = getattr(instance, virtual_field_name, None)
+        docs.append(desc)
 
     return docs
 
