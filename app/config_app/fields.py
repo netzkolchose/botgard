@@ -50,10 +50,10 @@ class CustomPropertyValuesBaseField(models.ManyToManyField):
             return []
 
         try:
-            return list(CustomProperty.objects.filter(
-                model=self.model._meta.label,
-                type=self.property_type,
-            ).order_by("order", "name"))
+            return [
+                m for m in CustomProperty.get_properties_for_model(self.model)
+                if m.type.startswith(self.property_type)
+            ]
         # in case column does not exist before migration
         except ProgrammingError:
             return []

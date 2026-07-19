@@ -38,10 +38,10 @@ class PropertyValuesFormField(forms.Field):
         return value
 
     def to_python(self, value) -> dict:
-        print("TO_PYTHON", value)
+        #print("TO_PYTHON", value)
         if value in (None, "", [], "[]"):
             return {}
-        if value:
+        if isinstance(value, dict):
             if self.property_type == "bool":
                 value = {key: bool(v) for key, v in value.items()}
         return value
@@ -86,16 +86,17 @@ class PropertyValuesWidget(Input):
                     if v.property == property:
                         value = v.value
                         break
-
-            if self.value_type == "bool":
+            if property.type == "bool":
                 widget = forms.widgets.CheckboxInput()
-            elif self.value_type == "text":
+            elif property.type == "text":
                 if choices := property.get_choices():
                     widget = forms.widgets.Select(choices=[("", "")] + [(c, c) for c in choices])
                 else:
                     widget = forms.widgets.TextInput()
+            elif property.type == "text_long":
+                widget = forms.widgets.Textarea()
             else:
-                raise NotImplementedError(f"value_type '{self.value_type}'")
+                raise NotImplementedError(f"CustomProperty.type '{self.value_type}'")
 
             ctx["properties"].append({
                 "property": property,

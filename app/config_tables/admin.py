@@ -19,7 +19,7 @@ from django.contrib.admin.utils import label_for_field
 from .forms import TableSettingsForm
 from .models import TableSettings
 from tools.csv_response import csv_response
-from config_app.models import CUSTOM_PROPERTY_TYPE_CHOICES, CustomProperty
+from config_app.models import CUSTOM_PROPERTY_TYPE_CHOICES, CustomProperty, CUSTOM_PROPERTY_MODEL_TYPES
 
 
 class Configurable(object):
@@ -160,7 +160,7 @@ class CustomPropertyHeaderFilter(CustomHeaderFilter):
         }
         if self.property.type == "bool":
             return ConfigurableTable._get_search_widget_boolean(context)
-        elif self.property.type == "text":
+        elif self.property.type in ("text", "text_long"):
             if choices := self.property.get_choices():
                 return ConfigurableTable._get_search_widget_choice_box(
                     context,
@@ -195,18 +195,10 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
         try:
             tablesettings = TableSettings.objects.get(user=user, model=modelstring)
         except TableSettings.DoesNotExist:
-            settings=self.apply_blacklist(self.list_display)
-            # add CustomProperty columns linked over a custom decorator function created by __getattr__
-            #for type, label in CUSTOM_PROPERTY_TYPE_CHOICES:
-            #    key = f"custom_values_{type}"
-            #    if hasattr(self.model, key):
-            #        for prop in self.custom_properties:
-            #            col_name = f"custom_property_decorator_{prop.pk}"
-            #            if col_name not in settings:
-            #                settings = (*settings, col_name)
             tablesettings = TableSettings(
-                user=user, model=modelstring,
-                settings=settings,
+                user=user,
+                model=modelstring,
+                settings=self.apply_blacklist(super().get_list_display(request)),
             )
 
         return tablesettings
@@ -296,7 +288,7 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
         fieldsets = super().get_fieldsets(request, obj)
         if props := [
                 f"custom_values_{type}"
-                for type, label in CUSTOM_PROPERTY_TYPE_CHOICES
+                for type in CUSTOM_PROPERTY_MODEL_TYPES
                 if hasattr(self.model, f"custom_values_{type}")
         ]:
             fieldsets = list(fieldsets) + [

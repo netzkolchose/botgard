@@ -6,9 +6,12 @@ from django.utils.safestring import mark_safe
 from django.contrib.admin import SimpleListFilter
 
 
+CUSTOM_PROPERTY_MODEL_TYPES = ("bool", "text")
+
 CUSTOM_PROPERTY_TYPE_CHOICES = (
     ("bool", _("Boolean")),
     ("text", _("Text")),
+    ("text_long", _("Text (long)")),
 )
 
 CUSTOM_PROPERTY_MODEL_CHOICES = (
@@ -67,7 +70,8 @@ class CustomProperty(models.Model):
         ).order_by("order", "name"))
 
     def get_value_for_model(self, model: models.Model) -> Union[None, "PropertyValueBool", "PropertyValueText"]:
-        if rel_manager := getattr(model, f"custom_values_{self.type}"):
+        type = self.type.split("_")[0]
+        if rel_manager := getattr(model, f"custom_values_{type}"):
             return rel_manager.filter(property=self).first()
 
     def get_decorator_value_for_model(self, model: models.Model):
@@ -96,7 +100,7 @@ class CustomProperty(models.Model):
                                 custom_values_bool__property__pk=prop.pk,
                                 custom_values_bool__value=True,
                             )
-                    elif prop.type == "text":
+                    elif prop.type.startswith("text"):
                         return queryset.filter(
                             custom_values_text__property__pk=prop.pk,
                             custom_values_text__value__icontains=self.value(),
