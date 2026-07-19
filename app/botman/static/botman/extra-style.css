@@ -351,3 +351,7 @@ span.icon-no {
         margin: .5rem;
     }
 }
+
+details[data-filter-title="-invisible-"] {
+    display: none;
+}

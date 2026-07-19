@@ -1,8 +1,9 @@
-from typing import Type
+from typing import Type, Union, List
 
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.utils.safestring import mark_safe
+from django.contrib.admin import SimpleListFilter
 
 
 CUSTOM_PROPERTY_TYPE_CHOICES = (
@@ -53,17 +54,45 @@ class CustomProperty(models.Model):
                 break
         return f"{name}.{self.name}"
 
-    def get_value_for_model(self, model: models.Model):
+    @classmethod
+    def get_properties_for_model(self, model: models.Model) -> List["PropertyProperty"]:
+        return list(CustomProperty.objects.filter(
+            model=model._meta.label,
+        ).order_by("order", "name"))
+
+    def get_value_for_model(self, model: models.Model) -> Union[None, "PropertyValueBool", "PropertyValueText"]:
         if rel_manager := getattr(model, f"custom_values_{self.type}"):
-            v = rel_manager.filter(property=self).first()
-            if v:
-                return v.value
+            return rel_manager.filter(property=self).first()
 
     def get_decorator_value_for_model(self, model: models.Model):
-        if rel_manager := getattr(model, f"custom_values_{self.type}"):
-            v = rel_manager.filter(property=self).first()
-            if v:
-                return v.value_decorator()
+        if v := self.get_value_for_model(model):
+            return v.value_decorator()
+
+    def create_list_filter(self) -> Type[SimpleListFilter]:
+        prop = self
+        class PropertyFilter(SimpleListFilter):
+            parameter_name = f"custom_property_{prop.pk}"
+            title = "-invisible-"  # gets display:none from extra-css
+            def has_output(self):
+                return True  # need to have output, otherwise django won't run it
+            def lookups(self, request, model_admin):
+                return []
+            def queryset(self, request, queryset):
+                if self.value() not in ("", None):
+                    if prop.type == "bool":
+                        if str(self.value()) == "1":
+                            return queryset.filter(
+                                custom_values_bool__property__pk=prop.pk,
+                                custom_values_bool__value=True,
+                            )
+                    elif prop.type == "text":
+                        return queryset.filter(
+                            custom_values_text__property__pk=prop.pk,
+                            custom_values_text__value__icontains=self.value(),
+                        )
+                return queryset
+
+        return PropertyFilter
 
 
 class PropertyValueBool(models.Model):
@@ -90,6 +119,7 @@ class PropertyValueBool(models.Model):
         return mark_safe('<span class="icon-%s"></span>' % (
             "yes" if self.value else "no",
         ))
+
 
 class PropertyValueText(models.Model):
     class Meta:

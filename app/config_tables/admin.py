@@ -1,5 +1,5 @@
 import types
-from typing import List, Tuple
+from typing import List, Tuple, Union, Dict, Callable
 
 from django.db import models
 from django.contrib import admin
@@ -142,9 +142,46 @@ class CustomSelectHeaderFilter(CustomHeaderFilter):
         )
 
 
+class CustomPropertyHeaderFilter(CustomHeaderFilter):
+
+    def __init__(
+            self,
+            property: CustomProperty,
+    ):
+        self.property = property
+        self.query_name = f"custom_property_{self.property.pk}"
+
+    def render_widget(self, request: HttpRequest):
+        value = request.GET.get(self.query_name) or ""
+        widget_func = {
+            "bool": ConfigurableTable._get_search_widget_boolean,
+            "text": ConfigurableTable._get_search_widget_text,
+        }.get(self.property.type, ConfigurableTable._get_search_widget_text)
+        return widget_func(
+            {
+                "query": self.query_name,
+                "value": value,
+                "inactive": "" if value else "inactive",
+            },
+        )
+
+
 class ConfigurableTable(admin.ModelAdmin, Configurable):
     change_list_template = 'config_tables/change_list.html'
     configuretable_template = 'config_tables/configuretable.html'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._custom_properties: Union[None, List[CustomProperty]] = None
+        self._custom_property_decorators: Dict[str, Callable] = {}
+
+    @property
+    def custom_properties(self) -> List[CustomProperty]:
+        if self._custom_properties is None:
+            self._custom_properties = list(CustomProperty.objects.filter(
+                model=self.model._meta.label
+            ).order_by("order", "name"))
+        return self._custom_properties
 
     def _get_actual_tablesettings_object(self, request):
         user = request.user
@@ -152,35 +189,44 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
         try:
             tablesettings = TableSettings.objects.get(user=user, model=modelstring)
         except TableSettings.DoesNotExist:
-            tablesettings = TableSettings(user=user, model=modelstring, settings=self.apply_blacklist(self.list_display))
-        for type, label in CUSTOM_PROPERTY_TYPE_CHOICES:
-            key = f"custom_values_{type}"
-            if rel_manager := getattr(self.model, key):
-                for prop in CustomProperty.objects.filter(
-                        model=self.model._meta.label,
-                        type=type,
-                ):
-                    col_name = f"{prop.name}"
-                    if col_name not in tablesettings.settings:
-                        tablesettings.settings = (
-                            *tablesettings.settings,
-                            f"custom_property_decorator_{prop.pk}",
-                        )
+            settings=self.apply_blacklist(self.list_display)
+            # add CustomProperty columns linked over a custom decorator function created by __getattr__
+            for type, label in CUSTOM_PROPERTY_TYPE_CHOICES:
+                key = f"custom_values_{type}"
+                if hasattr(self.model, key):
+                    for prop in self.custom_properties:
+                        col_name = f"custom_property_decorator_{prop.pk}"
+                        if col_name not in tablesettings.settings:
+                            settings = (*tablesettings.settings, col_name)
+            tablesettings = TableSettings(
+                user=user, model=modelstring,
+                settings=settings,
+            )
+
         return tablesettings
 
     def __getattr__(self, key):
         if not (isinstance(key, str) and key.startswith("custom_property_decorator_")):
             return super().__getattribute__(key)
-        prop = CustomProperty.objects.get(pk=key[26:])
-        def _func(instance):
-            return prop.get_decorator_value_for_model(instance)
-        _func.short_description = prop.name
-        return _func
+
+        if key not in self._custom_property_decorators:
+            try:
+                prop = CustomProperty.objects.get(pk=key[26:])
+            except CustomProperty.DoesNotExist:
+                raise AttributeError(f"No property: {key}")
+
+            def _func(instance):
+                return prop.get_decorator_value_for_model(instance)
+            _func.__name__ = f"custom_property_decorator_{prop.pk}"
+            _func.short_description = prop.name
+            _func.custom_header_filter = CustomPropertyHeaderFilter(property=prop)
+            self._custom_property_decorators[key] = _func
+        return self._custom_property_decorators[key]
 
     def get_list_display(self, request):
         names = self._get_actual_tablesettings_object(request).settings
         # fix old configurations that require fields that are gone
-        #names = [n for n in names if hasattr(self.model, n)]
+        names = [n for n in names if hasattr(self.model, n) or hasattr(self, n)]
         return names
 
     def get_list_display_csv(self, request):
@@ -193,6 +239,14 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
                     continue
             ret.append(x)
         return tuple(ret)
+
+    def get_list_filter(self, request):
+        ret_list = super().get_list_filter(request)
+        ret_list = list(ret_list)
+        # add custom properties to list filters
+        for prop in CustomProperty.get_properties_for_model(self.model):
+            ret_list.append(prop.create_list_filter())
+        return ret_list
 
     def get_urls(self):
         urls = super(ConfigurableTable, self).get_urls()
@@ -231,6 +285,21 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
             s += ' --> '
             obj = tmp
         return s.strip(' --> ')
+
+    def get_fieldsets(self, request, obj=None):
+        fieldsets = super().get_fieldsets(request, obj)
+        if props := [
+                f"custom_values_{type}"
+                for type, label in CUSTOM_PROPERTY_TYPE_CHOICES
+                if hasattr(self.model, f"custom_values_{type}")
+        ]:
+            fieldsets = list(fieldsets) + [
+                (_('custom properties'), {
+                    'classes': 'collapse',
+                    'fields': props,
+                }),
+            ]
+        return fieldsets
 
     def configuretable_view(self, request, extra_context=None):
         if not (
@@ -298,7 +367,7 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
         selected = []
         for elem in tablesettings.settings:
             # fix old configurations that require fields that are gone
-            if hasattr(self.model, elem):
+            if hasattr(self.model, elem) or hasattr(self, elem):
                 selected.append((elem, label_for_field(elem, self.model, self)))
 
         form = TableSettingsForm(instance=tablesettings, selected=selected, extra_opts=opts)
@@ -337,11 +406,14 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
         settings = settings or []
 
         # fetch decorator functions from model
-        funcs = self.get_configurable_funcs(model)
+        funcs = self.get_configurable_funcs(model).copy()
 
         # if we are at base admin level fetch also ModelAdmin decorator function
         if model == self.model:
             funcs |= self.get_configurable_funcs(self.__class__)
+            for prop in CustomProperty.get_properties_for_model(self.model):
+                if f := getattr(self, f"custom_property_decorator_{prop.pk}", None):
+                    funcs.add(f)
 
         return [
             (
@@ -385,7 +457,6 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
         attributes += self.get_decorated_functions(model, path, settings)
 
         attributes = self.apply_blacklist(attributes)
-
         # alphabetic sorting
         attributes.sort(key=itemgetter(0))
 
@@ -413,6 +484,7 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
                            models.EmailField, models.IPAddressField, models.GenericIPAddressField,
                            models.URLField, models.UUIDField, models.BooleanField, models.NullBooleanField,
                            models.FileField, models.FilePathField,
+                           models.ManyToManyField,
                            )
 
         ac_model = "%s.%s" % (self.model._meta.app_label, self.model._meta.model_name)
@@ -427,14 +499,11 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
 
         # see if decorator function
         except django.core.exceptions.FieldDoesNotExist:
-            func = None
-            import inspect
-            mems = inspect.getmembers(self.model)
-            for mem in mems:
-                if field_name == mem[0]:
-                    func = mem[1]
-                    break
-            if not func:
+            if field_name.startswith("custom_property_decorator_"):
+                func = getattr(self, field_name, None)
+            else:
+                func = getattr(self.model, field_name, None)
+            if not callable(func):
                 return None
 
             # check for CustomHeaderFilter
