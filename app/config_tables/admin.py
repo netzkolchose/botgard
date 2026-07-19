@@ -153,17 +153,23 @@ class CustomPropertyHeaderFilter(CustomHeaderFilter):
 
     def render_widget(self, request: HttpRequest):
         value = request.GET.get(self.query_name) or ""
-        widget_func = {
-            "bool": ConfigurableTable._get_search_widget_boolean,
-            "text": ConfigurableTable._get_search_widget_text,
-        }.get(self.property.type, ConfigurableTable._get_search_widget_text)
-        return widget_func(
-            {
-                "query": self.query_name,
-                "value": value,
-                "inactive": "" if value else "inactive",
-            },
-        )
+        context = {
+            "query": self.query_name,
+            "value": value,
+            "inactive": "" if value else "inactive",
+        }
+        if self.property.type == "bool":
+            return ConfigurableTable._get_search_widget_boolean(context)
+        elif self.property.type == "text":
+            if choices := self.property.get_choices():
+                return ConfigurableTable._get_search_widget_choice_box(
+                    context,
+                    choices=[(c, c) for c in choices],
+                )
+            else:
+                return ConfigurableTable._get_search_widget_text(context)
+
+        raise NotImplementedError(f"CustomProperty.type '{self.property.type}'")
 
 
 class ConfigurableTable(admin.ModelAdmin, Configurable):
@@ -191,13 +197,13 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
         except TableSettings.DoesNotExist:
             settings=self.apply_blacklist(self.list_display)
             # add CustomProperty columns linked over a custom decorator function created by __getattr__
-            for type, label in CUSTOM_PROPERTY_TYPE_CHOICES:
-                key = f"custom_values_{type}"
-                if hasattr(self.model, key):
-                    for prop in self.custom_properties:
-                        col_name = f"custom_property_decorator_{prop.pk}"
-                        if col_name not in tablesettings.settings:
-                            settings = (*tablesettings.settings, col_name)
+            #for type, label in CUSTOM_PROPERTY_TYPE_CHOICES:
+            #    key = f"custom_values_{type}"
+            #    if hasattr(self.model, key):
+            #        for prop in self.custom_properties:
+            #            col_name = f"custom_property_decorator_{prop.pk}"
+            #            if col_name not in settings:
+            #                settings = (*settings, col_name)
             tablesettings = TableSettings(
                 user=user, model=modelstring,
                 settings=settings,
@@ -315,7 +321,7 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
             if "_delete" in request.POST:
                 try:
                     tablesettings.delete()
-                except AssertionError:  # in case, there is no settings yet
+                except (ValueError, AssertionError):  # in case, there is no settings yet
                     pass
                 return redirect(return_url)
             POST = request.POST.copy()

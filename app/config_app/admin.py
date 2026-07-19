@@ -97,8 +97,31 @@ admin.site.register(KeyValue, KeyValueAdmin)
 
 
 class CustomPropertyAdmin(admin.ModelAdmin):
-    list_display = ('model', 'name', 'type', 'order', 'date_created')
+    list_display = (
+        'change_link_decorator',
+        'model', 'name', 'type_decorator', 'order', 'times_used_decorator', 'date_created',
+    )
     search_fields = ('name', )
+
+    def type_decorator(self, instance: CustomProperty):
+        type = instance.type
+        for key, label in CUSTOM_PROPERTY_TYPE_CHOICES:
+            if type == key:
+                type = label
+                break
+        if ch := instance.get_choices():
+            type = _("Text ({} choices)").format(len(ch))
+        return type
+    type_decorator.short_description = _("type")
+    type_decorator.admin_order_field = "type"
+
+    def times_used_decorator(self, instance: CustomProperty):
+        if instance.type == "bool":
+            return instance.values_bool.count()
+        else:
+            return instance.values_text.count()
+    times_used_decorator.short_description = _("# used")
+
 
 admin.site.register(CustomProperty, CustomPropertyAdmin)
 

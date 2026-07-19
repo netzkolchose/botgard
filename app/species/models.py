@@ -5,9 +5,11 @@ from django.utils.safestring import mark_safe
 from django.urls import reverse
 from django import forms
 
+from config_app.fields import CustomPropertyValuesBoolField, CustomPropertyValuesTextField
 from config_tables.admin import Configurable, configurable
 from ajax.autocomplete import AutoCompleteForm
 from tools import global_request
+
 
 PROTECTION_OF_SPECIES_CHOICES = (
     ('LC', 'LC (Least Concern)'),
@@ -66,6 +68,9 @@ class Family(models.Model, Configurable):
     genus = models.CharField(verbose_name=_('genus'), max_length=50, blank=False)
     genus_author = models.CharField(verbose_name=_('author'), max_length=100, blank=True)
     full_name_generated = models.CharField(verbose_name=_('full name'), max_length=350, blank=True)
+
+    custom_values_bool = CustomPropertyValuesBoolField(related_name="family_values_bool")
+    custom_values_text = CustomPropertyValuesTextField(related_name="family_values_text")
 
     # @configurable
     def __str__(self):
@@ -153,6 +158,9 @@ class Species(models.Model, Configurable):
                                                    null=True)
     comment = models.TextField(verbose_name=_('comment'), max_length=10000, blank=True, null=True)
     picture = models.ImageField(verbose_name=_('picture'), upload_to="pictures", blank=True)
+
+    custom_values_bool = CustomPropertyValuesBoolField(related_name="species_values_bool")
+    custom_values_text = CustomPropertyValuesTextField(related_name="species_values_text")
 
     @configurable
     def get_author_name(self):
@@ -295,7 +303,20 @@ class Species(models.Model, Configurable):
 
 
 class SpeciesForm(AutoCompleteForm(Species)):
+
+    #class Meta:
+    #    field_classes = {
+    #        **create_property_values_field_classes(Species),
+    #    }
+
     def __init__(self, *args, **kwargs):
         super(SpeciesForm, self).__init__(*args, **kwargs)
         if not global_request.get_current_user().has_perm("species.can_check_nomenclature"):
             self.fields["nomenclature_checked"] = forms.NullBooleanField(disabled=True)
+
+    def save(self, commit = True):
+        print("SAVE   ", self.data)
+        return super().save(commit)
+
+
+forms.ModelForm

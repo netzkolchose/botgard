@@ -12,6 +12,7 @@ CUSTOM_PROPERTY_TYPE_CHOICES = (
 )
 
 CUSTOM_PROPERTY_MODEL_CHOICES = (
+    ("species.Family", _("family")),
     ("species.Species", _("species")),
 )
 
@@ -45,6 +46,11 @@ class CustomProperty(models.Model):
         help_text=_("Order of value when viewing or editing."),
         default=0,
     )
+    choices = models.TextField(
+        verbose_name=_("choices"),
+        help_text=_("For text properties, limits the selection to these items, one per line"),
+        blank=True,
+    )
 
     def __str__(self):
         name = self.model
@@ -68,13 +74,18 @@ class CustomProperty(models.Model):
         if v := self.get_value_for_model(model):
             return v.value_decorator()
 
+    def get_choices(self) -> List[str]:
+        return list(filter(bool, (
+            s.strip() for s in self.choices.splitlines()
+        )))
+
     def create_list_filter(self) -> Type[SimpleListFilter]:
         prop = self
         class PropertyFilter(SimpleListFilter):
             parameter_name = f"custom_property_{prop.pk}"
             title = "-invisible-"  # gets display:none from extra-css
             def has_output(self):
-                return True  # need to have output, otherwise django won't run it
+                return True  # need to have output, otherwise django won't use the filter
             def lookups(self, request, model_admin):
                 return []
             def queryset(self, request, queryset):
@@ -93,6 +104,11 @@ class CustomProperty(models.Model):
                 return queryset
 
         return PropertyFilter
+
+    def change_link_decorator(self):
+        return mark_safe('<a href="%d/" class="changelink">%s</a>' % (self.pk, _('show')))
+    change_link_decorator.short_description = _('show')
+    change_link_decorator.exclude_csv = True
 
 
 class PropertyValueBool(models.Model):

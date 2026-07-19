@@ -76,6 +76,8 @@ class SpeciesAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
         ('family__full_name_generated', ForeignKeyFilter),
         ('family__family', ForeignKeyFilter),
         ('family__genus', ForeignKeyFilter),
+        #('custom_values_bool', ForeignKeyFilter),
+        #('custom_values_text', ForeignKeyFilter),
         AliveIndividualsListFilter,
     )
     search_fields = search_fields_compatible(

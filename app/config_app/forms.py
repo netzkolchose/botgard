@@ -37,8 +37,10 @@ class PropertyValuesFormField(forms.Field):
         # print("VALUE", value)
         return value
 
-    def to_python(self, value):
-        # print("TO_PYTHON", value)
+    def to_python(self, value) -> dict:
+        print("TO_PYTHON", value)
+        if value in (None, "", [], "[]"):
+            return {}
         if value:
             if self.property_type == "bool":
                 value = {key: bool(v) for key, v in value.items()}
@@ -48,10 +50,6 @@ class PropertyValuesFormField(forms.Field):
 class PropertyValuesWidget(Input):
     template_name = "config_app/property_values_widget.html"
 
-    type_widget_map = {
-        "bool": forms.widgets.CheckboxInput,
-        "text": forms.widgets.TextInput,
-    }
     def __init__(
             self,
             model: Type[models.Model],
@@ -88,7 +86,16 @@ class PropertyValuesWidget(Input):
                     if v.property == property:
                         value = v.value
                         break
-            widget: forms.widgets.Input = self.type_widget_map[self.value_type]()
+
+            if self.value_type == "bool":
+                widget = forms.widgets.CheckboxInput()
+            elif self.value_type == "text":
+                if choices := property.get_choices():
+                    widget = forms.widgets.Select(choices=[("", "")] + [(c, c) for c in choices])
+                else:
+                    widget = forms.widgets.TextInput()
+            else:
+                raise NotImplementedError(f"value_type '{self.value_type}'")
 
             ctx["properties"].append({
                 "property": property,
