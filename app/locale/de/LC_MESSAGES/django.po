@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-17 21:02+0200\n"
+"POT-Creation-Date: 2026-07-20 15:41+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -64,8 +64,8 @@ msgstr "Übermitteln"
 #: BotGard/tests/data/label-individual-complex.html:5
 #: demo-data/labels/individual-multipage-inner.html:5
 #: individuals/models/individual.py:195 individuals/models/individual.py:480
-#: individuals/models/outplanting.py:93 species/models.py:55
-#: species/models.py:66 species/models.py:230
+#: individuals/models/outplanting.py:93 species/models.py:59
+#: species/models.py:70 species/models.py:260
 msgid "genus"
 msgstr "Gattung"
 
@@ -94,7 +94,7 @@ msgid "collection date"
 msgstr "Sammeldatum"
 
 #: BotGard/tests/data/label-individual-complex.html:24
-#: demo-data/labels/individual-multipage-inner.html:24 species/admin.py:101
+#: demo-data/labels/individual-multipage-inner.html:24 species/admin.py:76
 msgid "distribution"
 msgstr "Verbreitung"
 
@@ -162,21 +162,21 @@ msgstr ""
 msgid "Your password has been changed"
 msgstr "Ihr Passwort wurde geändert"
 
-#: ajax/autocomplete.py:63
+#: ajax/autocomplete.py:67
 msgid "Type to search"
 msgstr "zum Suchen tippen"
 
-#: ajax/autocomplete.py:100
+#: ajax/autocomplete.py:104
 #, python-format
 msgid "\"%(value)s is not a valid choice for %(field)s"
 msgstr "\"%(value)s\" ist kein mögliche Auswahl für Feld %(field)s"
 
-#: ajax/autocomplete.py:109
+#: ajax/autocomplete.py:113
 #, python-format
 msgid "\"%(value)s\" is not an instance of the %(model)s model"
 msgstr "\"%(value)s\" ist kein Bezeichner der %(model)s-Tabelle"
 
-#: ajax/autocomplete.py:113
+#: ajax/autocomplete.py:117
 #, python-format
 msgid "\"%(value)s\" is not a unique identifier for the %(model)s model"
 msgstr ""
@@ -236,11 +236,12 @@ msgid "IPEN part"
 msgstr "IPEN-Kürzel"
 
 #: botman/models/bgci_gardens.py:22 botman/models/garden.py:49
-#: individuals/models/individual_base.py:83
+#: config_app/models/customprops.py:45 individuals/models/individual_base.py:83
 msgid "name"
 msgstr "Name"
 
-#: botman/models/bgci_gardens.py:23 config_app/models.py:13
+#: botman/models/bgci_gardens.py:23 config_app/admin.py:115
+#: config_app/models/customprops.py:41 config_app/models/keyvalue.py:13
 #: tickets/models.py:46
 msgid "type"
 msgstr "Typ"
@@ -319,8 +320,8 @@ msgstr "Katalog/%(date)s"
 #: individuals/models/individual.py:158 individuals/models/individual.py:160
 #: individuals/models/territory.py:131 individuals/models/territory.py:132
 #: individuals/models/territory.py:248 individuals/models/territory.py:249
-#: species/models.py:91 species/models.py:92 species/models.py:243
-#: species/models.py:244
+#: species/models.py:95 species/models.py:96 species/models.py:273
+#: species/models.py:274
 msgid "delete"
 msgstr "Löschen"
 
@@ -394,7 +395,7 @@ msgid "This name will appear at the top of all pages"
 msgstr "Dieser Name steht in der Kopfzeile jeder Seite"
 
 #: botman/models/garden.py:41 botman/models/garden.py:69
-#: botman/templates/botman/map-bgci.html:25
+#: botman/templates/botman/map-bgci.html:25 config_app/models/customprops.py:20
 msgid "botanic garden"
 msgstr "Botanischer Garten"
 
@@ -408,7 +409,7 @@ msgstr "Gartennummer"
 
 #: botman/models/garden.py:56 individuals/models/individual_base.py:123
 #: individuals/models/outplanting.py:38 plantimages/models.py:12
-#: species/models.py:154
+#: species/models.py:184
 msgid "comment"
 msgstr "Bemerkungen"
 
@@ -422,7 +423,7 @@ msgstr ""
 "ID des Gartens in https://gardensearch.bgci.org (0 wenn der Garten nicht in "
 "BGCI aufgeführt ist)"
 
-#: botman/models/garden.py:62 species/models.py:68 species/models.py:134
+#: botman/models/garden.py:62 species/models.py:72 species/models.py:164
 msgid "full name"
 msgstr "ganzer Name"
 
@@ -442,6 +443,7 @@ msgid "label"
 msgstr "Etikett"
 
 #: botman/models/garden.py:129 botman/models/garden.py:130
+#: config_app/models/customprops.py:114 config_app/models/customprops.py:115
 #: entrybook/models/entry.py:111 entrybook/models/entry.py:112
 #: herbaria/models/herbarium.py:53 herbaria/models/herbarium.py:55
 #: herbaria/models/specimen.py:107 herbaria/models/specimen.py:109
@@ -449,8 +451,8 @@ msgstr "Etikett"
 #: individuals/models/outplanting.py:61 individuals/models/outplanting.py:62
 #: individuals/models/territory.py:124 individuals/models/territory.py:125
 #: individuals/models/territory.py:234 individuals/models/territory.py:235
-#: species/models.py:84 species/models.py:85 species/models.py:236
-#: species/models.py:237
+#: species/models.py:88 species/models.py:89 species/models.py:266
+#: species/models.py:267
 msgid "show"
 msgstr "Anzeigen"
 
@@ -583,75 +585,163 @@ msgstr "ungültige ID"
 msgid "user activity"
 msgstr "Benutzeraktivität"
 
+#: config_app/admin.py:113
+msgid "Text ({} choices)"
+msgstr "Text ({} Wahlmöglichkeiten)"
+
+#: config_app/admin.py:123
+msgid "# used"
+msgstr "# benutzt"
+
 #: config_app/apps.py:7
 msgid "Configuration"
 msgstr "Tabelleneinstellungen"
 
-#: config_app/models.py:9
-msgid "Variable"
-msgstr "Variable"
+#: config_app/fields.py:96
+msgid "bool values"
+msgstr "Boolean Werte"
 
-#: config_app/models.py:10
-msgid "Variables"
-msgstr "Variablen"
+#: config_app/fields.py:102 config_app/models/customprops.py:148
+msgid "text values"
+msgstr "Text Werte"
 
-#: config_app/models.py:15
-msgid "translateable text"
-msgstr "Übersetzbarer Text"
+#: config_app/models/customprops.py:12
+msgid "Boolean"
+msgstr "Boolean"
 
-#: config_app/models.py:16
-msgid "normal text"
-msgstr "Normaler text"
+#: config_app/models/customprops.py:13
+msgid "Text"
+msgstr "Text"
 
-#: config_app/models.py:17
-msgid "json"
-msgstr "json"
+#: config_app/models/customprops.py:14
+msgid "Text (long)"
+msgstr "Text (lang)"
 
-#: config_app/models.py:18
-msgid "geo coordinate"
-msgstr "Geo-Koordinate"
+#: config_app/models/customprops.py:18 individuals/models/individual.py:189
+#: individuals/models/individual.py:474 individuals/models/outplanting.py:87
+#: species/models.py:66 species/models.py:254
+msgid "family"
+msgstr "Familie"
 
-#: config_app/models.py:21
-msgid "key"
-msgstr "Schlüssel"
+#: config_app/models/customprops.py:19 species/apps.py:7 species/models.py:142
+#: species/models.py:143 species/models.py:154
+msgid "species"
+msgid_plural "species"
+msgstr[0] "Art"
+msgstr[1] "Arten"
 
-#: config_app/models.py:23 config_app/models.py:24 config_app/models.py:71
+#: config_app/models/customprops.py:26 config_app/models/customprops.py:127
+#: config_app/models/customprops.py:153
+msgid "custom property"
+msgstr "Freie Eigenschaft"
+
+#: config_app/models/customprops.py:27 config_tables/admin.py:299
+msgid "custom properties"
+msgstr "Freie Eigenschaften"
+
+#: config_app/models/customprops.py:32
+msgid "created at"
+msgstr "erstellt am"
+
+#: config_app/models/customprops.py:36 config_tables/models.py:13
+msgid "model"
+msgstr "Model"
+
+#: config_app/models/customprops.py:49
+msgid "order"
+msgstr "Reihenfolge"
+
+#: config_app/models/customprops.py:50
+msgid "Order of value when viewing or editing."
+msgstr "Reihenfolge des Wertes beim Ansehen oder Editieren"
+
+#: config_app/models/customprops.py:54
+msgid "choices"
+msgstr "Wahlmöglichkeiten"
+
+#: config_app/models/customprops.py:55
+msgid "For text properties, limits the selection to these items, one per line"
+msgstr "Für Text-Werte, limitiert die Auswahl auf diese Werte, einen pro Zeile"
+
+#: config_app/models/customprops.py:121
+msgid "boolean value"
+msgstr "Boolean Wert"
+
+#: config_app/models/customprops.py:122
+msgid "boolean values"
+msgstr "Boolean Werte"
+
+#: config_app/models/customprops.py:133 config_app/models/customprops.py:159
+#: config_app/models/keyvalue.py:23 config_app/models/keyvalue.py:24
+#: config_app/models/keyvalue.py:71
 msgid "value"
 msgstr "Wert"
 
-#: config_app/models.py:25
+#: config_app/models/customprops.py:147
+msgid "text value"
+msgstr "Text Wert"
+
+#: config_app/models/keyvalue.py:9
+msgid "Variable"
+msgstr "Variable"
+
+#: config_app/models/keyvalue.py:10
+msgid "Variables"
+msgstr "Variablen"
+
+#: config_app/models/keyvalue.py:15
+msgid "translateable text"
+msgstr "Übersetzbarer Text"
+
+#: config_app/models/keyvalue.py:16
+msgid "normal text"
+msgstr "Normaler text"
+
+#: config_app/models/keyvalue.py:17
+msgid "json"
+msgstr "json"
+
+#: config_app/models/keyvalue.py:18
+msgid "geo coordinate"
+msgstr "Geo-Koordinate"
+
+#: config_app/models/keyvalue.py:21
+msgid "key"
+msgstr "Schlüssel"
+
+#: config_app/models/keyvalue.py:25
 msgid "json value"
 msgstr "JSON Wert"
 
-#: config_app/models.py:27
+#: config_app/models/keyvalue.py:27
 msgid "geo location"
 msgstr "Geo-Koordinate"
 
-#: config_app/models.py:47
+#: config_app/models/keyvalue.py:47
 #, python-format
 msgid "Type unknown \"%s\""
 msgstr "Typ \"%s\" unbekannt"
 
-#: config_app/models.py:70
+#: config_app/models/keyvalue.py:70
 #, python-format
 msgid "Invalid type in KeyValue \"%s\""
 msgstr "Unbekannter Typ in KeyValue \"%s\""
 
-#: config_tables/admin.py:256 config_tables/admin.py:288
+#: config_tables/admin.py:350 config_tables/admin.py:382
 #, python-format
 msgid "Configure table %(name)s"
 msgstr "%(name)s-Tabelle bearbeiten"
 
-#: config_tables/admin.py:491
+#: config_tables/admin.py:585
 #, python-format
 msgid "Remove filter for %s"
 msgstr "Filter für %s entfernen"
 
-#: config_tables/admin.py:530
+#: config_tables/admin.py:624
 msgid "yes"
 msgstr "Ja"
 
-#: config_tables/admin.py:531
+#: config_tables/admin.py:625
 msgid "no"
 msgstr "Nein"
 
@@ -677,10 +767,6 @@ msgstr "Tabellen"
 #: config_tables/models.py:12
 msgid "user"
 msgstr "Benutzer"
-
-#: config_tables/models.py:13
-msgid "model"
-msgstr "Model"
 
 #: config_tables/templates/config_tables/change_list.html:11
 msgid "The export will take approximately <sec> seconds, continue?"
@@ -784,7 +870,7 @@ msgid "miscellaneous"
 msgstr "Verschiedenes"
 
 #: entrybook/admin.py:81 individuals/admin.py:143 individuals/admin.py:242
-#: individuals/models/individual.py:468 species/models.py:271
+#: individuals/models/individual.py:468 species/models.py:301
 msgid "seeds"
 msgstr "Samen"
 
@@ -1017,7 +1103,7 @@ msgstr "IPEN"
 msgid "Individuals and their locations"
 msgstr "Individuen und Standorte"
 
-#: individuals/models/individual.py:24 species/models.py:261
+#: individuals/models/individual.py:24 species/models.py:291
 #: tickets/models.py:142
 msgid "individuals"
 msgstr "Individuen"
@@ -1052,28 +1138,22 @@ msgstr "Herbarbeleg vorhanden"
 msgid "Individual"
 msgstr "Individuum"
 
-#: individuals/models/individual.py:189 individuals/models/individual.py:474
-#: individuals/models/outplanting.py:87 species/models.py:62
-#: species/models.py:224
-msgid "family"
-msgstr "Familie"
-
-#: individuals/models/individual.py:202 species/models.py:140
+#: individuals/models/individual.py:202 species/models.py:170
 msgid "endangering"
 msgstr "Gefährdung"
 
 #: individuals/models/individual.py:223 individuals/models/individual.py:497
-#: species/models.py:152
+#: species/models.py:182
 msgid "nomenclature checked"
 msgstr "Nomenklatur geprüft"
 
 #: individuals/models/individual.py:229 individuals/models/individual.py:511
-#: species/models.py:137
+#: species/models.py:167
 msgid "label text"
 msgstr "Verbreitung"
 
 #: individuals/models/individual.py:235 individuals/models/individual.py:504
-#: individuals/models/individual.py:518 species/models.py:139
+#: individuals/models/individual.py:518 species/models.py:169
 msgid "detailed"
 msgstr "Verbreitung detail."
 
@@ -1921,130 +2001,119 @@ msgstr "Sie haben leider keine Berechtigung, den Katalog zu finalisieren"
 msgid "Return to catalog"
 msgstr "Zurück zu Katalog"
 
-#: species/admin.py:37 species/models.py:284
-msgid "alive individuals"
-msgstr "Lebende Individuen"
-
-#: species/admin.py:44
-msgid "Exist"
-msgstr "Existieren"
-
-#: species/admin.py:45
-msgid "Don't exist"
-msgstr "Existieren nicht"
-
-#: species/admin.py:105
+#: species/admin.py:80
 msgid "additional"
 msgstr "Zusätzliches"
 
-#: species/apps.py:7 species/models.py:112 species/models.py:113
-#: species/models.py:124
-msgid "species"
-msgid_plural "species"
-msgstr[0] "Art"
-msgstr[1] "Arten"
-
-#: species/models.py:56
+#: species/models.py:60
 msgid "genera"
 msgstr "Gattungen"
 
-#: species/models.py:63
+#: species/models.py:67
 msgid "subfamily"
 msgstr "Unterfamilie"
 
-#: species/models.py:64
+#: species/models.py:68
 msgid "tribus"
 msgstr "Tribus"
 
-#: species/models.py:65
+#: species/models.py:69
 msgid "subtribus"
 msgstr "Subtribus"
 
-#: species/models.py:67
+#: species/models.py:71
 msgid "author"
 msgstr "Autor"
 
 #: species/models.py:119
+msgid "Exist"
+msgstr "Existieren"
+
+#: species/models.py:120
+msgid "Don't exist"
+msgstr "Existieren nicht"
+
+#: species/models.py:149
 msgid "can check nomenclature of a species"
 msgstr "Kann Nomenklatur prüfen"
 
-#: species/models.py:123
+#: species/models.py:153
 msgid "genus & family"
 msgstr "Gattung & Familie"
 
-#: species/models.py:125
+#: species/models.py:155
 msgid "author species"
 msgstr "Autor Art"
 
-#: species/models.py:126
+#: species/models.py:156
 msgid "subspecies"
 msgstr "Unterart"
 
-#: species/models.py:127
+#: species/models.py:157
 msgid "author subspec."
 msgstr "Autor Unterart"
 
-#: species/models.py:128
+#: species/models.py:158
 msgid "variety"
 msgstr "Varietät"
 
-#: species/models.py:129
+#: species/models.py:159
 msgid "author variety"
 msgstr "Autor Varietät"
 
-#: species/models.py:130
+#: species/models.py:160
 msgid "form"
 msgstr "Form"
 
-#: species/models.py:131
+#: species/models.py:161
 msgid "author form"
 msgstr "Autor Form"
 
-#: species/models.py:132
+#: species/models.py:162
 msgid "cultivar / breed"
 msgstr "Cultivar / Sorte"
 
-#: species/models.py:133
+#: species/models.py:163
 msgid "without quotation marks"
 msgstr "Bitte OHNE Anführungszeichen"
 
-#: species/models.py:135
+#: species/models.py:165
 msgid "german name"
 msgstr "deutscher Name"
 
-#: species/models.py:136
+#: species/models.py:166
 msgid "synonyms"
 msgstr "Synonyme"
 
-#: species/models.py:148
+#: species/models.py:178
 msgid "Protection category according to Federal Nature Conservation Act"
 msgstr "Schutzkategorie nach dem Bundesnaturschutzgesetz"
 
-#: species/models.py:150
+#: species/models.py:180
 msgid "poisonous plant"
 msgstr "Giftpflanze"
 
-#: species/models.py:151
+#: species/models.py:181
 msgid "life-form"
 msgstr "Lebensform"
 
-#: species/models.py:155
+#: species/models.py:185
 msgid "picture"
 msgstr "Bild"
 
-#: species/models.py:167
+#: species/models.py:197
 msgid "author name"
 msgstr "Autorname"
 
-#: species/models.py:188
+#: species/models.py:218
 msgid "Full species name (with author)"
 msgstr "Ganzer Artenname (mit Autor)"
 
-#: species/models.py:212
+#: species/models.py:242
 msgid "Full species name (without author)"
 msgstr "Ganzer Artenname (ohne Autor)"
 
-#: species/models.py:217
+#: species/models.py:247
 msgid ""
 "Area of distribution (each line separate, access with "
 "{{obj.species.distribution_lines.0}}, {{obj.species.distribution_lines.0}}, "
@@ -2054,21 +2123,25 @@ msgstr ""
 "{{obj.species.distribution_lines.0}}, {{obj.species.distribution_lines.0}}, "
 "usw...)"
 
-#: species/models.py:250 tickets/models.py:125 tickets/models.py:127
+#: species/models.py:280 tickets/models.py:125 tickets/models.py:127
 msgid "check"
 msgstr "prüfen"
 
-#: species/models.py:251
+#: species/models.py:281
 msgid "availability"
 msgstr "Verfügbarkeit"
 
-#: species/models.py:259
+#: species/models.py:289
 msgid "search individuals"
 msgstr "Individuen durchsuchen"
 
-#: species/models.py:269
+#: species/models.py:299
 msgid "search seeds"
 msgstr "Samen durchsuchen"
+
+#: species/models.py:314
+msgid "alive individuals"
+msgstr "Lebende Individuen"
 
 #: templates/admin/auth/change_form.html:7
 msgid "Generate password reset link"
