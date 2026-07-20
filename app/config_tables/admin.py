@@ -209,7 +209,7 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
 
         if key not in self._custom_property_decorators:
             try:
-                prop = CustomProperty.objects.get(pk=key[26:])
+                prop = CustomProperty.objects.get(pk=key[26:], model=self.model._meta.label)
             except CustomProperty.DoesNotExist:
                 raise AttributeError(f"No property: {key}")
 
