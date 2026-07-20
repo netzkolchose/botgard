@@ -4,6 +4,7 @@ from typing import Optional, Literal, Type, List
 from django import forms
 from django.forms.widgets import Input
 from django.db import models
+from django.urls import reverse
 
 from .models import *
 
@@ -86,15 +87,20 @@ class PropertyValuesWidget(Input):
                     if v.property == property:
                         value = v.value
                         break
+            autocomplete_kwargs = {
+                "class": "autocomplete-modelfield",
+                "data-ac-json-url": reverse("ajax:model_json"),
+                "data-ac-id": f"custom_property_{property.pk}",
+            }
             if property.type == "bool":
                 widget = forms.widgets.CheckboxInput()
             elif property.type == "text":
                 if choices := property.get_choices():
                     widget = forms.widgets.Select(choices=[("", "")] + [(c, c) for c in choices])
                 else:
-                    widget = forms.widgets.TextInput()
+                    widget = forms.widgets.TextInput(autocomplete_kwargs)
             elif property.type == "text_long":
-                widget = forms.widgets.Textarea()
+                widget = forms.widgets.Textarea(autocomplete_kwargs)
             else:
                 raise NotImplementedError(f"CustomProperty.type '{self.value_type}'")
 

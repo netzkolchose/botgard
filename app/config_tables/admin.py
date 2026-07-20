@@ -167,6 +167,10 @@ class CustomPropertyHeaderFilter(CustomHeaderFilter):
                     choices=[(c, c) for c in choices],
                 )
             else:
+                context.update({
+                    "data-ac-json-url": reverse("ajax:model_json"),
+                    "data-ac-id": f"custom_property_{self.property.pk}",
+                })
                 return ConfigurableTable._get_search_widget_text(context)
 
         raise NotImplementedError(f"CustomProperty.type '{self.property.type}'")
