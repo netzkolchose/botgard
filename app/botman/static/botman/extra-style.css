@@ -356,6 +356,11 @@ details[data-filter-title="-invisible-"] {
     display: none;
 }
 
+/* hide changelist filters section if all filters are invisible */
+nav#changelist-filter:not(:has(details:not([data-filter-title="-invisible-"]))) {
+    display: none;
+}
+
 /*
 strangely, that doesn't work
 label[for="id_custom_values_bool"],
