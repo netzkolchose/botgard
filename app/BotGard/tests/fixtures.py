@@ -15,6 +15,12 @@ USERS = [
     {"username": "User2", "password": "the-secret"},
 ]
 
+CUSTOM_PROPERTIES = [
+    {"model": "species.Species", "type": "bool", "name": "poisonous"},
+    {"model": "species.Family", "type": "text", "name": "distinct", "choices": "No\nYes\nAlmost\n"},
+    {"model": "botman.BotanicGarden", "type": "bool", "name": "important"},
+]
+
 BGCI_GARDENS = [
     {"bgci_id": 23, "ipen_code": "GARD", "name": "BGCI1", "type": "Botanic Garden/Arboretum", "bgci_data": {"some": "data"}},
 ]
@@ -22,7 +28,7 @@ BGCI_GARDENS = [
 BOTANIC_GARDENS = [
     {"name": "Garden 1", "code": "GARD1", "address": "Line 1\nLine 2\nLine 3\nLine 4"},
     {"name": "Garden 2", "code": "GARD2", "address": "Linä 1\nLine,2\nLine\\n'3\nLine\"4"},
-    {"name": "Garden 3", "code": "GARD3"}
+    {"name": "Garden 3", "code": "GARD3", "custom_property": {"name": "important", "value": True}},
 ]
 
 OUTGOING_ORDERS = [
@@ -37,8 +43,8 @@ EXTERNAL_CATALOGS = [
 
 FAMILIES = [
     {"family": "Family 1", "genus": "Genus 1"},
-    {"family": "Family 2", "genus": "Genus 1"},
-    {"family": "Family 2", "genus": "Genus 2"},
+    {"family": "Family 2", "genus": "Genus 1", "custom_property": {"name": "distinct", "value": "Yes"}},
+    {"family": "Family 2", "genus": "Genus 2", "custom_property": {"name": "distinct", "value": "No"}},
 ]
 
 SPECIES = [
@@ -126,6 +132,7 @@ def create_test_fixtures():
     from labels.models import LabelDefinition
     from tickets.models import BasicTicket, LaserGravurTicket
     from seedcatalog.models import SeedCatalog
+    from config_app.models import CustomProperty, PropertyValueText, PropertyValueBool
 
     UserModel = get_user_model()
 
@@ -145,18 +152,28 @@ def create_test_fixtures():
 
         # print("U", UserModel.objects.get(username=data["username"]).is_superuser)
 
+    log("creating CustomProperty")
+    for prop in CUSTOM_PROPERTIES:
+        CustomProperty.objects.create(**prop)
+
     log("creating BGCIGarden")
     for i, data in enumerate(BGCI_GARDENS):
         BGCIGarden.objects.create(**data)
 
     log("creating BotanicGarden")
     for i, data in enumerate(BOTANIC_GARDENS):
-        BotanicGarden.objects.create(
+        g = BotanicGarden.objects.create(
             name=data["name"],
             code=data.get("code") or data["name"].replace(" ", "-")[-6:],
             number=data.get("number") or i,
             address=data.get("address"),
         )
+        if prop := data.get("custom_property"):
+            p = PropertyValueBool.objects.create(
+                property=CustomProperty.objects.get(name=prop["name"]),
+                value=prop["value"],
+            )
+            g.custom_values_bool.add(p)
 
     log("creating ExternalCatalog")
     for i, data in enumerate(EXTERNAL_CATALOGS):
@@ -182,7 +199,7 @@ def create_test_fixtures():
 
     log("creating Family")
     for i, data in enumerate(FAMILIES):
-        Family.objects.create(
+        f = Family.objects.create(
             family=data["family"],
             subfamily=data.get("subfamily") or "",
             tribus=data.get("tribus") or "",
@@ -190,11 +207,17 @@ def create_test_fixtures():
             genus=data["genus"],
             genus_author=data.get("genus_author") or rnd.choice(RANDOM_AUTHORS),
         )
+        if prop := data.get("custom_property"):
+            p = PropertyValueText.objects.create(
+                property=CustomProperty.objects.get(name=prop["name"]),
+                value=prop["value"],
+            )
+            f.custom_values_text.add(p)
 
     log("creating Species")
     for i, data in enumerate(SPECIES):
         family, genus = data["family"].split("/")
-        Species.objects.create(
+        s = Species.objects.create(
             family=Family.objects.get(family=family, genus=genus),
             species=data["species"],
             species_author=rnd.choice(RANDOM_AUTHORS),
@@ -214,6 +237,12 @@ def create_test_fixtures():
             lifeform="",
             nomenclature_checked=bool(data.get("nomenclature_checked")),
         )
+        if prop := data.get("custom_property"):
+            p = PropertyValueText.objects.create(
+                property=CustomProperty.objects.get(name=prop["name"]),
+                value=prop["value"],
+            )
+            s.custom_values_text.add(p)
 
     log("creating Territory")
     for i, data in enumerate(TERRITORIES):

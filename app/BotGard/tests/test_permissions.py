@@ -1,6 +1,7 @@
 import json
 from typing import Literal
 
+import django.urls.exceptions
 from bs4 import BeautifulSoup
 
 from .base import *
@@ -62,6 +63,8 @@ INVISIBLE_MODELS = (
     "seedcatalog.seedcatalog_seed",
     "plantimages.plantimage",
     "BotGard.passwordresetcode",
+    "config_app.propertyvaluetext",
+    "config_app.propertyvaluebool",
     "gis.postgisspatialrefsys",
     "gis.postgisgeometrycolumns",
 )
@@ -78,6 +81,8 @@ class TestPermissions(TestBase):
         cls.ALL_MODELS = {}
         for app_name, models in apps.all_models.items():
             for model_name, model in models.items():
+                if "_custom_values_" in model_name:
+                    continue
                 # filter for models that are visible as changelist/changeview
                 if f"{app_name}.{model_name}" not in INVISIBLE_MODELS:
                     cls.ALL_MODELS[f"{app_name}.{model_name}"] = model
