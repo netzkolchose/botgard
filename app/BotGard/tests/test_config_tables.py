@@ -61,7 +61,13 @@ class TestConfigTables(TestBase):
 
         return columns
 
-    def assert_change_changelist_columns(self, app_name: str, model_name: str, new_columns: List[str]):
+    def assert_change_changelist_columns(
+            self,
+            app_name: str,
+            model_name: str,
+            new_columns: List[str],
+            not_in_new_columns: Optional[List[str]] = None,
+    ):
         """
         Change the column settings and assert that the change is reflected in admin UI
         """
@@ -82,7 +88,13 @@ class TestConfigTables(TestBase):
         )
         self.assertEqual(302, response.status_code)  # redirects to changelist
 
-        self.assert_changelist_columns(app_name, model_name, new_columns)
+        if not not_in_new_columns:
+            self.assert_changelist_columns(app_name, model_name, new_columns)
+        else:
+            self.assert_changelist_columns(
+                app_name, model_name,
+                [c for c in new_columns if c not in not_in_new_columns]
+            )
 
     def test_config_table_garden(self):
         self.assert_changelist_columns("botman", "botanicgarden", [
@@ -91,13 +103,41 @@ class TestConfigTables(TestBase):
             'label_link_decorator', 'delete_link_decorator',
         ])
 
-        prop = CustomProperty.objects.get(name="important")
+        prop_garden = CustomProperty.objects.get(name="important")
+        prop_species = CustomProperty.objects.get(name="poisonous")
         self.assert_change_changelist_columns("botman", "botanicgarden", [
             'address', 'change_link_decorator',
             'full_name_generated', 'catalog_date_generated',
-            'num_orders_generated', f'custom_property_decorator_{prop.pk}',
+            'num_orders_generated',
+            f'custom_property_decorator_{prop_garden.pk}',
+            f'custom_property_decorator_{prop_species.pk}',
+        ], not_in_new_columns=[
+            f'custom_property_decorator_{prop_species.pk}',
         ])
 
+    def test_config_table_species(self):
+        self.assert_changelist_columns("species", "species", [
+            'change_link_decorator',
+            'genus_single', 'family_single',
+            'species', 'deutscher_name', 'synonyme',
+            'area_of_distribution_etikettxt',
+            'search_individuals_link_decorator', 'search_seeds_link_decorator', 'availability_decorator',
+            'alive_individuals_decorator',
+            'delete_link_decorator',
+        ])
+
+        prop_garden = CustomProperty.objects.get(name="important")
+        prop_species = CustomProperty.objects.get(name="poisonous")
+        self.assert_change_changelist_columns("species", "species", [
+            'species',
+            'genus_single',
+            'synonyme',
+            'deutscher_name',
+            'area_of_distribution_etikettxt',
+            f'custom_property_decorator_{prop_species.pk}',
+        ], not_in_new_columns=[
+            f'custom_property_decorator_{prop_garden.pk}',
+        ])
 
     def test_config_table_individual(self):
         self.assert_changelist_columns("individuals", "individual", [

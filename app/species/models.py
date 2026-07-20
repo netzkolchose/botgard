@@ -1,12 +1,14 @@
 from django.db import models
+from django.db.models import QuerySet
 from django.utils.translation import gettext_lazy as _
 from django.utils.translation import ngettext_lazy
 from django.utils.safestring import mark_safe
 from django.urls import reverse
 from django import forms
+from django.contrib import admin
 
-from config_app.fields import CustomPropertyValuesBoolField, CustomPropertyValuesTextField
-from config_tables.admin import Configurable, configurable
+from config_app.mixins import CustomPropertiesModelMixin
+from config_tables.admin import Configurable, configurable, CustomSelectHeaderFilter
 from ajax.autocomplete import AutoCompleteForm
 from tools import global_request
 
@@ -52,7 +54,7 @@ if len(LIFEFORM_CHOICES) != len(set([i[0] for i in LIFEFORM_CHOICES])):
     raise ValueError("Duplicate LIFEFORM_CHOICES!!")
 
 
-class Family(models.Model, Configurable):
+class Family(CustomPropertiesModelMixin("family"), Configurable):
     class Meta:
         verbose_name = _('genus')
         verbose_name_plural = _('genera')
@@ -68,9 +70,6 @@ class Family(models.Model, Configurable):
     genus = models.CharField(verbose_name=_('genus'), max_length=50, blank=False)
     genus_author = models.CharField(verbose_name=_('author'), max_length=100, blank=True)
     full_name_generated = models.CharField(verbose_name=_('full name'), max_length=350, blank=True)
-
-    custom_values_bool = CustomPropertyValuesBoolField(related_name="family_values_bool")
-    custom_values_text = CustomPropertyValuesTextField(related_name="family_values_text")
 
     # @configurable
     def __str__(self):
@@ -111,7 +110,33 @@ class FamilyForm(AutoCompleteForm(Family)):
     pass
 
 
-class Species(models.Model, Configurable):
+class AliveIndividualsListFilter(admin.SimpleListFilter):
+    title = "-invisible-"
+
+    # Parameter for the filter that will be used in the URL query.
+    parameter_name = "individuals_exist"
+    CHOICES = [
+        ("1", _("Exist")),
+        ("0", _("Don't exist")),
+    ]
+
+    def lookups(self, request, model_admin):
+        return self.CHOICES
+
+    def queryset(self, request, queryset: QuerySet):
+        if self.value() == "1":
+            return queryset.filter(
+                individual__is_alive_generated=True,
+            ).distinct()
+        elif self.value() == "0":
+            return queryset.exclude(
+                individual__is_alive_generated=True,
+            ).distinct()
+        else:
+            return queryset
+
+
+class Species(CustomPropertiesModelMixin("species"), models.Model, Configurable):
 
     class Meta:
         verbose_name = ngettext_lazy('species', 'species', 1)
@@ -158,9 +183,6 @@ class Species(models.Model, Configurable):
                                                    null=True)
     comment = models.TextField(verbose_name=_('comment'), max_length=10000, blank=True, null=True)
     picture = models.ImageField(verbose_name=_('picture'), upload_to="pictures", blank=True)
-
-    custom_values_bool = CustomPropertyValuesBoolField(related_name="species_values_bool")
-    custom_values_text = CustomPropertyValuesTextField(related_name="species_values_text")
 
     @configurable
     def get_author_name(self):
@@ -290,6 +312,10 @@ class Species(models.Model, Configurable):
             "yes" if has_individuals else "no",
         ))
     alive_individuals_decorator.short_description = _('alive individuals')
+    alive_individuals_decorator.custom_header_filter = CustomSelectHeaderFilter(
+        query_name=AliveIndividualsListFilter.parameter_name,
+        choices=AliveIndividualsListFilter.CHOICES,
+    )
 
     def save(self, *args, **kawrgs):
         if hasattr(self, "full_name_generated"):
@@ -304,19 +330,7 @@ class Species(models.Model, Configurable):
 
 class SpeciesForm(AutoCompleteForm(Species)):
 
-    #class Meta:
-    #    field_classes = {
-    #        **create_property_values_field_classes(Species),
-    #    }
-
     def __init__(self, *args, **kwargs):
         super(SpeciesForm, self).__init__(*args, **kwargs)
         if not global_request.get_current_user().has_perm("species.can_check_nomenclature"):
             self.fields["nomenclature_checked"] = forms.NullBooleanField(disabled=True)
-
-    def save(self, commit = True):
-        print("SAVE   ", self.data)
-        return super().save(commit)
-
-
-forms.ModelForm
