@@ -39,8 +39,10 @@ from tickets.models import *
 from seedcatalog.models import *
 from herbaria.models import *
 
+from . import fixtures
 from .fixtures import create_permission_group, create_test_fixtures
 from config_app.management.commands.botgard_update_config import update_config_in_database
+from config_app.models import *
 
 UserModel = get_user_model()
 

@@ -91,10 +91,11 @@ class TestConfigTables(TestBase):
             'label_link_decorator', 'delete_link_decorator',
         ])
 
+        prop = CustomProperty.objects.get(name="important")
         self.assert_change_changelist_columns("botman", "botanicgarden", [
             'address', 'change_link_decorator',
             'full_name_generated', 'catalog_date_generated',
-            'num_orders_generated',
+            'num_orders_generated', f'custom_property_decorator_{prop.pk}',
         ])
 
 
@@ -125,6 +126,8 @@ class TestConfigTables(TestBase):
             user = User.objects.get(username="User1")
         fake_request = FakeRequest()
 
+        num_custom_props_tested = 0
+
         for changelist_name in all_changelist_names:
             with self.subTest(changelist_name):
                 app_name, model_name, _ = changelist_name.split("_")
@@ -147,17 +150,31 @@ class TestConfigTables(TestBase):
                 soup = self.get_soup(response.content)
 
                 column_filters = []
-                for elem in soup.find_all("input", {"class": "filter-form-element"}):
+                for elem in itertools.chain(
+                        soup.find_all("input", {"class": "filter-form-element"}),
+                        soup.find_all("select", {"class": "filter-form-element"}),
+                ):
                     column_filters.append(elem.attrs["name"])
 
+                for props in fixtures.CUSTOM_PROPERTIES:
+                    if model_name == props["model"].split(".")[-1].lower():
+                        num_custom_props_tested += 1
+                        prop = CustomProperty.objects.get(name=props["name"])
+                        self.assertIn(f"custom_property_{prop.pk}", column_filters)
+                        break
+
                 query_string = "&".join(
-                    f"{key}=x" for key in column_filters
+                    f"{key}=1" for key in column_filters
                 )
                 response = self.client.get(reverse(f"admin:{changelist_name}") + "?" + query_string)
 
                 if response.status_code == 302:
-                    raise AssertionError(f"{changelist_name} redirected to {response.headers['location']}")
+                    raise AssertionError(
+                        f"{changelist_name} redirected to {response.headers['location']}"
+                        f"\nquery_string={query_string}"
+                    )
 
                 if response.status_code != 200:
                     raise AssertionError(f"{changelist_name} responded with {response.status_code}\n{self.get_response_error(response)}")
 
+        self.assertEqual(len(fixtures.CUSTOM_PROPERTIES), num_custom_props_tested)
