@@ -12,7 +12,8 @@ from config_tables.admin import Configurable, configurable
 from ajax.autocomplete import AutoCompleteForm
 from tools.urls import full_url
 import config_app
-from config_app.mixins import CustomPropertiesModelMixin
+from BotGard import BotGardBaseModel
+from config_app.baseclass import CustomPropertiesBaseModel
 
 # TODO: replace get_new_number, link methods still needed?, save still needed?
 
@@ -36,7 +37,7 @@ def get_new_number():
     return new_number
 
 
-class BotanicGarden(Configurable, CustomPropertiesModelMixin("garden")):
+class BotanicGarden(BotGardBaseModel(custom_properties_model_name="garden")):
     class Meta:
         verbose_name = _('botanic garden')
         verbose_name_plural = _('botanic gardens')

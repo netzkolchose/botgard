@@ -7,7 +7,7 @@ from django.urls import reverse
 from django import forms
 from django.contrib import admin
 
-from config_app.mixins import CustomPropertiesModelMixin
+from BotGard import BotGardBaseModel
 from config_tables.admin import Configurable, configurable, CustomSelectHeaderFilter
 from ajax.autocomplete import AutoCompleteForm
 from tools import global_request
@@ -54,7 +54,7 @@ if len(LIFEFORM_CHOICES) != len(set([i[0] for i in LIFEFORM_CHOICES])):
     raise ValueError("Duplicate LIFEFORM_CHOICES!!")
 
 
-class Family(CustomPropertiesModelMixin("family"), Configurable):
+class Family(BotGardBaseModel(custom_properties_model_name="family")):
     class Meta:
         verbose_name = _('genus')
         verbose_name_plural = _('genera')
@@ -136,7 +136,7 @@ class AliveIndividualsListFilter(admin.SimpleListFilter):
             return queryset
 
 
-class Species(CustomPropertiesModelMixin("species"), models.Model, Configurable):
+class Species(BotGardBaseModel(custom_properties_model_name="species")):
 
     class Meta:
         verbose_name = ngettext_lazy('species', 'species', 1)
