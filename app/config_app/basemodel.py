@@ -58,10 +58,15 @@ def CustomPropertiesBaseModel(related_name_model: str) -> Type[models.Model]:
 
 
 def check_custom_property_classes():
-    expected_class_names = {
-        f"{c.__module__.split('.')[0]}.{c.__name__}": c
-        for c in registered_custom_property_classes
-    }
+    """
+    Called on BotGard app ready, to warn if the
+    CustomProperty.model choices don't fit the registered models
+    """
+    expected_class_names = {}
+    for c in registered_custom_property_classes:
+        key = f"{c.__module__.split('.')[0]}.{c.__name__}"
+        if key != "individuals.Seed":  # this is only a proxy of Individual
+            expected_class_names[key] = c
 
     class_names = set(i[0] for i in CUSTOM_PROPERTY_MODEL_CHOICES)
 
@@ -74,7 +79,7 @@ def check_custom_property_classes():
         if too_much:
             msg += f"\nToo much:\n{pprint.pformat(sorted(too_much))}"
 
-        msg += "\nCUSTOM_PROPERTY_MODEL_CHOICES should look like this:\n\n"
+        msg += "\n\nit should look like this:\n\n"
         msg += "CUSTOM_PROPERTY_MODEL_CHOICES = (\n"
         for name, cls in expected_class_names.items():
             tr_name = name.split(".")[-1]
@@ -88,6 +93,3 @@ def check_custom_property_classes():
         msg += ")\n"
 
         warnings.warn(msg)
-
-
-

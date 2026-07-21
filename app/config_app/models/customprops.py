@@ -20,8 +20,15 @@ CUSTOM_PROPERTY_MODEL_CHOICES = (
     ("botman.ExternalCatalogArchive", _("external catalog (archived)")),
     ("botman.OutgoingOrder", _("outgoing order")),
     ("botman.BGCIGarden", _("BGCI garden")),
+    ("individuals.Territory", _("territory")),
+    ("individuals.Department", _("department")),
     ("species.Family", _("genus")),
     ("species.Species", _("species")),
+    ("entrybook.Entry", _("Seed/individual entry")),
+    ("individuals.Individual", _("individual")),
+    ("individuals.Outplanting", _("Outplanting")),
+    ("herbaria.Herbarium", _("Herbarium")),
+    ("herbaria.HerbariumSpecimen", _("Specimen")),
 )
 
 

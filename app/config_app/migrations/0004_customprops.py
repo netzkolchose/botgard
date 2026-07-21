@@ -16,7 +16,29 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('date_created', models.DateTimeField(auto_now_add=True, verbose_name='created at')),
-                ('model', models.CharField(choices=[('species.Family', 'family'), ('species.Species', 'species'), ('botman.BotanicGarden', 'botanic garden')], max_length=64, verbose_name='model')),
+                ('model', models.CharField(
+                    # these are copied from `config_app/models/customprops.py`
+                    # When adding a new model, the choices just should be added here
+                    # instead of creating a new migration file with that sole purpose.
+                    # (unless there is a new config_app migration file already)
+                    choices=(
+                        ("botman.BotanicGarden", ("botanic garden")),
+                        ("botman.ExternalCatalog", ("external catalog")),
+                        ("botman.ExternalCatalogArchive", ("external catalog (archived)")),
+                        ("botman.OutgoingOrder", ("outgoing order")),
+                        ("botman.BGCIGarden", ("BGCI garden")),
+                        ("individuals.Territory", ("territory")),
+                        ("individuals.Department", ("department")),
+                        ("species.Family", ("genus")),
+                        ("species.Species", ("species")),
+                        ("entrybook.Entry", ("Seed/individual entry")),
+                        ("individuals.Individual", ("individual")),
+                        ("individuals.Outplanting", ("Outplanting")),
+                        ("herbaria.Herbarium", ("Herbarium")),
+                        ("herbaria.HerbariumSpecimen", ("Specimen")),
+                    ),
+                    max_length=64, verbose_name='model')
+                 ),
                 ('type', models.CharField(choices=[('bool', 'Boolean'), ('text', 'Text'), ('text_long', 'Text (long)')], verbose_name='type')),
                 ('name', models.CharField(unique=True, verbose_name='name')),
                 ('order', models.IntegerField(default=0, help_text='Order of value when viewing or editing.', verbose_name='order')),

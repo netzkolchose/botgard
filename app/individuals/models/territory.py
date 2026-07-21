@@ -11,7 +11,7 @@ from ajax.autocomplete import AutoCompleteForm
 from config_tables.admin import configurable, Configurable
 from geo.widgets import BotGardOpenLayersWidget
 import config_app
-
+from BotGard import BotGardBaseModel
 
 
 def _to_percent_deco(x, n):
@@ -91,7 +91,7 @@ class CalcOutplantingsMixin(models.Model):
         return _to_percent_deco(self.num_genera_alive, self.num_genera)
 
 
-class Territory(CalcOutplantingsMixin, models.Model, Configurable):
+class Territory(CalcOutplantingsMixin, BotGardBaseModel(custom_properties_unique_name="territory")):
     class Meta:
         verbose_name = _("territory")
         verbose_name_plural = _("territories")
@@ -197,7 +197,7 @@ config_app.register_key(
 )
 
 
-class Department(CalcOutplantingsMixin, models.Model, Configurable):
+class Department(CalcOutplantingsMixin, BotGardBaseModel(custom_properties_unique_name="department")):
     class Meta:
         verbose_name = _("department")
         verbose_name_plural = _("departments")
