@@ -15,11 +15,9 @@ CUSTOM_PROPERTY_TYPE_CHOICES = (
 )
 
 CUSTOM_PROPERTY_MODEL_CHOICES = (
-    ("botman.BotanicGarden", _("botanic garden")),
-    ("botman.ExternalCatalog", _("external catalog")),
-    ("botman.ExternalCatalogArchive", _("external catalog (archived)")),
-    ("botman.OutgoingOrder", _("outgoing order")),
     ("botman.BGCIGarden", _("BGCI garden")),
+    ("botman.BotanicGarden", _("botanic garden")),
+    ("botman.OutgoingOrder", _("outgoing order")),
     ("individuals.Territory", _("territory")),
     ("individuals.Department", _("department")),
     ("species.Family", _("genus")),
@@ -54,7 +52,6 @@ class CustomProperty(models.Model):
     )
     name = models.CharField(
         verbose_name=_("name"),
-        unique=True,
     )
     order = models.IntegerField(
         verbose_name=_("order"),

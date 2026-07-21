@@ -22,11 +22,9 @@ class Migration(migrations.Migration):
                     # instead of creating a new migration file with that sole purpose.
                     # (unless there is a new config_app migration file already)
                     choices=(
-                        ("botman.BotanicGarden", ("botanic garden")),
-                        ("botman.ExternalCatalog", ("external catalog")),
-                        ("botman.ExternalCatalogArchive", ("external catalog (archived)")),
-                        ("botman.OutgoingOrder", ("outgoing order")),
                         ("botman.BGCIGarden", ("BGCI garden")),
+                        ("botman.BotanicGarden", ("botanic garden")),
+                        ("botman.OutgoingOrder", ("outgoing order")),
                         ("individuals.Territory", ("territory")),
                         ("individuals.Department", ("department")),
                         ("species.Family", ("genus")),
@@ -40,7 +38,7 @@ class Migration(migrations.Migration):
                     max_length=64, verbose_name='model')
                  ),
                 ('type', models.CharField(choices=[('bool', 'Boolean'), ('text', 'Text'), ('text_long', 'Text (long)')], verbose_name='type')),
-                ('name', models.CharField(unique=True, verbose_name='name')),
+                ('name', models.CharField(verbose_name='name')),
                 ('order', models.IntegerField(default=0, help_text='Order of value when viewing or editing.', verbose_name='order')),
                 ('choices', models.TextField(blank=True, help_text='For text properties, limits the selection to these items, one per line', verbose_name='choices')),
             ],
