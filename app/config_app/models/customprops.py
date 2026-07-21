@@ -15,9 +15,13 @@ CUSTOM_PROPERTY_TYPE_CHOICES = (
 )
 
 CUSTOM_PROPERTY_MODEL_CHOICES = (
-    ("species.Family", _("family")),
-    ("species.Species", _("species")),
     ("botman.BotanicGarden", _("botanic garden")),
+    ("botman.ExternalCatalog", _("external catalog")),
+    ("botman.ExternalCatalogArchive", _("external catalog (archived)")),
+    ("botman.OutgoingOrder", _("outgoing order")),
+    ("botman.BGCIGarden", _("BGCI garden")),
+    ("species.Family", _("genus")),
+    ("species.Species", _("species")),
 )
 
 
