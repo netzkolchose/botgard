@@ -24,7 +24,7 @@ class TestConfigTables(TestBase):
             'label_link_decorator', 'delete_link_decorator',
         ])
 
-        prop_garden = CustomProperty.objects.get(name="important")
+        prop_garden = CustomProperty.objects.get(name="garden_important")
         prop_species = CustomProperty.objects.get(name="poisonous")
         self.assert_change_changelist_columns("botman", "botanicgarden", [
             'address', 'change_link_decorator',
@@ -47,7 +47,7 @@ class TestConfigTables(TestBase):
             'delete_link_decorator',
         ])
 
-        prop_garden = CustomProperty.objects.get(name="important")
+        prop_garden = CustomProperty.objects.get(name="garden_important")
         prop_species = CustomProperty.objects.get(name="poisonous")
         self.assert_change_changelist_columns("species", "species", [
             'species',
@@ -67,10 +67,12 @@ class TestConfigTables(TestBase):
             'is_alive', 'source', 'etikett_link_decorator'
         ])
 
+        prop = CustomProperty.objects.get(name="individual_comment")
         self.assert_change_changelist_columns("individuals", "individual", [
             'image_decorator', 'change_link_decorator',
             'delete_link_decorator', 'etikett_detail_decorator',
             'territories_decorator',
+            f'custom_property_decorator_{prop.pk}',
         ])
 
     @override_settings(DEBUG=True)
