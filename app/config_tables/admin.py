@@ -301,7 +301,7 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
             for entry in fieldsets:
                 if len(entry) >= 2 and isinstance(entry[1], dict):
                     if fields := entry[1].get("fields"):
-                        entry[1]["fields"] = [f for f in fields if not f.startswith("custom_values_")]
+                        entry[1]["fields"] = [f for f in fields if not str(f).startswith("custom_values_")]
             # and append them at the end
             fieldsets = list(fieldsets) + [
                 (_('custom properties'), {
