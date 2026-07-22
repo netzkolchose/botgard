@@ -109,5 +109,4 @@ class TestCustomProps2(TestBase):
             1,
             PropertyValueText.objects.filter(property__in=[prop1, prop2]).count()
         )
-
         #pprint.pprint(self.get_log_entries("User1"))
