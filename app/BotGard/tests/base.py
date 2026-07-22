@@ -295,6 +295,17 @@ class TestBase(TestCase):
                 [c for c in new_columns if c not in not_in_new_columns]
             )
 
+    def create_custom_property(
+            self,
+            model: Union[models.Model, Type[models.Model]],
+            name: str,
+            type: str = "text",
+    ):
+        return CustomProperty.objects.create(
+            model=model._meta.label,
+            type=type,
+            name=name,
+        )
 
     def get_property_value(
             self, property_name: str, instance: models.Model
@@ -322,10 +333,16 @@ class TestBase(TestCase):
             "change_message",
         ))
 
+    def assert_no_admin_form_errors(self, response: HttpResponse):
+        if response.context:
+            if adminform := response.context.get("adminform"):
+                if adminform.form.errors:
+                    raise AssertionError(f"Form validation errors:\n{adminform.form.errors}")
+
     def get_changelist(self, app_name: str, model_name: str) -> "ChangeListForm":
         return ChangeListForm(self, app_name, model_name)
 
-    def get_changeform(self, app_name: str, model_name: str, pk: Union[str, int]) -> "ChangeForm":
+    def get_changeform(self, app_name: str, model_name: str, pk: Union[None, str, int] = None) -> "ChangeForm":
         return ChangeForm(self, app_name, model_name, pk)
 
 class ChangeListForm:
@@ -595,29 +612,68 @@ class ChangeForm:
         def is_prefix(self) -> bool:
             return "__prefix__" in self.name
 
-    def __init__(self, parent: TestBase, app_name: str, model_name: str, pk: Union[int, str]):
+    def __init__(self, parent: TestBase, app_name: str, model_name: str, pk: Union[None, int, str]):
         self.pk = pk
         self.parent = parent
         self.app_name = app_name
         self.model_name = model_name
-        self.url = reverse(f"admin:{self.app_name}_{model_name}_change", args=(self.pk, ))
         self.query_params = {}
         self.fields: List[ChangeForm.FormField] = []
         self.request()
+
+    def __str__(self):
+        return f"ChangeForm('{self.app_name}.{self.model_name}', pk={self.pk})"
+
+    @property
+    def url(self) -> str:
+        if self.pk is not None:
+            return reverse(f"admin:{self.app_name}_{self.model_name}_change", args=(self.pk, ))
+        else:
+            return reverse(f"admin:{self.app_name}_{self.model_name}_add")
 
     def request(self):
         response = self.parent.client.get(self.url, query_params=self.query_params)
         self.parent.assert_no_warning(response)
         self.parse(response.content.decode())
 
-    def get_data(self, include_prefix: bool = False) -> dict:
+    def get_data(self) -> dict:
+        def _skip_field(f: ChangeForm.FormField) -> bool:
+            return (
+                    f.name.startswith("initial-")
+                or f.name.startswith("_")
+                or "__prefix__" in f.name
+                or "_FORMS" in f.name
+            )
         return {
             f.name: f.value
             for f in self.fields
-            if include_prefix or not f.is_prefix
+            if not _skip_field(f)
         }
 
-    def post(self, override_values: Union[None, Dict, QueryDict] = None):
+    def assert_data(self, expected_fields: dict):
+        data = self.get_data()
+        errors = {}
+        for key, expected_value in expected_fields.items():
+            if key not in data:
+                errors[key] = "* key missing *"
+            value = data[key]
+            if expected_value is None or expected_value == "":
+                if value in ("", "\n"):
+                    is_same = True
+                else:
+                    is_same = not value
+            else:
+                is_same = value == expected_value
+                if isinstance(expected_value, str) and isinstance(value, str):
+                    is_same = value.strip() == expected_value.strip()
+
+            if not is_same:
+                errors[key] = f"expected {repr(expected_value)} got {repr(value)}"
+
+        if errors:
+            raise AssertionError(f"data not as expected: {self}\n{pprint.pformat(errors)}")
+
+    def save(self, override_values: Union[None, Dict, QueryDict] = None):
         if override_values is None:
             values = QueryDict(mutable=True)
         elif isinstance(override_values, QueryDict):
@@ -633,7 +689,8 @@ class ChangeForm:
         for field in self.fields:
             if not field.disabled:
                 if not override_values or field.name not in override_values:
-                    values.appendlist(field.name, field.value)
+                    if not field.name.startswith("_"):
+                        values.appendlist(field.name, field.value)
 
         actual_values = QueryDict(mutable=True)
         for key in values.keys():
@@ -652,10 +709,23 @@ class ChangeForm:
         if self.query_params:
             url = f"{url}?{urllib.parse.urlencode(self.query_params)}"
 
-        actual_values["_continue"] = "Save and continue"
+        actual_values["_continue"] = ""
 
-        # don't put a QueryDict there, it only yields the LAST entry of a list value
-        response = self.parent.client.post(url, dict(actual_values), follow=True)
+        # don't put a QueryDict into client.post(), it only yields the LAST entry of a list value
+        actual_values = dict(actual_values)
+
+        if self.pk is None:
+            # in case of admin/app/model/add, catch the redirect and extract pk
+            response = self.parent.client.post(url, actual_values)
+            self.parent.assert_response(response, status=302)
+            url = response.headers["location"]
+            self.pk = int(re.match(r".*/(\d+)/change/?$", url).groups()[0])
+            response = self.parent.client.get(self.url)
+        else:
+            response = self.parent.client.post(url, actual_values, follow=True)
+            # print("RESPONSE", response.status_code, response.headers)
+
+        self.parent.assert_no_admin_form_errors(response)
 
         self.parent.assert_response(response, status=200)
         self.parent.assert_no_warning(response)
@@ -695,10 +765,7 @@ class ChangeForm:
         for inp in form.find_all("input"):
             if "name" in inp.attrs:
                 if inp.attrs.get("type") == "checkbox":
-                    if "value" in inp.attrs:
-                        value = inp.attrs["value"]
-                    else:
-                        value = "checked" in inp.attrs
+                    value = "checked" in inp.attrs
                 else:
                     value = inp.attrs.get("value")
                 _add_field(inp, value)

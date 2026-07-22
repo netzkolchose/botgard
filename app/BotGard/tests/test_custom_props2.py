@@ -1,3 +1,5 @@
+import pprint
+
 import django.contrib.admin
 import django.apps
 
@@ -12,15 +14,50 @@ class TestCustomProps2(TestBase):
     def setUp(self):
         self.login(username="User1")
 
-    def test_customprops_admin_logentry_individual(self):
+    #@log_requests
+    def test_customprops_admin_garden(self):
+        prop1 = CustomProperty.objects.get(name="garden_important")  # a bool prop
+        prop2 = self.create_custom_property(BotanicGarden, "garden_comment")
+
+        form = self.get_changeform("botman", "botanicgarden")
+        #pprint.pprint(form.get_data())
+        form.assert_data({
+            "address": None,
+            "bgci_id": None,
+            "code": None,
+            "comment": None,
+            f"custom-property-{prop1.pk}": False,
+            f"custom-property-{prop2.pk}": None,
+            "email": None,
+            "name": None,
+            "number": "3",
+            "phone": None,
+            "website": None,
+        })
+        new_data = {
+            "address": "Adr1",
+            "bgci_id": None,
+            "code": "G23",
+            "comment": "Nothing really",
+            f"custom-property-{prop1.pk}": True,
+            f"custom-property-{prop2.pk}": "Extra bits",
+            "email": "a@b.cd",
+            "name": "Garden 23",
+            "number": "4",
+            "phone": "12345",
+            "website": "https://garden.23.com",
+        }
+        form.save(new_data)
+        instance = BotanicGarden.objects.get(pk=form.pk)
+        self.assertEqual(True, getattr(instance, f"custom_property_{prop1.pk}"))
+        self.assertEqual("Extra bits", getattr(instance, f"custom_property_{prop2.pk}"))
+        form.assert_data(new_data)
+
+    def test_customprops_admin_individual(self):
         instance = Individual.objects.get(accession_number=1000)
 
         prop1 = CustomProperty.objects.get(name="individual_comment")
-        prop2 = CustomProperty.objects.create(
-            model="individuals.Individual",
-            type="text",
-            name="individual_comment2",
-        )
+        prop2 = self.create_custom_property(Individual, "individual_comment2")
 
         # check that one custom property is set for this instance
         orig_props = {
@@ -36,7 +73,7 @@ class TestCustomProps2(TestBase):
 
         # post changeform as-is
         form = self.get_changeform("individuals", "individual", instance.pk)
-        form.post()
+        form.save()
 
         # check that property is unchanged
         self.assertEqual(
@@ -48,7 +85,7 @@ class TestCustomProps2(TestBase):
         )
 
         # check changes to both property values
-        form.post({
+        form.save({
             f"custom-property-{prop1.pk}": "Changed",
             f"custom-property-{prop2.pk}": "Changed2",
         })
@@ -72,7 +109,7 @@ class TestCustomProps2(TestBase):
         self.assertEqual(getattr(instance, f"custom_property_{prop2.pk}"), "Changed2")
 
         # remove both
-        form.post({
+        form.save({
             f"custom-property-{prop1.pk}": "",
             f"custom-property-{prop2.pk}": "",
         })
@@ -90,7 +127,7 @@ class TestCustomProps2(TestBase):
         )
 
         # set only 2nd
-        form.post({
+        form.save({
             f"custom-property-{prop1.pk}": "",
             f"custom-property-{prop2.pk}": "Bob!",
         })
