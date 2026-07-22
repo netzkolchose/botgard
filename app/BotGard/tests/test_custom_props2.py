@@ -209,3 +209,40 @@ class TestCustomProps2(TestBase):
             PropertyValueText.objects.filter(property__in=[prop1, prop2]).count()
         )
         #pprint.pprint(self.get_log_entries("User1"))
+
+    def test_customprops_mandatory(self):
+        CustomProperty.objects.all().delete()
+
+        prop1 = self.create_custom_property(BotanicGarden, "text", type="text")
+        prop2 = self.create_custom_property(BotanicGarden, "long", type="text_long")
+        prop3 = self.create_custom_property(BotanicGarden, "bool", type="bool")
+        prop4 = self.create_custom_property(BotanicGarden, "choices", type="text", choices=["A", "B", "C"])
+
+        form = self.get_changeform("botman", "botanicgarden", BotanicGarden.objects.get(code="GARD1").pk)
+        form.assert_data({
+            f"custom-property-{prop1.pk}": None,
+            f"custom-property-{prop2.pk}": None,
+            f"custom-property-{prop3.pk}": None,
+            f"custom-property-{prop4.pk}": None,
+        })
+        form.save()
+
+        for prop in (prop1, prop2, prop3, prop4):
+            prop.required = True
+            prop.save()
+            form.save(expect_validation_errors=True)
+            value = prop.name
+            if prop == prop3:
+                value = True
+            elif prop == prop4:
+                value = "B"
+            form.save({
+                f"custom-property-{prop.pk}": value,
+            })
+
+        form.assert_data({
+            f"custom-property-{prop1.pk}": "text",
+            f"custom-property-{prop2.pk}": "long",
+            f"custom-property-{prop3.pk}": True,
+            f"custom-property-{prop4.pk}": "B",
+        })

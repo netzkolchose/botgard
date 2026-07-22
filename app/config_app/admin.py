@@ -103,6 +103,15 @@ class CustomPropertyAdmin(admin.ModelAdmin):
     )
     search_fields = ('name', )
 
+    fieldsets = (
+        (None, {"fields": (
+            "model",
+            ("name", "order"),
+            ("type", "required"),
+            "choices",
+        )}),
+    )
+
     def type_decorator(self, instance: CustomProperty):
         type = instance.type
         for key, label in CUSTOM_PROPERTY_TYPE_CHOICES:

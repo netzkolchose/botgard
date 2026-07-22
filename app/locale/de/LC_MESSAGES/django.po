@@ -652,8 +652,8 @@ msgid "order"
 msgstr "Reihenfolge"
 
 #: config_app/models/customprops.py:50
-msgid "Order of value when viewing or editing."
-msgstr "Reihenfolge des Wertes beim Ansehen oder Editieren"
+msgid "Order of field when viewing or editing."
+msgstr "Reihenfolge des Feldes beim Ansehen oder Editieren"
 
 #: config_app/models/customprops.py:54
 msgid "choices"

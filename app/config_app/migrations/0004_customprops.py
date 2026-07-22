@@ -37,7 +37,8 @@ class Migration(migrations.Migration):
                  ),
                 ('type', models.CharField(choices=[('bool', 'Boolean'), ('text', 'Text'), ('text_long', 'Text (long)')], verbose_name='type')),
                 ('name', models.CharField(verbose_name='name')),
-                ('order', models.IntegerField(default=0, help_text='Order of value when viewing or editing.', verbose_name='order')),
+                ('required', models.BooleanField(verbose_name='mandatory', default=False)),
+                ('order', models.IntegerField(default=0, help_text='Order of field when viewing or editing.', verbose_name='order')),
                 ('choices', models.TextField(blank=True, help_text='For text properties, limits the selection to these items, one per line', verbose_name='choices')),
             ],
             options={

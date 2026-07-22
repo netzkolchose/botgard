@@ -51,9 +51,13 @@ class CustomProperty(models.Model):
     name = models.CharField(
         verbose_name=_("name"),
     )
+    required = models.BooleanField(
+        verbose_name=_("mandatory"),
+        default=False,
+    )
     order = models.IntegerField(
         verbose_name=_("order"),
-        help_text=_("Order of value when viewing or editing."),
+        help_text=_("Order of field when viewing or editing."),
         default=0,
     )
     choices = models.TextField(

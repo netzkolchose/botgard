@@ -48,9 +48,20 @@ class PropertyValuesFormField(forms.Field):
 
     def validate(self, value):
         super().validate(value)
+
+        mandatory_error = _("Property '{}' is mandatory")
+
         if isinstance(value, dict):
+            for prop in self.custom_properties_map.values():
+                if prop.required and prop.pk not in value:
+                    raise ValidationError(mandatory_error.format(prop.name))
+
             for pk, value in value.items():
                 if prop := self.custom_properties_map.get(pk):
+                    if prop.required:
+                        if not value or not str(value).strip():
+                            raise ValidationError(mandatory_error.format(prop.name))
+
                     if choices := prop.get_choices():
                         if value and value not in choices:
                             raise ValidationError(

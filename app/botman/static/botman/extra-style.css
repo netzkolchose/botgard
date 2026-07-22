@@ -369,3 +369,8 @@ nav#changelist-filter:not(:has(details:not([data-filter-title="-invisible-"]))) 
 .custom-property label {
     margin-bottom: .25rem;
 }
+
+.field-custom_values_bool .errorlist,
+.field-custom_values_text .errorlist{
+    margin-left: 0;
+}
