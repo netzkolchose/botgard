@@ -8,6 +8,7 @@ from django import forms
 from django.db import transaction
 from django.urls import reverse
 
+from config_app.forms import CustomPropertyTabularInline
 from .models import *
 from plantimages.admin import PlantImageInline
 
@@ -86,7 +87,7 @@ class TerritoryAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
         css = {"screen": ('individuals/change_form_plant_stats.css',)}
 
 
-class OutplantingInline(readOnlyAdmin.ReadOnlyTabularInline):
+class OutplantingInline(CustomPropertyTabularInline):
     form = OutplantingForm
     model = Outplanting
     min_num = 0
