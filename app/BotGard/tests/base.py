@@ -25,6 +25,7 @@ from django.apps import apps
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import Permission, Group
 from django.contrib.auth import get_user_model
+from django.contrib.admin.models import LogEntry
 from django.http import HttpRequest, HttpResponse, QueryDict
 
 import bs4
@@ -294,9 +295,38 @@ class TestBase(TestCase):
                 [c for c in new_columns if c not in not_in_new_columns]
             )
 
+
+    def get_property_value(
+            self, property_name: str, instance: models.Model
+    ) -> Union[None, PropertyValueBool, PropertyValueText]:
+        return PropertyValueText.objects.filter(**{
+            "property__name": property_name,
+            f"{instance._meta.model_name}_values_text": instance.pk,
+        }).first() or PropertyValueBool.objects.filter(**{
+            "property__name": property_name,
+            f"{instance._meta.model_name}_values_bool": instance.pk,
+        }).first()
+
+    def get_log_entries(self, username: Optional[str] = None) -> List[dict]:
+        qset = LogEntry.objects.all()
+        if username:
+            qset = qset.filter(user=UserModel.objects.get(username=username))
+
+        return list(qset.order_by("action_time").values(
+            "action_time",
+            "user",
+            "content_type",
+            "object_id",
+            "object_repr",
+            "action_flag",
+            "change_message",
+        ))
+
     def get_changelist(self, app_name: str, model_name: str) -> "ChangeListForm":
         return ChangeListForm(self, app_name, model_name)
 
+    def get_changeform(self, app_name: str, model_name: str, pk: Union[str, int]) -> "ChangeForm":
+        return ChangeForm(self, app_name, model_name, pk)
 
 class ChangeListForm:
     """
@@ -544,3 +574,146 @@ class ChangeListForm:
         self.num_pages = len(list(p.find_all("a")))
         if p.find("span", {"class": "this-page"}):
             self.num_pages += 1
+
+
+class ChangeForm:
+    """
+    Interface to the django changeform admin interface through html parsing
+    """
+
+    @dataclasses.dataclass
+    class FormField:
+        element: bs4.PageElement
+        name: str
+        value: str
+        hidden: bool
+        type: Optional[str] = None
+        options: Optional[List[str]] = None
+        disabled: bool = False
+
+        @property
+        def is_prefix(self) -> bool:
+            return "__prefix__" in self.name
+
+    def __init__(self, parent: TestBase, app_name: str, model_name: str, pk: Union[int, str]):
+        self.pk = pk
+        self.parent = parent
+        self.app_name = app_name
+        self.model_name = model_name
+        self.url = reverse(f"admin:{self.app_name}_{model_name}_change", args=(self.pk, ))
+        self.query_params = {}
+        self.fields: List[ChangeForm.FormField] = []
+        self.request()
+
+    def request(self):
+        response = self.parent.client.get(self.url, query_params=self.query_params)
+        self.parent.assert_no_warning(response)
+        self.parse(response.content.decode())
+
+    def get_data(self, include_prefix: bool = False) -> dict:
+        return {
+            f.name: f.value
+            for f in self.fields
+            if include_prefix or not f.is_prefix
+        }
+
+    def post(self, override_values: Union[None, Dict, QueryDict] = None):
+        if override_values is None:
+            values = QueryDict(mutable=True)
+        elif isinstance(override_values, QueryDict):
+            values = copy.deepcopy(override_values)
+            values._mutable = True
+        elif isinstance(override_values, dict):
+            values = QueryDict(mutable=True)
+            for k, v in override_values.items():
+                values.appendlist(k, v)
+        else:
+            raise TypeError(f"Expected dict or QueryDict, got {type(override_values).__name__}")
+
+        for field in self.fields:
+            if not field.disabled:
+                if not override_values or field.name not in override_values:
+                    values.appendlist(field.name, field.value)
+
+        actual_values = QueryDict(mutable=True)
+        for key in values.keys():
+            field = self.get_form_field(key)
+            for value in values.getlist(key):
+                if field.type == "checkbox":
+                    if isinstance(value, bool):
+                        if not value:
+                            continue
+                        value = "on"
+                elif value is None:
+                    value = ""
+                actual_values.appendlist(key, value)
+
+        url = self.url
+        if self.query_params:
+            url = f"{url}?{urllib.parse.urlencode(self.query_params)}"
+
+        actual_values["_continue"] = "Save and continue"
+
+        # don't put a QueryDict there, it only yields the LAST entry of a list value
+        response = self.parent.client.post(url, dict(actual_values), follow=True)
+
+        self.parent.assert_response(response, status=200)
+        self.parent.assert_no_warning(response)
+        self.parse(response.content.decode())
+
+    def get_form_field(self, name_or_element: Union[str, bs4.PageElement]) -> FormField:
+        for field in self.fields:
+            if field.name == name_or_element or field.element == name_or_element:
+                return field
+        sorted_names = sorted(f.name for f in self.fields)
+        raise AssertionError(f"Form field '{name_or_element}' not found, got only {sorted_names}")
+
+    def parse(self, html: str):
+        self.soup = bs4.BeautifulSoup(html, features="html.parser")
+        self.fields = []
+        self._parse_form()
+
+    def _parse_form(self):
+        form = self.soup.find("form", {"id": f"{self.model_name}_form"})
+        if not form:
+            raise AssertionError(f"No changeform with id='{self.model_name}_form' found in {self.url}")
+
+        def _add_field(inp: bs4.PageElement, value):
+            try:
+                self.fields.append(self.FormField(
+                    element=inp,
+                    name=inp.attrs["name"],
+                    value=value,
+                    type=inp.attrs.get("type"),
+                    hidden="hidden" in inp.attrs or inp.attrs.get("type") == "hidden",
+                    disabled="disabled" in inp.attrs,
+                ))
+            except:
+                print(inp)
+                raise
+
+        for inp in form.find_all("input"):
+            if "name" in inp.attrs:
+                if inp.attrs.get("type") == "checkbox":
+                    if "value" in inp.attrs:
+                        value = inp.attrs["value"]
+                    else:
+                        value = "checked" in inp.attrs
+                else:
+                    value = inp.attrs.get("value")
+                _add_field(inp, value)
+
+        for inp in form.find_all("textarea"):
+            _add_field(inp, inp.text)
+
+        for inp in form.find_all("select"):
+            if inp.attrs.get("name"):
+                value = None
+                options = []
+                for opt in inp.find_all("option"):
+                    val = opt.attrs.get("value", "")
+                    options.append(val)
+                    if "selected" in opt.attrs and value is None:
+                        value = val
+
+                _add_field(inp, value)

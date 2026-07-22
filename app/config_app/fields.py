@@ -69,6 +69,7 @@ class CustomPropertyValuesBaseField(models.ManyToManyField):
                 v.property: v for v in rel_manager.all()
             }
             new_value_set = []
+            changed = False
             for prop in self.get_custom_properties():
                 value = data.get(prop.pk) or data.get(str(prop.pk))
                 existing_value = existing_values.get(prop)
@@ -76,18 +77,22 @@ class CustomPropertyValuesBaseField(models.ManyToManyField):
                 if not value:
                     if existing_value:
                         existing_value.delete()
+                        changed = True
                 else:
                     if existing_value:
-                        existing_value.value = value
-                        existing_value.save()
+                        if value != existing_value.value:
+                            existing_value.value = value
+                            existing_value.save()
                         new_value_set.append(existing_value)
                     else:
                         new_value_set.append(self.property_value_model_class.objects.create(
                             property=prop,
                             value=value,
                         ))
+                        changed = True
 
-            rel_manager.set(new_value_set)
+            if changed:
+                rel_manager.set(new_value_set)
 
 
 class CustomPropertyValuesBoolField(CustomPropertyValuesBaseField):
