@@ -122,11 +122,21 @@ class PropertyValuesWidget(Input):
 
 
 class CustomPropertyTabularInline(admin.TabularInline):
-
+    """
+    TODO: This is currently not working.
+        The `custom_property_<pk>` id names for form fields are not prefixed with the inline row id.
+        Need to find out how that goes at some point...
+    """
     def get_fieldsets(self, request, obj=None):
         fieldsets = super().get_fieldsets(request, obj)
         fieldsets = custom_properties_patch_fieldsets(self.model, fieldsets)
         return fieldsets
+
+    def get_formset(
+        self, request, obj = ..., **kwargs
+    ):
+        fs = super().get_formset(request, obj, **kwargs)
+        return fs
 
 
 def custom_properties_patch_fieldsets(

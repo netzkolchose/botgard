@@ -272,15 +272,11 @@ admin.site.register(Territory, TerritoryAdmin)
 # ------- below is for transfer from entrybook.Entry to inidividuals.Individual and Outplanting ------
 
 
-class OutplantingAlwaysChangedForm(forms.ModelForm):
+class OutplantingAlwaysChangedForm(OutplantingForm):
     """
     ModelForm for Outplanting inline to mark
     the initial data from entrybook.Entry as changed.
     """
-    class Meta:
-        model = Outplanting
-        fields = '__all__'
-
     def has_changed(self):
         return bool(self.initial.get("department"))
 
@@ -338,7 +334,6 @@ class IndividualFromEntryAdmin(IndividualAdmin):
 
         for form_set_class, inline_instance in super().get_formsets_with_inlines(request, obj):
             form_set_class: Type[BaseModelFormSet]
-
             if isinstance(inline_instance, OutplantingInline):
                 entry = self._entry
 

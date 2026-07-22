@@ -212,6 +212,7 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
         if not (isinstance(key, str) and key.startswith("custom_property_decorator_")):
             return super().__getattribute__(key)
 
+        # dynamically create a decorator method that displays the custom property for use in changelist
         if key not in self._custom_property_decorators:
             try:
                 prop = CustomProperty.objects.get(pk=key[26:], model=self.model._meta.label)

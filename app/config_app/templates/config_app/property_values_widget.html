@@ -1,8 +1,8 @@
 <div class="custom-properties">
     {% for prop in properties %}
         <div class="custom-property">
+            <code>{{ prop.id }}</code>
             <label for="{{ prop.id }}">{{ prop.property.name }}</label>
-            <!--<input id="{{ prop.id }}" name="{{ prop.id }}" value="{{ prop.value }}">-->
             {{ prop.widget|safe }}
         </div>
     {% endfor %}
