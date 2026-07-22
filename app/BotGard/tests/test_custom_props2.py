@@ -14,7 +14,44 @@ class TestCustomProps2(TestBase):
     def setUp(self):
         self.login(username="User1")
 
-    #@log_requests
+    def test_customprops_correct_widgets(self):
+        CustomProperty.objects.all().delete()
+
+        prop1 = self.create_custom_property(BotanicGarden, "1", type="text")
+        prop2 = self.create_custom_property(BotanicGarden, "2", type="text_long")
+        prop3 = self.create_custom_property(BotanicGarden, "3", type="bool")
+        # text or text_long with choices renders select
+        prop4 = self.create_custom_property(BotanicGarden, "4", type="text", choices=["A", "B", "C"])
+        prop5 = self.create_custom_property(BotanicGarden, "5", type="text_long", choices=["D", "E", "F"])
+        # bool ignores choices and stays a checkbox
+        prop6 = self.create_custom_property(BotanicGarden, "6", type="bool", choices=["A", "B", "C"])
+
+        form = self.get_changeform("botman", "botanicgarden", BotanicGarden.objects.get(code="GARD1").pk)
+
+        self.assertEqual("text", form.get_form_field(f"custom-property-{prop1.pk}").type)
+        self.assertEqual("textarea", form.get_form_field(f"custom-property-{prop2.pk}").type)
+        self.assertEqual("checkbox", form.get_form_field(f"custom-property-{prop3.pk}").type)
+        self.assertEqual("select", form.get_form_field(f"custom-property-{prop4.pk}").type)
+        self.assertEqual("select", form.get_form_field(f"custom-property-{prop5.pk}").type)
+        self.assertEqual("checkbox", form.get_form_field(f"custom-property-{prop6.pk}").type)
+
+        form.save({f"custom-property-{prop1.pk}": "Bla"})
+        form.save({f"custom-property-{prop2.pk}": "BlaBla"})
+        form.save({f"custom-property-{prop3.pk}": True})
+        form.save({f"custom-property-{prop4.pk}": "D"}, expect_validation_errors=True)
+        form.save({f"custom-property-{prop4.pk}": "B"})
+        form.save({f"custom-property-{prop5.pk}": "A"}, expect_validation_errors=True)
+        form.save({f"custom-property-{prop5.pk}": "E"})
+        form.save({f"custom-property-{prop6.pk}": True})
+        form.assert_data({
+            f"custom-property-{prop1.pk}": "Bla",
+            f"custom-property-{prop2.pk}": "BlaBla",
+            f"custom-property-{prop3.pk}": True,
+            f"custom-property-{prop4.pk}": "B",
+            f"custom-property-{prop5.pk}": "E",
+            f"custom-property-{prop6.pk}": True,
+        })
+
     def test_customprops_admin_garden(self):
         prop1 = CustomProperty.objects.get(name="garden_important")  # a bool prop
         prop2 = self.create_custom_property(BotanicGarden, "garden_comment")
@@ -38,6 +75,11 @@ class TestCustomProps2(TestBase):
             "phone": None,
             "website": None,
         })
+        self.assertEqual("checkbox", form.get_form_field(f"custom-property-{prop1.pk}").type)
+        self.assertEqual("text", form.get_form_field(f"custom-property-{prop2.pk}").type)
+        self.assertEqual("select", form.get_form_field(f"custom-property-{prop3.pk}").type)
+        self.assertEqual("textarea", form.get_form_field(f"custom-property-{prop4.pk}").type)
+
         new_data = {
             "address": "Adr1",
             "bgci_id": "555",

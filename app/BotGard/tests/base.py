@@ -736,6 +736,7 @@ class ChangeForm:
                 self.parent.assert_admin_form_errors(response)
                 self.parse(response)
                 return
+            self.parent.assert_no_admin_form_errors(response)
 
             # in case of admin/app/model/add, catch the redirect and extract pk
             self.parent.assert_response(response, status=302)
@@ -774,13 +775,13 @@ class ChangeForm:
         if not form:
             raise AssertionError(f"No changeform with id='{self.model_name}_form' found in {self.url}")
 
-        def _add_field(inp: bs4.PageElement, value):
+        def _add_field(inp: bs4.PageElement, value, type: Optional[str] = None):
             try:
                 self.fields.append(self.FormField(
                     element=inp,
                     name=inp.attrs["name"],
                     value=value,
-                    type=inp.attrs.get("type"),
+                    type=type or inp.attrs.get("type"),
                     hidden="hidden" in inp.attrs or inp.attrs.get("type") == "hidden",
                     disabled="disabled" in inp.attrs,
                 ))
@@ -797,7 +798,7 @@ class ChangeForm:
                 _add_field(inp, value)
 
         for inp in form.find_all("textarea"):
-            _add_field(inp, inp.text)
+            _add_field(inp, inp.text, type="textarea")
 
         for inp in form.find_all("select"):
             if inp.attrs.get("name"):
@@ -809,4 +810,4 @@ class ChangeForm:
                     if "selected" in opt.attrs and value is None:
                         value = val
 
-                _add_field(inp, value)
+                _add_field(inp, value, type="select")
