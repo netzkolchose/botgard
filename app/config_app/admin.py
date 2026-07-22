@@ -99,7 +99,7 @@ admin.site.register(KeyValue, KeyValueAdmin)
 class CustomPropertyAdmin(admin.ModelAdmin):
     list_display = (
         'change_link_decorator',
-        'model', 'name', 'type_decorator', 'order', 'times_used_decorator', 'date_created',
+        'model', 'name', 'type_decorator', 'required', 'order', 'times_used_decorator', 'date_created',
     )
     search_fields = ('name', )
 
@@ -111,6 +111,9 @@ class CustomPropertyAdmin(admin.ModelAdmin):
             "choices",
         )}),
     )
+
+    list_filter = ("model", )
+    list_editable = ("order", "required")
 
     def type_decorator(self, instance: CustomProperty):
         type = instance.type
