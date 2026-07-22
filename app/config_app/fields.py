@@ -59,7 +59,6 @@ class CustomPropertyValuesBaseField(models.ManyToManyField):
             return []
 
     def save_form_data(self, instance, data):
-        # print("SAVE_FORM_DATA", repr(instance), data)
         with transaction.atomic():
             rel_manager = getattr(instance, f"custom_values_{self.property_type}", None)
             if not rel_manager:

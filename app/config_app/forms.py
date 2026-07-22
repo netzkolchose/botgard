@@ -41,7 +41,7 @@ class PropertyValuesFormField(forms.Field):
             )
 
     def prepare_value(self, value):
-        # print("VALUE", value)
+        # print("PREPARE_VALUE", self.label, value)
         return value
 
     def to_python(self, value) -> dict:
@@ -83,16 +83,22 @@ class PropertyValuesWidget(Input):
     def get_context(self, name, value, attrs):
         ctx = super().get_context(name, value, attrs)
         values = ctx["widget"]["value"]
-        # print("WIDGET VALUE", type(values), values)
+        #print("WIDGET VALUE", type(values), repr(values))
         ctx["properties"] = []
 
         for property in self.custom_properties:
             value = None
             if values:
-                for v in values:
-                    if v.property == property:
-                        value = v.value
-                        break
+                if isinstance(values, dict):
+                    for pk, v in values.items():
+                        if pk == property.pk:
+                            value = v
+                            break
+                elif isinstance(values, (tuple, list)):
+                    for propval in values:
+                        if propval.property == property:
+                            value = propval.value
+                            break
             autocomplete_kwargs = {
                 "class": "autocomplete-modelfield",
                 "data-ac-json-url": reverse("ajax:model_json"),
