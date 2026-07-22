@@ -300,11 +300,13 @@ class TestBase(TestCase):
             model: Union[models.Model, Type[models.Model]],
             name: str,
             type: str = "text",
+            choices: Optional[List[str]] = None,
     ):
         return CustomProperty.objects.create(
             model=model._meta.label,
             type=type,
             name=name,
+            choices="\n".join(choices) if choices else "",
         )
 
     def get_property_value(
@@ -332,6 +334,16 @@ class TestBase(TestCase):
             "action_flag",
             "change_message",
         ))
+
+    def assert_admin_form_errors(self, response: HttpResponse):
+        if not response.context:
+            raise AssertionError("response has not context to check")
+
+        if adminform := response.context.get("adminform"):
+            if adminform.form.errors:
+                return
+
+        raise AssertionError(f"No expected form validation errors")
 
     def assert_no_admin_form_errors(self, response: HttpResponse):
         if response.context:
@@ -634,7 +646,7 @@ class ChangeForm:
     def request(self):
         response = self.parent.client.get(self.url, query_params=self.query_params)
         self.parent.assert_no_warning(response)
-        self.parse(response.content.decode())
+        self.parse(response)
 
     def get_data(self) -> dict:
         def _skip_field(f: ChangeForm.FormField) -> bool:
@@ -673,7 +685,11 @@ class ChangeForm:
         if errors:
             raise AssertionError(f"data not as expected: {self}\n{pprint.pformat(errors)}")
 
-    def save(self, override_values: Union[None, Dict, QueryDict] = None):
+    def save(
+            self,
+            override_values: Union[None, Dict, QueryDict] = None,
+            expect_validation_errors: bool = False,
+    ):
         if override_values is None:
             values = QueryDict(mutable=True)
         elif isinstance(override_values, QueryDict):
@@ -715,8 +731,13 @@ class ChangeForm:
         actual_values = dict(actual_values)
 
         if self.pk is None:
-            # in case of admin/app/model/add, catch the redirect and extract pk
             response = self.parent.client.post(url, actual_values)
+            if expect_validation_errors:
+                self.parent.assert_admin_form_errors(response)
+                self.parse(response)
+                return
+
+            # in case of admin/app/model/add, catch the redirect and extract pk
             self.parent.assert_response(response, status=302)
             url = response.headers["location"]
             self.pk = int(re.match(r".*/(\d+)/change/?$", url).groups()[0])
@@ -725,11 +746,16 @@ class ChangeForm:
             response = self.parent.client.post(url, actual_values, follow=True)
             # print("RESPONSE", response.status_code, response.headers)
 
+            if expect_validation_errors:
+                self.parent.assert_admin_form_errors(response)
+                self.parse(response)
+                return
+
         self.parent.assert_no_admin_form_errors(response)
 
         self.parent.assert_response(response, status=200)
         self.parent.assert_no_warning(response)
-        self.parse(response.content.decode())
+        self.parse(response)
 
     def get_form_field(self, name_or_element: Union[str, bs4.PageElement]) -> FormField:
         for field in self.fields:
@@ -738,8 +764,8 @@ class ChangeForm:
         sorted_names = sorted(f.name for f in self.fields)
         raise AssertionError(f"Form field '{name_or_element}' not found, got only {sorted_names}")
 
-    def parse(self, html: str):
-        self.soup = bs4.BeautifulSoup(html, features="html.parser")
+    def parse(self, response):
+        self.soup = bs4.BeautifulSoup(response.content.decode(), features="html.parser")
         self.fields = []
         self._parse_form()
 

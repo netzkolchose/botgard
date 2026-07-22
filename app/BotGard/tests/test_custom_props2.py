@@ -18,6 +18,8 @@ class TestCustomProps2(TestBase):
     def test_customprops_admin_garden(self):
         prop1 = CustomProperty.objects.get(name="garden_important")  # a bool prop
         prop2 = self.create_custom_property(BotanicGarden, "garden_comment")
+        prop3 = self.create_custom_property(BotanicGarden, "garden_select", choices=["A", "B", "C"])
+        prop4 = self.create_custom_property(BotanicGarden, "garden_long", type="text_long")
 
         form = self.get_changeform("botman", "botanicgarden")
         #pprint.pprint(form.get_data())
@@ -28,6 +30,8 @@ class TestCustomProps2(TestBase):
             "comment": None,
             f"custom-property-{prop1.pk}": False,
             f"custom-property-{prop2.pk}": None,
+            f"custom-property-{prop3.pk}": None,
+            f"custom-property-{prop4.pk}": None,
             "email": None,
             "name": None,
             "number": "3",
@@ -36,11 +40,13 @@ class TestCustomProps2(TestBase):
         })
         new_data = {
             "address": "Adr1",
-            "bgci_id": None,
+            "bgci_id": "555",
             "code": "G23",
             "comment": "Nothing really",
             f"custom-property-{prop1.pk}": True,
             f"custom-property-{prop2.pk}": "Extra bits",
+            f"custom-property-{prop3.pk}": "B",
+            f"custom-property-{prop4.pk}": "Long text",
             "email": "a@b.cd",
             "name": "Garden 23",
             "number": "4",
@@ -51,7 +57,13 @@ class TestCustomProps2(TestBase):
         instance = BotanicGarden.objects.get(pk=form.pk)
         self.assertEqual(True, getattr(instance, f"custom_property_{prop1.pk}"))
         self.assertEqual("Extra bits", getattr(instance, f"custom_property_{prop2.pk}"))
+        self.assertEqual("B", getattr(instance, f"custom_property_{prop3.pk}"))
+        self.assertEqual("Long text", getattr(instance, f"custom_property_{prop4.pk}"))
         form.assert_data(new_data)
+
+        form.save({
+            f"custom-property-{prop3.pk}": "Unknown choice",
+        }, expect_validation_errors=True)
 
     def test_customprops_admin_individual(self):
         instance = Individual.objects.get(accession_number=1000)

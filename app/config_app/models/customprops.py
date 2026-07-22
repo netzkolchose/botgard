@@ -86,9 +86,12 @@ class CustomProperty(models.Model):
             return v.value_decorator()
 
     def get_choices(self) -> List[str]:
-        return list(filter(bool, (
-            s.strip() for s in self.choices.splitlines()
-        )))
+        if self.type in ("text", "text_long"):
+            return list(filter(bool, (
+                s.strip() for s in self.choices.splitlines()
+            )))
+        else:
+            return []
 
     def create_list_filter(self) -> Type[SimpleListFilter]:
         prop = self

@@ -1,5 +1,5 @@
 import json
-from typing import Optional, Literal, Type, List, Union, Tuple
+from typing import Optional, Literal, Type, List, Union, Tuple, Dict
 
 from django import forms
 from django.forms.widgets import Input
@@ -7,6 +7,7 @@ from django.db import models
 from django.urls import reverse
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
+from django.forms import ValidationError
 
 from .models import *
 
@@ -33,12 +34,31 @@ class PropertyValuesFormField(forms.Field):
         self.property_type = type
         if not custom_properties:
             self.widget = forms.HiddenInput()
+            self.custom_properties_map = {}
         else:
             self.widget = PropertyValuesWidget(
                 model=model,
                 type=type,
                 custom_properties=custom_properties,
             )
+            self.custom_properties_map: Dict[int, CustomProperty] = {
+                prop.pk: prop
+                for prop in custom_properties
+            }
+
+    def validate(self, value):
+        super().validate(value)
+        if isinstance(value, dict):
+            for pk, value in value.items():
+                if prop := self.custom_properties_map.get(pk):
+                    if choices := prop.get_choices():
+                        if value and value not in choices:
+                            raise ValidationError(
+                                _("Property '{}' expects a choice of {}").format(
+                                    prop.name,
+                                    ", ".join(f"'{c}'" for c in choices)
+                                )
+                            )
 
     def prepare_value(self, value):
         # print("PREPARE_VALUE", self.label, value)
@@ -104,13 +124,12 @@ class PropertyValuesWidget(Input):
                 "data-ac-json-url": reverse("ajax:model_json"),
                 "data-ac-id": f"custom_property_{property.pk}",
             }
-            if property.type == "bool":
+            if choices := property.get_choices():
+                widget = forms.widgets.Select(choices=[("", "")] + [(c, c) for c in choices])
+            elif property.type == "bool":
                 widget = forms.widgets.CheckboxInput()
             elif property.type == "text":
-                if choices := property.get_choices():
-                    widget = forms.widgets.Select(choices=[("", "")] + [(c, c) for c in choices])
-                else:
-                    widget = forms.widgets.TextInput(autocomplete_kwargs)
+                widget = forms.widgets.TextInput(autocomplete_kwargs)
             elif property.type == "text_long":
                 widget = forms.widgets.Textarea(autocomplete_kwargs)
             else:
