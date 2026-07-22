@@ -110,7 +110,7 @@ class ExternalCatalogArchiveForm(AutoCompleteForm(ExternalCatalogArchive)):
     pass
 
 
-class OutgoingOrder(BotGardBaseModel(custom_properties_unique_name="outgoingorder")):
+class OutgoingOrder(BotGardBaseModel()):
     class Meta:
         verbose_name = _('outgoing order')
         verbose_name_plural = _('outgoing orders')

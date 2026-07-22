@@ -17,7 +17,7 @@ from geo.widgets import BotGardOpenLayersWidget
 from BotGard import BotGardBaseModel
 
 
-class Outplanting(BotGardBaseModel(custom_properties_unique_name="outplanting")):
+class Outplanting(BotGardBaseModel()):
     class Meta:
         verbose_name = _("Outplanting")
         verbose_name_plural = _("Outplantings")
@@ -115,6 +115,7 @@ class Outplanting(BotGardBaseModel(custom_properties_unique_name="outplanting"))
         )
     map_decorator.short_description = _("Map")
     map_decorator.exclude_csv = True
+
 
 class OutplantingForm(AutoCompleteForm(Outplanting)):
     exclude_autocomplete = ["department"]

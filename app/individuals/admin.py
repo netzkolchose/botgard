@@ -87,7 +87,7 @@ class TerritoryAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
         css = {"screen": ('individuals/change_form_plant_stats.css',)}
 
 
-class OutplantingInline(CustomPropertyTabularInline):
+class OutplantingInline(readOnlyAdmin.ReadOnlyTabularInline):
     form = OutplantingForm
     model = Outplanting
     min_num = 0

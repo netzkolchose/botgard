@@ -17,14 +17,12 @@ CUSTOM_PROPERTY_TYPE_CHOICES = (
 CUSTOM_PROPERTY_MODEL_CHOICES = (
     ("botman.BGCIGarden", _("BGCI garden")),
     ("botman.BotanicGarden", _("botanic garden")),
-    ("botman.OutgoingOrder", _("outgoing order")),
     ("individuals.Territory", _("territory")),
     ("individuals.Department", _("department")),
     ("species.Family", _("genus")),
     ("species.Species", _("species")),
     ("entrybook.Entry", _("Seed/individual entry")),
     ("individuals.Individual", _("individual")),
-    ("individuals.Outplanting", _("Outplanting")),
     ("herbaria.Herbarium", _("Herbarium")),
     ("herbaria.HerbariumSpecimen", _("Specimen")),
 )

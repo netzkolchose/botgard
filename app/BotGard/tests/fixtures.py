@@ -20,14 +20,12 @@ USERS = [
 CUSTOM_PROPERTIES = [
     {"model": "botman.BotanicGarden", "type": "bool", "name": "garden_important"},
     {"model": "botman.BGCIGarden", "type": "text_long", "name": "bgci_comment"},
-    {"model": "botman.OutgoingOrder", "type": "text", "name": "order_importance"},
     {"model": "species.Species", "type": "bool", "name": "poisonous"},
     {"model": "species.Family", "type": "text", "name": "distinct", "choices": "No\nYes\nAlmost\n"},
     {"model": "entrybook.Entry", "type": "text", "name": "entry_comment"},
     {"model": "individuals.Territory", "type": "text", "name": "territory_comment"},
     {"model": "individuals.Department", "type": "text", "name": "department_comment"},
     {"model": "individuals.Individual", "type": "text", "name": "individual_comment"},
-    {"model": "individuals.Outplanting", "type": "text", "name": "outplanting_comment"},
     {"model": "herbaria.Herbarium", "type": "text", "name": "herbarium_comment"},
     {"model": "herbaria.HerbariumSpecimen", "type": "text", "name": "specimen_comment"},
 ]
