@@ -13,9 +13,6 @@ from ajax.autocomplete import AutoCompleteForm
 from tools.urls import full_url
 import config_app
 from BotGard import BotGardBaseModel
-from config_app.basemodel import CustomPropertiesBaseModel
-
-# TODO: replace get_new_number, link methods still needed?, save still needed?
 
 
 config_app.register_key(

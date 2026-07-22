@@ -14,10 +14,12 @@ def CustomPropertiesBaseModel(related_name_model: str) -> Type[models.Model]:
     """
     Create a base model class to derive from that supports custom properties.
 
-    Note that some ModelAdmin functionality to make them work is placed in `config_tables.ConfigurableTable`
+    Note that ModelAdmin functionality to make them work in changelists
+    is placed in `config_tables.ConfigurableTable`.
+    So customprop models need to use this specific ModelAdmin.
 
     :param related_name_model: str,
-        The string is some unique model-name in the Many2Many.related_name field, e.g.
+        The string is some unique model-name in the `Many2Many.related_name` field, e.g.
         the model will have Many2Many fields like:
 
             custom_values_<type> = CustomPropertyValues<Type>Field(

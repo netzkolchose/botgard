@@ -138,7 +138,8 @@ class CustomPropertyAdmin(admin.ModelAdmin):
 admin.site.register(CustomProperty, CustomPropertyAdmin)
 
 
-if 0:
+if 0:  # just for debugging, take a look at the actual values
+
     class PropertyValueBoolAdmin(admin.ModelAdmin):
         list_display = ('property__model', 'property__name', 'value')
         search_fields = ('propery__name', )
