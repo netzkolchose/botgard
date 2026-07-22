@@ -14,6 +14,14 @@ class TestCustomProps2(TestBase):
     def setUp(self):
         self.login(username="User1")
 
+    def test_customprops_not_visible(self):
+        form = self.get_changeform("botman", "botanicgarden")
+        self.assertTrue(form.soup.find("div", {"class": "field-custom_values_bool"}))
+
+        CustomProperty.objects.all().delete()
+        form.request()
+        self.assertFalse(form.soup.find("div", {"class": "field-custom_values_bool"}))
+
     def test_customprops_correct_widgets(self):
         CustomProperty.objects.all().delete()
 

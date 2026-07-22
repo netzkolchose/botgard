@@ -361,9 +361,11 @@ nav#changelist-filter:not(:has(details:not([data-filter-title="-invisible-"]))) 
     display: none;
 }
 
-/*
-strangely, that doesn't work
-label[for="id_custom_values_bool"],
-label[for="id_custom_values_text"] {
+
+.field-custom_values_bool .flex-container > label,
+.field-custom_values_text .flex-container > label {
     display: none;
-}*/
+}
+.custom-property label {
+    margin-bottom: .25rem;
+}

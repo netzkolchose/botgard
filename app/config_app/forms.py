@@ -170,7 +170,7 @@ def custom_properties_patch_fieldsets(
 ) -> Tuple:
     """
     Function to automatically add fields for `custom_values_<type>`
-    if present on the model.
+    if present on the model and if at least one CustomProperty for the model exists.
 
     The fields will be added at the end of the supplied fieldsets object.
     If they exist earlier (because of automatic field generation) they are removed there.
@@ -191,12 +191,13 @@ def custom_properties_patch_fieldsets(
                 if fields := entry[1].get("fields"):
                     entry[1]["fields"] = [f for f in fields if not str(f).startswith("custom_values_")]
 
-        # and append them at the end
-        fieldsets = list(fieldsets) + [
-            (_('custom properties'), {
-                'classes': 'collapse',
-                'fields': props,
-            }),
-        ]
+        if CustomProperty.objects.filter(model=model._meta.label).exists():
+            # and append them at the end
+            fieldsets = list(fieldsets) + [
+                (_('custom properties'), {
+                    'classes': 'collapse',
+                    'fields': props,
+                }),
+            ]
 
     return tuple(fieldsets)
