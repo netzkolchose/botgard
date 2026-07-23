@@ -3,13 +3,12 @@ from config_tables.admin import ConfigurableTable, configurable, ForeignKeyFilte
 from django.utils.translation import gettext_lazy as _
 from django.db.models import QuerySet
 
-from tools import readOnlyAdmin
 from tools.search_fields import search_fields_compatible
 
 from .models import *
 
 
-class FamilyAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
+class FamilyAdmin(ConfigurableTable):
     form = FamilyForm
     list_display = ('change_link_decorator', 'family', 'genus', 'genus_author', 'subfamily', 'tribus', 'subtribus',
                     'delete_link_decorator')
@@ -33,7 +32,7 @@ class FamilyAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
         )
 
 
-class SpeciesAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
+class SpeciesAdmin(ConfigurableTable):
     form = SpeciesForm
     list_display = (
         'change_link_decorator', #'full_name_generated', '__str__',

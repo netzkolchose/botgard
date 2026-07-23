@@ -12,7 +12,6 @@ from config_app.forms import CustomPropertyTabularInline
 from .models import *
 from plantimages.admin import PlantImageInline
 
-from tools import readOnlyAdmin
 from tools.search_fields import search_fields_compatible
 from config_tables.admin import ConfigurableTable, ForeignKeyFilter
 from ajax.autocomplete import AutoCompleteForm
@@ -39,7 +38,7 @@ INDIVIDUAL_SEARCH_FIELDS = search_fields_compatible((
 ))
 
 
-class DepartmentAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
+class DepartmentAdmin(ConfigurableTable):
 
     form = DepartmentForm
     list_display = ('change_link_decorator', 'territory', 'code', 'name', 'list_link_decorator',
@@ -70,7 +69,7 @@ class DepartmentAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable)
         css = {"screen": ('individuals/change_form_plant_stats.css',)}
 
 
-class TerritoryAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
+class TerritoryAdmin(ConfigurableTable):
     form = TerritoryForm
     list_display = ('change_link_decorator', 'code', 'name', 'list_link_decorator',
                     'num_individuals_alive', 'num_species_alive',
@@ -87,14 +86,14 @@ class TerritoryAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
         css = {"screen": ('individuals/change_form_plant_stats.css',)}
 
 
-class OutplantingInline(readOnlyAdmin.ReadOnlyTabularInline):
+class OutplantingInline(admin.TabularInline):
     form = OutplantingForm
     model = Outplanting
     min_num = 0
     extra = 0
 
 
-class SeedAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
+class SeedAdmin(ConfigurableTable):
     form = SeedForm
     save_on_top = True
     actions_on_top = True
@@ -174,7 +173,7 @@ def get_seed_order_ids(s: str) -> List[str]:
     return re.findall(r"\d+", s)
 
 
-class HerbariumSpecimenInline(readOnlyAdmin.ReadOnlyTabularInline):
+class HerbariumSpecimenInline(admin.TabularInline):
     form = create_herbarium_specimen_form_class(
         # remove one of the defaults, otherwise user might click "add specimen"
         # and all defaults might be exactly the ones the user wants to enter
@@ -189,7 +188,7 @@ class HerbariumSpecimenInline(readOnlyAdmin.ReadOnlyTabularInline):
     extra = 0
 
 
-class IndividualAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
+class IndividualAdmin(ConfigurableTable):
     form = IndividualForm
     save_on_top = True
     list_display = (
@@ -354,7 +353,7 @@ class IndividualFromEntryAdmin(IndividualAdmin):
             yield form_set_class, inline_instance
 
 
-class OutplantingAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
+class OutplantingAdmin(ConfigurableTable):
     form = OutplantingForm
     list_display = (
         'change_link_decorator',
