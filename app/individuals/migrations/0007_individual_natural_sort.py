@@ -9,6 +9,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('individuals', '0006_customprops'),
+        ('botman', '0008_natural_sort_collation'),
     ]
 
     operations = [

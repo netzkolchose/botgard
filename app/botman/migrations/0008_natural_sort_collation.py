@@ -12,6 +12,11 @@ class Migration(migrations.Migration):
         ('botman', '0007_customprops'),
     ]
 
+    def apply(self, *args, **kwargs):
+        if settings.IS_POSTGRES:
+            print("(Adding natural sort collation to postgres)")
+        super().apply(*args, **kwargs)
+        
     operations = (
         [] if not settings.IS_POSTGRES
         else [
