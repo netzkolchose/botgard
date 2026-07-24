@@ -15,6 +15,7 @@ POSTGRES_DATABASE = decouple.config('POSTGRES_DATABASE', default='postgres')
 POSTGRES_USER = decouple.config('POSTGRES_USER', default='postgres')
 POSTGRES_HOST = decouple.config('POSTGRES_HOST', default='localhost')
 POSTGRES_PORT = decouple.config('POSTGRES_PORT', default='5432')
+IS_POSTGRES = bool(POSTGRES_PASSWORD)
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = decouple.config(
@@ -205,5 +206,3 @@ STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'static'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / "media"
-
-IS_POSTGRES = "postgres" in DATABASES.get("default", {}).get("ENGINE", "")
