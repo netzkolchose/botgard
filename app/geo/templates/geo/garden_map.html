@@ -1,0 +1,110 @@
+{% extends admin_base_tmpl %}
+{% load i18n l10n static %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static 'geo/ol-v10.9.0.css' %}" />
+    <script type="text/javascript" src="{% static 'geo/ol-v10.9.0.js' %}"></script>
+    <script type="text/javascript" src="{% static 'geo/OLMapWidget.js' %}"></script>
+    <link rel="stylesheet" type="text/css" href="{% static 'geo/garden_map.css' %}" />
+    <script type="text/javascript" src="{% static 'geo/garden_map.js' %}"></script>
+{% endblock %}
+
+{% block page_content %}
+
+    <div class="errornote hidden"></div>
+    <div class="info-message hidden"></div>
+
+    {% if territories %}
+
+        {% if has_write_permission %}
+        <div class="object-tools" style="float: right;">
+            <li><a href="#" id="full-screen">{% trans 'fullscreen' %}</a></li>
+            <li><a href="#" id="save-button">{% trans 'Save' %}</a></li>
+        </div>
+        {% endif %}
+
+        <input name="csrfmiddlewaretoken" value="{{ csrf_token }}" hidden="hidden">
+
+        <div id="controls">
+            <div class="flex-row">
+                <div>
+                    <div><label for="current_territory">{% trans 'territory' %}</label></div>
+                    <select id="current_territory">
+                        {% for ter in territories %}
+                            <option
+                                value="{{ ter.pk }}"
+                                data-pk="{{ ter.pk }}"
+                                data-code="{{ ter.code }}"
+                                data-name="{{ ter.name }}"
+                                data-polygon="{{ ter.polygon }}"
+                            >
+                                {{ ter.code }} | {{ ter.name }}{% if ter.polygon %} *{% endif %}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <div><label for="current_department">{% trans 'department' %}</label></div>
+                    <select id="current_department">
+                        {% for dep in departments %}
+                            <option
+                                value="{{ dep.pk }}"
+                                data-pk="{{ dep.pk }}"
+                                data-territory-pk="{{ dep.territory__pk }}"
+                                data-code="{{ dep.code }}"
+                                data-full-code="{{ dep.full_code }}"
+                                data-name="{{ dep.name }}"
+                                data-polygon="{{ dep.polygon }}"
+                            >
+                                {{ dep.full_code }} | {{ dep.name }}{% if dep.polygon %} *{% endif %}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="flex-row">
+                <div style="margin-top: 15px"><input id="mode_select" type="radio" name="mode" checked> <label for="mode_select">{% trans 'select' %}</label></div>
+                <div style="margin-top: 15px"><input id="mode_modify" type="radio" name="mode"> <label for="mode_modify">{% trans 'modify' %}</label></div>
+                <div style="margin-top: 15px"><input id="mode_draw" type="radio" name="mode"> <label for="mode_draw">{% trans 'draw' %}</label></div>
+                <div>
+                    <select id="current_model">
+                        <option value="territory">{% trans 'territory' %}</option>
+                        <option value="department">{% trans 'department' %}</option>
+                    </select>
+                </div>
+                <div>
+                    <button
+                        disabled
+                        id="delete-polygon-button"
+                        data-territory="{% trans 'delete territory polygons' %}"
+                        data-department="{% trans 'delete department polygons' %}"
+                    >
+                        {% trans 'delete department polygons' %}
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="div_map" class="dj_map_wrapper">
+            <div id="map" class="dj_map" data-save-url="{% url 'geo:garden_map_save' %}"></div>
+            <script>
+                const map_widget = new BotGardMapWidget({
+                    base_layer: new ol.layer.Tile({source: new ol.source.OSM({url: "{{ map_tile_url }}"})}),
+                    geom_name: 'MultiPolygon',
+                    id: 'map',
+                    map_id: 'map',
+                    map_srid: {{ map_srid|unlocalize }},
+                    name: 'map',
+                    default_lat: {{ default_location.1|unlocalize }},
+                    default_lon: {{ default_location.0|unlocalize }},
+                    default_zoom: 16.7,
+                    garden_map: create_garden_map_interface(),
+                });
+                map_widget.setMode("select");
+            </script>
+        </div>
+    {% endif %}
+
+{% endblock %}

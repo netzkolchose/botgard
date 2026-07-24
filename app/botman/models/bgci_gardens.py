@@ -8,9 +8,10 @@ from django.contrib.auth import get_user_model
 from config_tables.admin import Configurable, configurable
 from ajax.autocomplete import AutoCompleteForm
 from tools.countries import ISO_COUNTRY_CHOICES
+from BotGard import BotGardBaseModel
 
 
-class BGCIGarden(Configurable, models.Model):
+class BGCIGarden(BotGardBaseModel(custom_properties_unique_name="bgcigarden")):
     class Meta:
         verbose_name = _('BGCI garden')
         verbose_name_plural = _('BGCI gardens')

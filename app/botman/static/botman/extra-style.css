@@ -316,6 +316,16 @@ span.icon-no {
     color: black;
 }
 
+.info-message {
+    font-size: 14px;
+    font-weight: 700;
+    display: block;
+    padding: 10px 12px;
+    margin: 0 0 10px 0;
+    border: 1px solid #593;
+    border-radius: 4px;
+    background-color: #fff3;
+}
 
 :root {
     --link-fg: #236131;
@@ -331,3 +341,36 @@ span.icon-no {
     }
 }
 
+
+.custom-properties {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+
+    .custom-property {
+        margin: .5rem;
+    }
+}
+
+details[data-filter-title="-invisible-"] {
+    display: none;
+}
+
+/* hide changelist filters section if all filters are invisible */
+nav#changelist-filter:not(:has(details:not([data-filter-title="-invisible-"]))) {
+    display: none;
+}
+
+
+.field-custom_values_bool .flex-container > label,
+.field-custom_values_text .flex-container > label {
+    display: none;
+}
+.custom-property label {
+    margin-bottom: .25rem;
+}
+
+.field-custom_values_bool .errorlist,
+.field-custom_values_text .errorlist{
+    margin-left: 0;
+}

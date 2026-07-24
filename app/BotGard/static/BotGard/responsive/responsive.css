@@ -911,7 +911,7 @@ select {
         text-transform: uppercase;
     }
 
-    .errornote {
+    .errornote, .info-message {
         margin: 0 0 20px;
         padding: 8px 12px;
         font-size: 13px;

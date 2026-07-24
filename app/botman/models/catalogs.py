@@ -1,3 +1,5 @@
+from typing import Type
+
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.urls import reverse
@@ -9,9 +11,10 @@ from django.db.models.signals import post_save, pre_delete, post_delete, post_in
 
 from config_tables.admin import Configurable, configurable
 from ajax.autocomplete import AutoCompleteForm
+from BotGard import BotGardBaseModel
 
 
-class ExternalCatalogBase(Configurable, models.Model):
+class ExternalCatalogBase(BotGardBaseModel()):
     class Meta:
         abstract = True
 
@@ -107,7 +110,7 @@ class ExternalCatalogArchiveForm(AutoCompleteForm(ExternalCatalogArchive)):
     pass
 
 
-class OutgoingOrder(Configurable, models.Model):
+class OutgoingOrder(BotGardBaseModel()):
     class Meta:
         verbose_name = _('outgoing order')
         verbose_name_plural = _('outgoing orders')

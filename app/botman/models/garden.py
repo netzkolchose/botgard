@@ -8,8 +8,8 @@ from django.conf import settings
 from config_tables.admin import Configurable, configurable
 from ajax.autocomplete import AutoCompleteForm
 from tools.urls import full_url
-
 import config_app
+from BotGard import BotGardBaseModel
 
 
 config_app.register_key(
@@ -29,7 +29,7 @@ def get_new_number():
     return number
 
 
-class BotanicGarden(Configurable, models.Model):
+class BotanicGarden(BotGardBaseModel(custom_properties_unique_name="garden")):
     class Meta:
         verbose_name = _('botanic garden')
         verbose_name_plural = _('botanic gardens')

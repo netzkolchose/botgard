@@ -66,26 +66,32 @@ f"{len(self.ipen_generated)}-Dobbstown-{self.ipen_generated}"
         self.assertEqual("9-Dobbstown-xx-x-x-10", model.ipen_generated)
         model.save()
         self.assertEqual("21-Dobbstown-9-Dobbstown-xx-x-x-10", model.ipen_generated)
-
+        
     def test_config_app_admin(self):
+        """
+        Tests that value fields in changeform are properly hidden according to type
+        and implicitly tests if types are correctly determined by `botgard_update_config` task.
+        """
         from config_app.management.commands.botgard_update_config import update_config_in_database
         update_config_in_database()
 
+        field_names = ["value_en", "value_json", "value_normal_text", "value_geo"]
         for config_key, expected_visible in (
-                ("site_branding", {"value_en": True, "value_json": False, "value_normal_text": False}),
-                ("accession_generation", {"value_en": False, "value_json": True, "value_normal_text": False}),
-                ("ipen_creation_individual", {"value_en": False, "value_json": False, "value_normal_text": True}),
+                ("site_branding", {"value_en": True}),
+                ("accession_generation", {"value_json": True}),
+                ("ipen_creation_individual", {"value_normal_text": True}),
+                ("geo_location", {"value_geo": True}),
         ):
             response = self.client.get(reverse(
                 "admin:config_app_keyvalue_change",
                 args=(KeyValue.objects.get(key=config_key).pk, )
             ))
             form = self.get_soup(response.content).find("form", {"id": "keyvalue_form"})
-            for field_name in expected_visible.keys():
+            for field_name in field_names:
                 elem = form.find("div", {"class": f"field-{field_name}"})
                 self.assertTrue(elem, f"config_key='{config_key}', field_name='{field_name}'")
                 class_str = elem.attrs["class"]
-                if expected_visible[field_name]:
+                if expected_visible.get(field_name):
                     self.assertNotIn("hidden", class_str)
                 else:
                     self.assertIn("hidden", class_str)

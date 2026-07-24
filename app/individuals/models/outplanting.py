@@ -4,14 +4,20 @@ from django.urls import reverse
 from django.db.models.signals import post_save, pre_delete, post_init, m2m_changed
 from django.utils.safestring import mark_safe
 from django.dispatch import receiver
+import django.contrib.gis.db.models as gis_models
+from django.contrib.gis.geos import Point
+import django.contrib.gis.forms as gis_forms
 
+from geo.util import geo_coord_to_html
 from .individual import Individual
 from .territory import Department
 from config_tables.admin import configurable, Configurable
 from ajax.autocomplete import AutoCompleteForm
+from geo.widgets import BotGardOpenLayersWidget
+from BotGard import BotGardBaseModel
 
 
-class Outplanting(models.Model, Configurable):
+class Outplanting(BotGardBaseModel()):
     class Meta:
         verbose_name = _("Outplanting")
         verbose_name_plural = _("Outplantings")
@@ -19,6 +25,13 @@ class Outplanting(models.Model, Configurable):
     individual = models.ForeignKey(Individual, verbose_name=_("individual"), on_delete=models.CASCADE)
     department = models.ForeignKey('individuals.Department', verbose_name=_("department"),
                                    null=True, on_delete=models.SET_DEFAULT, default=None)
+    location = gis_models.PointField(
+        verbose_name=_("location"),
+        srid=4326,
+        db_index=True,
+        geography=True,
+        null=True, blank=True,
+    )
     seeded_date = models.DateField(verbose_name=_("sowing date"), blank=True, null=True)
     date = models.DateField(verbose_name=_("bed out date"), blank=True, null=True)
     plant_died = models.DateField(verbose_name=_("plant died on"), blank=True, null=True)
@@ -81,9 +94,40 @@ class Outplanting(models.Model, Configurable):
     genus_single.short_description = _('genus')
     genus_single.admin_order_field = "individual__species__family__genus"
 
+    @configurable
+    def location_decorator(self):
+        if not self.location:
+            return ""
+        return mark_safe(geo_coord_to_html(self.location))
+    location_decorator.short_description = _("location")
+    location_decorator.admin_order_field = "location"
+
+    @configurable
+    def map_decorator(self):
+        from geo.columns import map_outplantings_column_decorator
+
+        outplantings = []
+        if self.is_alive() and self.location:
+            outplantings = [{"location": self.location}]
+        return map_outplantings_column_decorator(
+            id=self.pk,
+            outplantings=outplantings,
+        )
+    map_decorator.short_description = _("Map")
+    map_decorator.exclude_csv = True
+
 
 class OutplantingForm(AutoCompleteForm(Outplanting)):
     exclude_autocomplete = ["department"]
+    location = gis_forms.PointField(
+        srid=Outplanting.location.field.srid,
+        widget=BotGardOpenLayersWidget(
+            with_garden_map=True,
+            with_input_fields=True,
+            red_dots=True, map_size=[200, 200],
+        ),
+        required=False,
+    )
 
 
 def _recalc_outplanting_fields(outplanting, exclude_outplanting=None):

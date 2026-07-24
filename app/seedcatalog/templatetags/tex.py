@@ -58,7 +58,7 @@ def tex_full_name(species):
     ret_list = []
     for word in word_list:
         if word.get("author"):
-            word = "{\it %s }" % texify(word["author"])
+            word = r"{\it %s }" % texify(word["author"])
         else:
             word = texify(word["name"])
         ret_list.append(word)

@@ -1,6 +1,7 @@
 import json
 from typing import Literal
 
+import django.urls.exceptions
 from bs4 import BeautifulSoup
 
 from .base import *
@@ -18,6 +19,7 @@ GARDENER_PERMISSIONS = {
     'individuals.outplanting': {'add', 'change'},
     'individuals.seed': {'add', 'change'},
     'individuals.territory': {'add', 'change'},
+    'individuals.': {'change'},
     'labels.labeldefinition': {'view'},
     'seedcatalog.seedcatalog': {'view'},
     'species.family': {'add', 'change'},
@@ -36,6 +38,7 @@ GUEST_PERMISSIONS = {
     'individuals.outplanting': {'view'},
     'individuals.seed': {'view'},
     'individuals.territory': {'view'},
+    'individuals.': {'change'},
     'seedcatalog.seedcatalog': {'view'},
     'species.family': {'view'},
     'species.species': {'view'},
@@ -60,6 +63,10 @@ INVISIBLE_MODELS = (
     "seedcatalog.seedcatalog_seed",
     "plantimages.plantimage",
     "BotGard.passwordresetcode",
+    "config_app.propertyvaluetext",
+    "config_app.propertyvaluebool",
+    "gis.postgisspatialrefsys",
+    "gis.postgisgeometrycolumns",
 )
 
 
@@ -74,6 +81,8 @@ class TestPermissions(TestBase):
         cls.ALL_MODELS = {}
         for app_name, models in apps.all_models.items():
             for model_name, model in models.items():
+                if "_custom_values_" in model_name:
+                    continue
                 # filter for models that are visible as changelist/changeview
                 if f"{app_name}.{model_name}" not in INVISIBLE_MODELS:
                     cls.ALL_MODELS[f"{app_name}.{model_name}"] = model
@@ -166,6 +175,7 @@ class TestPermissions(TestBase):
             'individuals.outplanting': {'add', 'change'},
             'individuals.seed': {'add', 'change'},
             'individuals.territory': {'add', 'change'},
+            'individuals.': {'change'},
             'labels.labeldefinition': {'add', 'change'},
             'seedcatalog.seedcatalog': {'add', 'change'},
             'species.family': {'add', 'change'},
@@ -193,6 +203,7 @@ class TestPermissions(TestBase):
             'individuals.outplanting': {'add', 'change'},
             'individuals.seed': {'add', 'change'},
             'individuals.territory': {'add', 'change'},
+            'individuals.': {'change'},
             'labels.labeldefinition': {'change'},
             'seedcatalog.seedcatalog': {'change'},
             'species.family': {'add', 'change'},

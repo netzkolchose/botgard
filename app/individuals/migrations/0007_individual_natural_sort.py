@@ -8,7 +8,7 @@ from django.conf import settings
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('individuals', '0004_individual_has_specimen_generated'),
+        ('individuals', '0006_customprops'),
     ]
 
     operations = [

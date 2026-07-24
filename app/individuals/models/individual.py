@@ -1,15 +1,23 @@
+import json
+from typing import List
+
 from django.db.models import QuerySet
 from django.utils.translation import gettext_lazy as _
 from django.utils.translation import ngettext_lazy as __
 from django.contrib.admin.filters import FieldListFilter, AllValuesFieldListFilter
+from django.template import Template, Context, Engine
+from django.core.serializers.json import DjangoJSONEncoder
+from django.utils.html import mark_safe
 
 from config_tables.admin import CustomSelectHeaderFilter
+from geo.util import geo_coord_to_html
 from species.models import Species
+from tools.admin_extensions import minimal_admin_context
 from .individual_base import *
 from individuals.numbers import generate_individual_ipen
 
 
-class Individual(IndividualBase, Configurable):
+class Individual(IndividualBase(custom_properties_unique_name="individual")):
 
     class Meta:
         verbose_name = _("individual")
@@ -89,7 +97,7 @@ class Individual(IndividualBase, Configurable):
         if do_save:
             self.save()
 
-    def get_outplantings(self, alive_only=True):
+    def get_outplantings(self, alive_only=True) -> list:
         """Returns list of belonging Outplanting instances from database-cache"""
         from .outplanting import Outplanting
         ids = self.alive_outplantings_generated if alive_only else self.outplantings_generated
@@ -102,6 +110,15 @@ class Individual(IndividualBase, Configurable):
             except Outplanting.DoesNotExist:
                 pass
         return outpl
+
+    def get_outplanting_locations(self, alive_only=True) -> List[dict]:
+        """Returns list of belonging Outplanting instances from database-cache"""
+        from .outplanting import Outplanting
+        qset = self.outplanting_set.all()
+        qset = qset.exclude(location=None)
+        if alive_only:
+            qset = qset.filter(plant_died=None)
+        return list(qset.values("pk", "location"))
 
     def _get_departments_html(self):
         links = []
@@ -278,6 +295,28 @@ class Individual(IndividualBase, Configurable):
         #    line2 = ""
         return line1, line2
 
+    @configurable
+    def locations_decorator(self):
+        outplantings = self.get_outplanting_locations(alive_only=True)
+        if not outplantings:
+            return ""
+        links = []
+        for outpl in outplantings:
+            links.append(geo_coord_to_html(outpl["location"]))
+        return mark_safe(", ".join(links))
+    locations_decorator.short_description = _("locations")
+
+    @configurable
+    def map_decorator(self):
+        from geo.columns import map_outplantings_column_decorator
+
+        outplantings = self.get_outplanting_locations(alive_only=True)
+        return map_outplantings_column_decorator(
+            id=self.pk,
+            outplantings=outplantings,
+        )
+    map_decorator.short_description = _("Map")
+    map_decorator.exclude_csv = True
 
     def save(self, *args, **kwargs):
         # -- update generated fields --

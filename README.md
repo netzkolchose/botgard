@@ -18,7 +18,8 @@ See [Features wiki page](https://github.com/netzkolchose/botgard/wiki/Features-(
 To run the System in production mode you'll need:
 - Linux or FreeBSD 
 - Python 3.10
-- PostgreSQL (recommended)
+- PostgreSQL and postgis (recommended) (https://docs.djangoproject.com/en/5.2/ref/contrib/gis/install/postgis/)
+- sqlite3 and spatialite as alternative (https://docs.djangoproject.com/en/5.2/ref/contrib/gis/install/spatialite/)
 - nginx
 - latex live
 - `librsvg2-bin` (labels use the `rsvg-convert` commandline tool)
@@ -46,9 +47,12 @@ You can copy the [app/.env-example](app/.env-example) file to `app/.env` and adj
 - `DJANGO_ALLOWED_HOSTS`: A list of hosts separated by spaces, defaults to empty list
 - `DJANGO_CSRF_TRUSTED_ORIGINS`: A list of hosts separated by spaces, defaults to `FULL_SERVER_HOST`
 - `DJANGO_DEBUG`: Set Django debug mode, defaults to `True`
+- `MAP_TILE_URL`: The URL for using OpenStreetMap raster tiles, defaults to `/geo/raster-tiles/{z}/{x}/{y}.png`,
+  in live deployment this should be set to an nginx cached proxy url (see https://operations.osmfoundation.org/policies/tiles/) 
 
-
-To initially set up the development server create a **virtual environment** using tools like
+To initially set up the development environment, 
+[install geo libraries](https://docs.djangoproject.com/en/5.2/ref/contrib/gis/install/geolibs/) 
+and create a **virtual environment** using tools like
 [venv](https://docs.python.org/3/library/venv.html) 
 or [virtualenv](https://virtualenv.pypa.io/en/stable/) and then:
 
@@ -68,6 +72,8 @@ After that you can just run the development server with:
 ./manage.py runserver
 ```
 
+Read [config_app/README.md](app/config_app/README.md) for details about custom settings of individual deployments.
+
 #### Demo data
 
 To create some demo gardens, species and individuals in your database run
@@ -85,8 +91,8 @@ If you do not need fulltext search, sqlite will work too.
 
 To create a local database:
 ```bash
-sudo apt install postgresql-server-dev-all
-# or any other means to install a local postgres server
+sudo apt install postgresql-server-dev-all postgis
+# or any other means to install a local postgres server with GIS extension
 
 # start psql
 sudo -u postgres psql
@@ -97,11 +103,19 @@ CREATE DATABASE "botgard" ENCODING=UTF8 TEMPLATE=template0 OWNER="botgard-user";
 
 # allow the user to create databases (for unit-testing)
 ALTER USER "botgard-user" CREATEDB;
+# exit psql ^D
+
+# add GIS extension to new "botgard" database
+sudo -u postgres psql -c "CREATE EXTENSION IF NOT EXISTS postgis;" botgard
+
 ```
 
 ### To run the unit-tests:
 
 ```bash
+# run once to add postgis to all django-created test databases
+sudo -u postgres psql -c "CREATE EXTENSION IF NOT EXISTS postgis;" template1
+
 ./manage.py collectstatic  # needs to be run once before testing
 ./manage.py test
 ```
@@ -116,11 +130,17 @@ For CI deployment, please use **environment variables** or generate an `.env` fi
 
 #### run unittests in docker image
 
+The unittests use the sqlite backend by default. 
+
 ```shell script
 docker build --tag botgard-dev .
 docker run -ti --env BOTGARD_RUN_TESTS=1 botgard-dev
 ```
 
+To open a shell in the docker image:
+```shell
+docker run -ti --entrypoint /bin/bash botgard-dev
+```
 
 ### Data migration
 

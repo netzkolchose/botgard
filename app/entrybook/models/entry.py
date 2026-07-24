@@ -8,11 +8,10 @@ from django.utils import timezone
 from species.models import Species
 from botman.models import BotanicGarden
 from individuals.models.individual_base import *
-from individuals.models.territory import Department
 import config_app
 
 
-class Entry(IndividualBase, Configurable):
+class Entry(IndividualBase(custom_properties_unique_name="entry")):
 
     class Meta:
         verbose_name = _("Seed/individual entry")

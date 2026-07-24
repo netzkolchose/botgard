@@ -19,6 +19,7 @@ from config_tables.admin import configurable, Configurable
 from ajax.autocomplete import AutoCompleteForm
 from individuals.models import Individual
 from tools.global_request import get_current_user
+from BotGard import BotGardBaseModel
 
 
 HERBARIUM_SPECIMEN_TYPES = (
@@ -45,7 +46,7 @@ def get_default_herbarium():
     return Herbarium.objects.all().order_by("pk").first()
 
 
-class HerbariumSpecimen(Configurable, models.Model):
+class HerbariumSpecimen(BotGardBaseModel(custom_properties_unique_name="herbariumspecimen")):
 
     class Meta:
         verbose_name = _("Specimen")

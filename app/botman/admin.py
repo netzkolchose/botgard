@@ -3,7 +3,6 @@ from django.contrib.admin.models import LogEntry
 from django.utils.translation import gettext_lazy as _
 
 from config_tables.admin import ConfigurableTable, configurable, ForeignKeyFilter
-from tools import readOnlyAdmin
 from tools.search_fields import search_fields_compatible
 from tools.permissions import check_user_has_permissions
 from .models import *
@@ -39,7 +38,7 @@ class OutgoingOrdersInline(admin.TabularInline):
         return qset.filter(processed=False)
 
 
-class BotanicGardenAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
+class BotanicGardenAdmin(ConfigurableTable):
     form = BotanicGardenForm
     list_display = ('change_link_decorator', #'number',
                     'name', 'code', 'phone',
@@ -102,7 +101,7 @@ class BotanicGardenAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTab
 admin.site.register(BotanicGarden, BotanicGardenAdmin)
 
 
-class ExternalCatalogAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
+class ExternalCatalogAdmin(ConfigurableTable):
     form = ExternalCatalogForm
     list_display = (
         "__str__",
@@ -134,7 +133,7 @@ class ExternalCatalogAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableT
 admin.site.register(ExternalCatalog, ExternalCatalogAdmin)
 
 
-class ExternalCatalogArchiveAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
+class ExternalCatalogArchiveAdmin(ConfigurableTable):
     form = ExternalCatalogArchiveForm
     list_display = (
         "__str__",
@@ -202,7 +201,7 @@ class OutgoingOrderAdmin(ConfigurableTable):
 admin.site.register(OutgoingOrder, OutgoingOrderAdmin)
 
 
-class BGCIGardenAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
+class BGCIGardenAdmin(ConfigurableTable):
     form = BGCIGardenForm
     list_display = (
         'bgci_id', 'ipen_code', 'name', 'country', 'city', 'bgci_link_decorator'

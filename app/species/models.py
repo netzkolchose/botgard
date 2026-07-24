@@ -1,13 +1,17 @@
 from django.db import models
+from django.db.models import QuerySet
 from django.utils.translation import gettext_lazy as _
 from django.utils.translation import ngettext_lazy
 from django.utils.safestring import mark_safe
 from django.urls import reverse
 from django import forms
+from django.contrib import admin
 
-from config_tables.admin import Configurable, configurable
+from BotGard import BotGardBaseModel
+from config_tables.admin import Configurable, configurable, CustomSelectHeaderFilter
 from ajax.autocomplete import AutoCompleteForm
 from tools import global_request
+
 
 PROTECTION_OF_SPECIES_CHOICES = (
     ('LC', 'LC (Least Concern)'),
@@ -50,7 +54,7 @@ if len(LIFEFORM_CHOICES) != len(set([i[0] for i in LIFEFORM_CHOICES])):
     raise ValueError("Duplicate LIFEFORM_CHOICES!!")
 
 
-class Family(models.Model, Configurable):
+class Family(BotGardBaseModel(custom_properties_unique_name="family")):
     class Meta:
         verbose_name = _('genus')
         verbose_name_plural = _('genera')
@@ -106,7 +110,33 @@ class FamilyForm(AutoCompleteForm(Family)):
     pass
 
 
-class Species(models.Model, Configurable):
+class AliveIndividualsListFilter(admin.SimpleListFilter):
+    title = "-invisible-"
+
+    # Parameter for the filter that will be used in the URL query.
+    parameter_name = "individuals_exist"
+    CHOICES = [
+        ("1", _("Exist")),
+        ("0", _("Don't exist")),
+    ]
+
+    def lookups(self, request, model_admin):
+        return self.CHOICES
+
+    def queryset(self, request, queryset: QuerySet):
+        if self.value() == "1":
+            return queryset.filter(
+                individual__is_alive_generated=True,
+            ).distinct()
+        elif self.value() == "0":
+            return queryset.exclude(
+                individual__is_alive_generated=True,
+            ).distinct()
+        else:
+            return queryset
+
+
+class Species(BotGardBaseModel(custom_properties_unique_name="species")):
 
     class Meta:
         verbose_name = ngettext_lazy('species', 'species', 1)
@@ -282,6 +312,10 @@ class Species(models.Model, Configurable):
             "yes" if has_individuals else "no",
         ))
     alive_individuals_decorator.short_description = _('alive individuals')
+    alive_individuals_decorator.custom_header_filter = CustomSelectHeaderFilter(
+        query_name=AliveIndividualsListFilter.parameter_name,
+        choices=AliveIndividualsListFilter.CHOICES,
+    )
 
     def save(self, *args, **kawrgs):
         if hasattr(self, "full_name_generated"):
@@ -295,6 +329,7 @@ class Species(models.Model, Configurable):
 
 
 class SpeciesForm(AutoCompleteForm(Species)):
+
     def __init__(self, *args, **kwargs):
         super(SpeciesForm, self).__init__(*args, **kwargs)
         if not global_request.get_current_user().has_perm("species.can_check_nomenclature"):

@@ -36,6 +36,10 @@
             <div class="errornote">{{ error|safe }}</div>
         {% endif %}
 
+        {% if info_message %}
+            <div class="info-message">{{ info_message|safe }}</div>
+        {% endif %}
+
         {% block page_content %}
             {{ page_content|safe }}
         {% endblock %}

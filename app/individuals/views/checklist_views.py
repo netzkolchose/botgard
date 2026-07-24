@@ -6,7 +6,6 @@ from django.urls import reverse
 from individuals.models import *
 from tools.permissions import *
 
-from tools.pdf import create_pdf_response
 from tools.admin_extensions import minimal_admin_context
 from tools.csv_response import csv_response
 
@@ -126,35 +125,3 @@ def checklist_department(request, forId):
     qset = qset.filter(plant_died=None) | qset.filter(individual__seed_available=True)
 
     return _checklist_view(request, Department, forId, qset)
-
-
-@login_required
-def generate_label(request, individualId, labelId):
-    try:
-        indi = Individual.objects.get(pk=individualId)
-    except:
-        return HttpResponse(_("Individual %s not found") % str(individualId), status=400)
-    try:
-        label = label_types.get_label_for_id(int(labelId))
-    except:
-        # return HttpResponse(_("Label type %s unknown<br/>%s") % (str(labelId), str(ALL_LABEL_TYPES)), status=400)
-        return HttpResponse(_("Label type %s unknown") % str(labelId), status=400)
-
-    if not indi.species.nomenclature_checked:
-        return HttpResponse("<h2>%s</h2><h3>%s</h3><p>%s</p>" % (
-            _("Label can not be printed."),
-            _("Nomenclature has not been verified."),
-            _("Please ask your <i>Kustos</i>")
-        ))
-
-    # TODO: check if IPEN always gives valid filename
-    filename = "%s-%s.pdf" % (str(indi.ipen_generated), label[label_types.IDX_ID])
-    response = create_pdf_response(filename)
-
-    try:
-        render_label(response, indi, label)
-        return response
-    except:
-        return HttpResponse(_("Label creation failed, sorry"), status=500)
-
-
