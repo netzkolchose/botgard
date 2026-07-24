@@ -72,7 +72,7 @@ class CustomProperty(models.Model):
             if key == self.model:
                 name = n
                 break
-        return f"{name}.{self.name}"
+        return f"{name}/{self.name}"
 
     @classmethod
     def get_properties_for_model(self, model: Union[models.Model, Type[models.Model]]) -> List["CustomProperty"]:
@@ -147,7 +147,7 @@ class PropertyValueBool(models.Model):
     )
 
     def __str__(self):
-        return f"{self.property}"
+        return f"{self.property.name}: {'✔' if self.value else '❌'}"
 
     def value_decorator(self):
         return mark_safe('<span class="icon-%s"></span>' % (
@@ -173,8 +173,11 @@ class PropertyValueText(models.Model):
         max_length=256,
     )
 
+    # TODO: showing the full value could be disturbing in the admin views
+    #   however, PropertyValue<Type> instances are not shown in changelist or changeform
+    #   Right now, this is the workaround to show the values in read-only changeforms
     def __str__(self):
-        return f"{self.property}"
+        return f"{self.property.name}: {self.value}"
 
     def value_decorator(self):
         return self.value

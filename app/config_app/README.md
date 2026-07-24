@@ -95,3 +95,28 @@ to `PropertyValueText` and `PropertyValueBool` models respectively.
 
 The `instance.custom_property_1` trick above is made by overloading the `MyModel.__getattr__` method
 and fetching the value from database. It is implemented to make properties available to label templates.
+
+### TODO: proper display in read-only changeform
+
+The `PropertyValuesWidget` for the changeform is not rendered in read-only views 
+(when user only has view permission). The current quickfix is output property name and value in
+the `PropertyValue<Type>.__str__` method. This looks awful for long texts and also only
+displays property values that are set, not empty fields or unchecked checkboxes.
+
+In `django/contrib/admin/templates/admin/includes/fieldset.html` widgets are generally not rendered,
+when `field.is_readonly == True`. Unfortunately, `field` in this case is a 
+`django.contrib.admin.helpers.AdminReadonlyField` which is burried deep behind django's custom extensibility
+realm. You'd need to copy/paste & patch the huge `ModelAdmin._changeform_view` plus `helpers.AdminForm`. 
+Just patching the `fieldset.html` template does not work because the original widget is not present in the
+template context. 
+
+Maybe it's possible to patch the fieldset block in the `admin/change_form.html` template:
+```
+{% block field_sets %}
+{% for fieldset in adminform %}
+  {% include "admin/includes/fieldset.html" with heading_level=2 prefix="fieldset" id_prefix=0 id_suffix=forloop.counter0 %}
+{% endfor %}
+{% endblock %}
+```
+and somehow, along the way, replace `fieldset` which is a `helpers.Fieldset` with a custom version 
+that yields fields that have `is_readonly = False` and render the original widgets in disabled-style.
