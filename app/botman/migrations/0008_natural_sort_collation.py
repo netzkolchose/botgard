@@ -14,8 +14,8 @@ class Migration(migrations.Migration):
 
     def apply(self, *args, **kwargs):
         if settings.IS_POSTGRES:
-            print("(Adding natural sort collation to postgres)")
-        super().apply(*args, **kwargs)
+            print("(Adding collation to postgres)")
+        return super().apply(*args, **kwargs)
         
     operations = (
         [] if not settings.IS_POSTGRES
