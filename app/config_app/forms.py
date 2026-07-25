@@ -146,23 +146,36 @@ class PropertyValuesWidget(Input):
                         if propval.property == property:
                             value = propval.value
                             break
-            autocomplete_kwargs = {
+            normal_attrs = {
+            }
+            autocomplete_attrs = {
                 "class": "autocomplete-modelfield",
                 "data-ac-json-url": reverse("ajax:model_json"),
                 "data-ac-id": f"custom_property_{property.pk}",
             }
             if choices := property.get_choices():
-                widget = forms.widgets.Select(choices=[("", "")] + [(c, c) for c in choices])
+                widget = forms.widgets.Select(
+                    attrs=normal_attrs,
+                    choices=[("", "")] + [(c, c) for c in choices]
+                )
             elif property.type == "bool":
-                widget = forms.widgets.CheckboxInput()
+                widget = forms.widgets.CheckboxInput(attrs=normal_attrs)
             elif property.type == "text":
-                widget = forms.widgets.TextInput(autocomplete_kwargs)
+                widget = forms.widgets.TextInput(
+                    attrs={**normal_attrs, **autocomplete_attrs},
+                )
             elif property.type == "text_long":
-                widget = forms.widgets.Textarea(autocomplete_kwargs)
+                widget = forms.widgets.Textarea(
+                    attrs={**normal_attrs, **autocomplete_attrs},
+                )
             elif property.type == "user":
-                widget = forms.widgets.Select(choices=[("", "")] + [
-                    (u, u) for u in User.objects.all().order_by("username").values_list("username", flat=True)
-                ])
+                widget = forms.widgets.Select(
+                    attrs=normal_attrs,
+                    choices=[("", "")] + [
+                        (u, u)
+                        for u in User.objects.all().order_by("username").values_list("username", flat=True)
+                    ]
+                )
             else:
                 raise NotImplementedError(f"CustomProperty.type '{self.value_type}'")
 
@@ -226,7 +239,7 @@ def custom_properties_patch_fieldsets(
             # and append them at the end
             fieldsets = list(fieldsets) + [
                 (_('custom properties'), {
-                    'classes': 'collapse',
+                    'classes': ['custom-properties-fieldset'],
                     'fields': props,
                 }),
             ]

@@ -361,9 +361,10 @@ nav#changelist-filter:not(:has(details:not([data-filter-title="-invisible-"]))) 
     display: none;
 }
 
-
+/* when JS is disabled, at least hide the meaningless labels like "text values:" */
 .field-custom_values_bool .flex-container > label,
-.field-custom_values_text .flex-container > label {
+.field-custom_values_text .flex-container > label,
+.field-custom_values_user .flex-container > label {
     display: none;
 }
 .custom-property label {
@@ -371,6 +372,8 @@ nav#changelist-filter:not(:has(details:not([data-filter-title="-invisible-"]))) 
 }
 
 .field-custom_values_bool .errorlist,
-.field-custom_values_text .errorlist{
+.field-custom_values_text .errorlist,
+.field-custom_values_user .errorlist,
+.custom-properties-fieldset .errorlist{
     margin-left: 0;
 }
