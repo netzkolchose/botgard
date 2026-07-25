@@ -4,14 +4,17 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.utils.safestring import mark_safe
 from django.contrib.admin import SimpleListFilter
+from django.contrib.auth import get_user_model
 
+User = get_user_model()
 
-CUSTOM_PROPERTY_MODEL_TYPES = ("bool", "text")
+CUSTOM_PROPERTY_MODEL_TYPES = ("bool", "text", "user")
 
 CUSTOM_PROPERTY_TYPE_CHOICES = (
     ("bool", _("Boolean")),
     ("text", _("Text")),
     ("text_long", _("Text (long)")),
+    ("user", _("User")),
 )
 
 CUSTOM_PROPERTY_MODEL_CHOICES = (
@@ -119,6 +122,14 @@ class CustomProperty(models.Model):
                             custom_values_text__property__pk=prop.pk,
                             custom_values_text__value__icontains=self.value(),
                         )
+                    elif prop.type == "user":
+                        # changelist user filter is a choice-box. so don't do icontains-comparison
+                        return queryset.filter(
+                            custom_values_user__property__pk=prop.pk,
+                            custom_values_user__value__username=self.value(),
+                        )
+                    else:
+                        raise NotImplementedError(prop.type)
                 return queryset
 
         return PropertyFilter
@@ -182,3 +193,38 @@ class PropertyValueText(models.Model):
     def value_decorator(self):
         return self.value
 
+
+class PropertyValueUser(models.Model):
+    class Meta:
+        verbose_name = _("user value")
+        verbose_name_plural = _("user values")
+
+    _id_field = "pk"
+
+    property = models.ForeignKey(
+        verbose_name=_("custom property"),
+        to=CustomProperty,
+        on_delete=models.CASCADE,
+        related_name="values_user",
+    )
+    value = models.ForeignKey(
+        verbose_name=_("value"),
+        to=User,
+        on_delete=models.CASCADE,
+    )
+
+    def __str__(self):
+        return f"{self.property.name}: {self.value}"
+
+    def value_decorator(self):
+        return self.value
+
+    def save(self, *args, **kwargs):
+
+        if isinstance(self.value, str):
+            try:
+                self.value = User.objects.get(username=self.value)
+            except User.DoesNotExist:
+                raise ValueError(f"User '{self.value}' does not exist")
+
+        return super().save(*args, **kwargs)

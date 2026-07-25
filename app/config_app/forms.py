@@ -8,8 +8,12 @@ from django.urls import reverse
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 from django.forms import ValidationError
+from django.contrib.auth import get_user_model
 
 from .models import *
+
+
+User = get_user_model()
 
 
 class PropertyValuesFormField(forms.Field):
@@ -50,6 +54,7 @@ class PropertyValuesFormField(forms.Field):
         super().validate(value)
 
         mandatory_error = _("Property '{}' is mandatory")
+        choice_error = _("Property '{}' expects a choice of {}")
 
         if isinstance(value, dict):
             for prop in self.custom_properties_map.values():
@@ -65,11 +70,22 @@ class PropertyValuesFormField(forms.Field):
                     if choices := prop.get_choices():
                         if value and value not in choices:
                             raise ValidationError(
-                                _("Property '{}' expects a choice of {}").format(
+                                choice_error.format(
                                     prop.name,
                                     ", ".join(f"'{c}'" for c in choices)
                                 )
                             )
+
+                    if prop.type == "user":
+                        if value:
+                            usernames = set(User.objects.all().values_list("username", flat=True))
+                            if value not in usernames:
+                                raise ValidationError(
+                                    choice_error.format(
+                                        prop.name,
+                                        ", ".join(f"'{n}'" for n in sorted(usernames))
+                                    )
+                                )
 
     def prepare_value(self, value):
         # print("PREPARE_VALUE", self.label, value)
@@ -143,6 +159,10 @@ class PropertyValuesWidget(Input):
                 widget = forms.widgets.TextInput(autocomplete_kwargs)
             elif property.type == "text_long":
                 widget = forms.widgets.Textarea(autocomplete_kwargs)
+            elif property.type == "user":
+                widget = forms.widgets.Select(choices=[("", "")] + [
+                    (u, u) for u in User.objects.all().order_by("username").values_list("username", flat=True)
+                ])
             else:
                 raise NotImplementedError(f"CustomProperty.type '{self.value_type}'")
 

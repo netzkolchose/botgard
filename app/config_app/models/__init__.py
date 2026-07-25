@@ -6,4 +6,5 @@ from .customprops import (
     CustomProperty,
     PropertyValueBool,
     PropertyValueText,
+    PropertyValueUser,
 )

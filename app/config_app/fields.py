@@ -7,11 +7,13 @@ from django.forms.widgets import Input
 from django.db import models, transaction, ProgrammingError
 from django.utils.translation import gettext_lazy as _
 from django.apps import apps
+from django.contrib.auth import get_user_model
 
 from .models import *
 from .models.customprops import CUSTOM_PROPERTY_TYPE_CHOICES
 from .forms import PropertyValuesFormField
 
+User = get_user_model()
 
 class CustomPropertyValuesBaseField(models.ManyToManyField):
 
@@ -78,6 +80,12 @@ class CustomPropertyValuesBaseField(models.ManyToManyField):
                         existing_value.delete()
                         changed = True
                 else:
+                    if prop.type == "user":
+                        try:
+                            value = User.objects.get(username=value)
+                        except User.DoesNotExist:
+                            raise ValueError(f"User '{value}' does not exist")
+
                     if existing_value:
                         if value != existing_value.value:
                             existing_value.value = value
@@ -104,3 +112,9 @@ class CustomPropertyValuesTextField(CustomPropertyValuesBaseField):
     property_value_model_class = PropertyValueText
     property_type = "text"
     verbose_name = _("text values")
+
+
+class CustomPropertyValuesUserField(CustomPropertyValuesBaseField):
+    property_value_model_class = PropertyValueUser
+    property_type = "user"
+    verbose_name = _("user values")
