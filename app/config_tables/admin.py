@@ -15,12 +15,16 @@ from django.urls import reverse
 from operator import itemgetter
 import django.core.exceptions
 from django.contrib.admin.utils import label_for_field
+from django.contrib.auth import get_user_model
 
 from config_app.forms import custom_properties_patch_fieldsets
 from .forms import TableSettingsForm
 from .models import TableSettings
 from tools.csv_response import csv_response
 from config_app.models import CUSTOM_PROPERTY_TYPE_CHOICES, CustomProperty, CUSTOM_PROPERTY_MODEL_TYPES
+
+
+User = get_user_model()
 
 
 class Configurable(object):
@@ -173,6 +177,13 @@ class CustomPropertyHeaderFilter(CustomHeaderFilter):
                     "data-ac-id": f"custom_property_{self.property.pk}",
                 })
                 return ConfigurableTable._get_search_widget_text(context)
+        elif self.property.type == "user":
+            return ConfigurableTable._get_search_widget_choice_box(
+                context,
+                choices=[
+                    (u, u) for u in User.objects.all().order_by("username").values_list("username", flat=True)
+                ],
+            )
 
         raise NotImplementedError(f"CustomProperty.type '{self.property.type}'")
 
@@ -223,6 +234,8 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
                 return prop.get_decorator_value_for_model(instance)
             _func.__name__ = f"custom_property_decorator_{prop.pk}"
             _func.short_description = prop.name
+            # TODO: this might duplicate the rows :-(
+            # _func.admin_order_field = f"custom_values_{prop.type.split('_')[0]}__value"
             _func.custom_header_filter = CustomPropertyHeaderFilter(property=prop)
             self._custom_property_decorators[key] = _func
         return self._custom_property_decorators[key]

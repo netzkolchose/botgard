@@ -391,7 +391,7 @@ class ChangeListForm:
         self.num_pages = 0
         self.request()
 
-    def update_filters(self, params: dict):
+    def set_filters(self, params: dict):
         for key, value in params.items():
             field = self.get_form_field(key)
             if field.options:

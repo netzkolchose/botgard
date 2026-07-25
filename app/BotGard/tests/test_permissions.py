@@ -65,6 +65,7 @@ INVISIBLE_MODELS = (
     "BotGard.passwordresetcode",
     "config_app.propertyvaluetext",
     "config_app.propertyvaluebool",
+    "config_app.propertyvalueuser",
     "gis.postgisspatialrefsys",
     "gis.postgisgeometrycolumns",
 )

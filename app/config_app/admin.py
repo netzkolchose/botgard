@@ -130,8 +130,12 @@ class CustomPropertyAdmin(admin.ModelAdmin):
     def times_used_decorator(self, instance: CustomProperty):
         if instance.type == "bool":
             return instance.values_bool.count()
-        else:
+        elif instance.type in ("text", "text_long"):
             return instance.values_text.count()
+        elif instance.type == "user":
+            return instance.values_user.count()
+        else:
+            raise NotImplementedError(instance.type)
     times_used_decorator.short_description = _("# used")
 
 

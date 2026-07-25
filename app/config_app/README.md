@@ -45,10 +45,14 @@ in "global configuration".
 
 Once a `CustomProperty` entry for a particular model is created in the admin view, it is
 - visible and editable in the change form
+  - **TODO** properly rendered in read-only change form 
 - available as column in the table configuration of the changelist
-- available as property on the model instance
+  - filterable
+  - **TODO** sortable
+- available as property on the model instance, e.g. `instance.custom_value_<pk>`
 - visible in the label documentation `/labels/docs/template`
 - supported by auto-complete
+- **TODO** displayed by `InlineModelAdmin`
 
 Models that want to support custom properties need to derive from a custom props base model and 
 the ModelAdmin needs to derive from `config_tables.admin.ConfigurableTable`.

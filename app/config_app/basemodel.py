@@ -34,6 +34,7 @@ def CustomPropertiesBaseModel(related_name_model: str) -> Type[models.Model]:
 
         custom_values_bool = CustomPropertyValuesBoolField(related_name=f"{related_name_model}_values_bool")
         custom_values_text = CustomPropertyValuesTextField(related_name=f"{related_name_model}_values_text")
+        custom_values_user = CustomPropertyValuesUserField(related_name=f"{related_name_model}_values_user")
 
         def __init_subclass__(cls, **kwargs):
             super().__init_subclass__(**kwargs)
@@ -52,6 +53,7 @@ def CustomPropertiesBaseModel(related_name_model: str) -> Type[models.Model]:
                 prop = (
                     self.custom_values_bool.filter(property__pk=pk).first()
                     or self.custom_values_text.filter(property__pk=pk).first()
+                    or self.custom_values_user.filter(property__pk=pk).first()
                 )
                 return prop.value
             except:

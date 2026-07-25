@@ -23,6 +23,11 @@ class Migration(migrations.Migration):
             field=config_app.fields.CustomPropertyValuesTextField(related_name='family_values_text', to='config_app.propertyvaluetext', verbose_name='text values'),
         ),
         migrations.AddField(
+            model_name='family',
+            name='custom_values_user',
+            field=config_app.fields.CustomPropertyValuesUserField(related_name='family_values_user', to='config_app.propertyvalueuser', verbose_name='user values'),
+        ),
+        migrations.AddField(
             model_name='species',
             name='custom_values_bool',
             field=config_app.fields.CustomPropertyValuesBoolField(related_name='species_values_bool', to='config_app.propertyvaluebool', verbose_name='bool values'),
@@ -31,5 +36,10 @@ class Migration(migrations.Migration):
             model_name='species',
             name='custom_values_text',
             field=config_app.fields.CustomPropertyValuesTextField(related_name='species_values_text', to='config_app.propertyvaluetext', verbose_name='text values'),
+        ),
+        migrations.AddField(
+            model_name='species',
+            name='custom_values_user',
+            field=config_app.fields.CustomPropertyValuesUserField(related_name='species_values_user', to='config_app.propertyvalueuser', verbose_name='user values'),
         ),
     ]

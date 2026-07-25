@@ -65,6 +65,7 @@ class TestCustomProps2(TestBase):
         prop2 = self.create_custom_property(BotanicGarden, "garden_comment")
         prop3 = self.create_custom_property(BotanicGarden, "garden_select", choices=["A", "B", "C"])
         prop4 = self.create_custom_property(BotanicGarden, "garden_long", type="text_long")
+        prop5 = self.create_custom_property(BotanicGarden, "garden_user", type="user")
 
         form = self.get_changeform("botman", "botanicgarden")
         #pprint.pprint(form.get_data())
@@ -78,6 +79,7 @@ class TestCustomProps2(TestBase):
             f"custom-property-{prop2.pk}": None,
             f"custom-property-{prop3.pk}": None,
             f"custom-property-{prop4.pk}": None,
+            f"custom-property-{prop5.pk}": None,
             "email": None,
             "name": None,
             "number": str(num_gardens + 1),
@@ -88,6 +90,7 @@ class TestCustomProps2(TestBase):
         self.assertEqual("text", form.get_form_field(f"custom-property-{prop2.pk}").type)
         self.assertEqual("select", form.get_form_field(f"custom-property-{prop3.pk}").type)
         self.assertEqual("textarea", form.get_form_field(f"custom-property-{prop4.pk}").type)
+        self.assertEqual("select", form.get_form_field(f"custom-property-{prop5.pk}").type)
 
         new_data = {
             "address": "Adr1",
@@ -98,6 +101,7 @@ class TestCustomProps2(TestBase):
             f"custom-property-{prop2.pk}": "Extra bits",
             f"custom-property-{prop3.pk}": "B",
             f"custom-property-{prop4.pk}": "Long text",
+            f"custom-property-{prop5.pk}": "User1",
             "email": "a@b.cd",
             "name": "Garden 23",
             "number": "4",
@@ -110,10 +114,18 @@ class TestCustomProps2(TestBase):
         self.assertEqual("Extra bits", getattr(instance, f"custom_property_{prop2.pk}"))
         self.assertEqual("B", getattr(instance, f"custom_property_{prop3.pk}"))
         self.assertEqual("Long text", getattr(instance, f"custom_property_{prop4.pk}"))
+        self.assertEqual(
+            UserModel.objects.get(username="User1"),
+            getattr(instance, f"custom_property_{prop5.pk}"),
+        )
         form.assert_data(new_data)
 
         form.save({
             f"custom-property-{prop3.pk}": "Unknown choice",
+        }, expect_validation_errors=True)
+
+        form.save({
+            f"custom-property-{prop5.pk}": "Unknown user",
         }, expect_validation_errors=True)
 
     def test_customprops_admin_individual(self):
@@ -218,17 +230,21 @@ class TestCustomProps2(TestBase):
         prop2 = self.create_custom_property(BotanicGarden, "long", type="text_long")
         prop3 = self.create_custom_property(BotanicGarden, "bool", type="bool")
         prop4 = self.create_custom_property(BotanicGarden, "choices", type="text", choices=["A", "B", "C"])
+        prop5 = self.create_custom_property(BotanicGarden, "user", type="user")
 
-        form = self.get_changeform("botman", "botanicgarden", BotanicGarden.objects.get(code="GARD1").pk)
+        form = self.get_changeform(
+            "botman", "botanicgarden", BotanicGarden.objects.get(code="GARD1").pk,
+        )
         form.assert_data({
             f"custom-property-{prop1.pk}": None,
             f"custom-property-{prop2.pk}": None,
             f"custom-property-{prop3.pk}": None,
             f"custom-property-{prop4.pk}": None,
+            f"custom-property-{prop5.pk}": None,
         })
         form.save()
 
-        for prop in (prop1, prop2, prop3, prop4):
+        for prop in (prop1, prop2, prop3, prop4, prop5):
             prop.required = True
             prop.save()
             form.save(expect_validation_errors=True)
@@ -237,6 +253,8 @@ class TestCustomProps2(TestBase):
                 value = True
             elif prop == prop4:
                 value = "B"
+            elif prop == prop5:
+                value = "User1"
             form.save({
                 f"custom-property-{prop.pk}": value,
             })
@@ -246,4 +264,44 @@ class TestCustomProps2(TestBase):
             f"custom-property-{prop2.pk}": "long",
             f"custom-property-{prop3.pk}": True,
             f"custom-property-{prop4.pk}": "B",
+            f"custom-property-{prop5.pk}": "User1",
         })
+
+    def TODO_test_customprops_ordering(self):
+        """
+        Just some testing ground to find a way to sort by CustomProps values
+        without creating duplicate rows in the queryset
+        """
+        CustomProperty.objects.all().delete()
+
+        prop1 = self.create_custom_property(BotanicGarden, "text1", type="text")
+        prop2 = self.create_custom_property(BotanicGarden, "text2", type="text")
+
+        BotanicGarden.objects.get(code="GARD1").custom_values_text.set([
+            PropertyValueText.objects.create(property=prop1, value="b"),
+            PropertyValueText.objects.create(property=prop2, value="1"),
+        ])
+        BotanicGarden.objects.get(code="GARD1").custom_values_text.set([
+            PropertyValueText.objects.create(property=prop1, value="a"),
+            PropertyValueText.objects.create(property=prop2, value="2"),
+        ])
+
+        qset = (
+            BotanicGarden.objects.all()
+            .annotate(
+                cp1=models.F("custom_values_text__value"),
+                is_cp1=models.Q(custom_values_text__property__pk=prop1.pk),
+                is_cp2=models.Q(custom_values_text__property__pk=prop2.pk),
+            )
+        )
+        qset = qset.filter(is_cp1=True) | qset.filter(is_cp1=None)
+        qset = (
+            qset
+            #.annotate(f"custom_prop_{prop1.pk}")
+            #.order_by("custom_values_text__value")
+            .order_by("cp1")
+            #.order_by(f"custom_prop_{prop1.pk}")
+        )
+        for m in qset:
+            print(m, m.cp1, m.is_cp1)
+

@@ -2,6 +2,7 @@
 
 import django.db.models.deletion
 from django.db import migrations, models
+from django.conf import settings
 
 
 class Migration(migrations.Migration):
@@ -35,7 +36,7 @@ class Migration(migrations.Migration):
                     ),
                     max_length=64, verbose_name='model')
                  ),
-                ('type', models.CharField(choices=[('bool', 'Boolean'), ('text', 'Text'), ('text_long', 'Text (long)')], verbose_name='type')),
+                ('type', models.CharField(choices=[('bool', 'Boolean'), ('text', 'Text'), ('text_long', 'Text (long)'), ('user', 'User')], verbose_name='type')),
                 ('name', models.CharField(verbose_name='name')),
                 ('required', models.BooleanField(verbose_name='mandatory', default=False)),
                 ('order', models.IntegerField(default=0, help_text='Order of field when viewing or editing.', verbose_name='order')),
@@ -70,6 +71,18 @@ class Migration(migrations.Migration):
             options={
                 'verbose_name': 'text value',
                 'verbose_name_plural': 'text values',
+            },
+        ),
+        migrations.CreateModel(
+            name='PropertyValueUser',
+            fields=[
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('property', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='values_user', to='config_app.customproperty', verbose_name='custom property')),
+                ('value', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL, verbose_name='value')),
+            ],
+            options={
+                'verbose_name': 'user value',
+                'verbose_name_plural': 'user values',
             },
         ),
     ]
