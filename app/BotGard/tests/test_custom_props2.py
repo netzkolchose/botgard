@@ -246,3 +246,42 @@ class TestCustomProps2(TestBase):
             f"custom-property-{prop3.pk}": True,
             f"custom-property-{prop4.pk}": "B",
         })
+
+    def test_customprops_filter_TODO(self):
+        """
+        Just some testing ground to find a way to sort by CustomProps
+        without creating duplicate rows in the queryset
+        """
+        CustomProperty.objects.all().delete()
+
+        prop1 = self.create_custom_property(BotanicGarden, "text1", type="text")
+        prop2 = self.create_custom_property(BotanicGarden, "text2", type="text")
+
+        BotanicGarden.objects.get(code="GARD1").custom_values_text.set([
+            PropertyValueText.objects.create(property=prop1, value="b"),
+            PropertyValueText.objects.create(property=prop2, value="1"),
+        ])
+        BotanicGarden.objects.get(code="GARD1").custom_values_text.set([
+            PropertyValueText.objects.create(property=prop1, value="a"),
+            PropertyValueText.objects.create(property=prop2, value="2"),
+        ])
+
+        qset = (
+            BotanicGarden.objects.all()
+            .annotate(
+                cp1=models.F("custom_values_text__value"),
+                is_cp1=models.Q(custom_values_text__property__pk=prop1.pk),
+                is_cp2=models.Q(custom_values_text__property__pk=prop2.pk),
+            )
+        )
+        qset = qset.filter(is_cp1=True) | qset.filter(is_cp1=None)
+        qset = (
+            qset
+            #.annotate(f"custom_prop_{prop1.pk}")
+            #.order_by("custom_values_text__value")
+            .order_by("cp1")
+            #.order_by(f"custom_prop_{prop1.pk}")
+        )
+        for m in qset:
+            print(m, m.cp1, m.is_cp1)
+
