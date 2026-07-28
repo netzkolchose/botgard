@@ -53,4 +53,16 @@ class Migration(migrations.Migration):
                 blank=True, max_length=100, verbose_name='sowing number',
             ),
         ),
+        # also put this here to minimize migration files
+        #   (yeah, another garden and code sizes need to increase again..)
+        migrations.AlterField(
+            model_name='department',
+            name='code',
+            field=models.CharField(max_length=20),
+        ),
+        migrations.AlterField(
+            model_name='territory',
+            name='code',
+            field=models.CharField(max_length=20, unique=True, verbose_name='territory code'),
+        ),
     ]

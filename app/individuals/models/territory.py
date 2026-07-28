@@ -97,7 +97,7 @@ class Territory(CalcOutplantingsMixin, BotGardBaseModel(custom_properties_unique
         verbose_name_plural = _("territories")
         ordering = ['code']
 
-    code = models.CharField(max_length=10, unique=True, verbose_name=_("territory code"))
+    code = models.CharField(max_length=20, unique=True, verbose_name=_("territory code"))
     name = models.CharField(max_length=100, unique=True, verbose_name=_("territory name"))
 
     name_generated = models.CharField(max_length=120, verbose_name=_("display name"), default="", editable=False)
@@ -210,7 +210,7 @@ class Department(CalcOutplantingsMixin, BotGardBaseModel(custom_properties_uniqu
         Territory, on_delete=models.SET_DEFAULT, verbose_name=_("territory"), db_index=True,
         null=True, default=None,
     )
-    code = models.CharField(max_length=10)
+    code = models.CharField(max_length=20)
     name = models.CharField(max_length=100, unique=True)
 
     full_code = models.CharField(max_length=30, default="", editable=False)
