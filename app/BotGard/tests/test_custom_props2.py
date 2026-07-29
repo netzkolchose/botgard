@@ -1,9 +1,3 @@
-import pprint
-
-import django.contrib.admin
-import django.apps
-import pandas as pd
-
 from .base import *
 
 class TestCustomProps2(TestBase):
@@ -296,18 +290,21 @@ class TestCustomProps2(TestBase):
                        )
                    )
 
-        def _order_by(qset: models.QuerySet, *props: CustomProperty):
+        def _order_by(qset: models.QuerySet, *props: Union[str, CustomProperty]):
             annotations = {}
             orderings = []
             for prop in props:
-                annotation_field_name = f"property_value_{prop.pk}"
-                annotations[annotation_field_name] = models.Subquery(
-                    PropertyValueText.objects.filter(
-                        garden_values_text__pk=models.OuterRef("pk"),
-                        property=prop,
-                    ).values("value")[:1]
-                )
-                orderings.append(annotation_field_name)
+                if isinstance(prop, str):
+                    orderings.append(prop)
+                else:
+                    annotation_field_name = f"property_value_{prop.pk}"
+                    annotations[annotation_field_name] = models.Subquery(
+                        PropertyValueText.objects.filter(
+                            garden_values_text__pk=models.OuterRef("pk"),
+                            property=prop,
+                        ).values("value")
+                    )
+                    orderings.append(annotation_field_name)
 
             return (
                 qset
@@ -315,29 +312,35 @@ class TestCustomProps2(TestBase):
                 .order_by(*orderings)
             )
 
+        # Note: sqlite puts NULL values at the beginning!
+
         self.assertEqual(
-            ["GARD4", "GARD1", "GARD3", "GARD2", "GARD5"],
+            ["GARD4", "GARD1", "GARD3", "GARD2", "GARD5"] if settings.IS_POSTGRES else
+            ["GARD5", "GARD4", "GARD1", "GARD3", "GARD2"],
             list(_order_by(
                 BotanicGarden.objects.all(),
                 prop1,
             ).values_list("name", flat=True))
         )
         self.assertEqual(
-            ["GARD3", "GARD2", "GARD4", "GARD1", "GARD5"],
+            ["GARD3", "GARD2", "GARD4", "GARD1", "GARD5"] if settings.IS_POSTGRES
+            else ['GARD1', 'GARD5', 'GARD3', 'GARD2', 'GARD4'],
             list(_order_by(
-                BotanicGarden.objects.all().order_by("name"),
-                prop2,
+                BotanicGarden.objects.all(),
+                prop2, "name"
             ).values_list("name", flat=True))
         )
         self.assertEqual(
-            ["GARD4", "GARD1", "GARD3", "GARD2", "GARD5"],
+            ["GARD4", "GARD1", "GARD3", "GARD2", "GARD5"] if settings.IS_POSTGRES else
+            ["GARD2", "GARD5", "GARD4", "GARD1", "GARD3"],
             list(_order_by(
-                BotanicGarden.objects.all().order_by("name"),
-                prop3,
+                BotanicGarden.objects.all(),
+                prop3, "name"
             ).values_list("name", flat=True))
         )
         self.assertEqual(
-            ["GARD4", "GARD3", "GARD1", "GARD2", "GARD5"],
+            ["GARD4", "GARD3", "GARD1", "GARD2", "GARD5"] if settings.IS_POSTGRES else
+            ["GARD5", "GARD2", "GARD4", "GARD1", "GARD3"],
             list(_order_by(
                 BotanicGarden.objects.all().order_by("name"),
                 prop3, prop2,
