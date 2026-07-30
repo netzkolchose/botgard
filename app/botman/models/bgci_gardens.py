@@ -11,7 +11,7 @@ from tools.countries import ISO_COUNTRY_CHOICES
 from BotGard import BotGardBaseModel
 
 
-class BGCIGarden(BotGardBaseModel(custom_properties_unique_name="bgcigarden")):
+class BGCIGarden(BotGardBaseModel(unique_name="bgcigarden", custom_properties=True)):
     class Meta:
         verbose_name = _('BGCI garden')
         verbose_name_plural = _('BGCI gardens')

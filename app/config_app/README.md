@@ -61,7 +61,7 @@ the ModelAdmin needs to derive from `config_tables.admin.ConfigurableTable`.
 from BotGard import BotGardBaseModel
 from config_tables.admin import ConfigurableTable
 
-class MyModel(BotGardBaseModel(custom_properties_unique_name="mymodel")):
+class MyModel(BotGardBaseModel(unique_name="mymodel", custom_properties=True)):
     pass
 
 class MyModelAdmin(ConfigurableTable):

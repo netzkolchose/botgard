@@ -17,7 +17,7 @@ from config_tables.admin import configurable, Configurable
 from BotGard import BotGardBaseModel
 
 
-class Herbarium(BotGardBaseModel(custom_properties_unique_name="herbarium")):
+class Herbarium(BotGardBaseModel(unique_name="herbarium", custom_properties=True)):
 
     class Meta:
         verbose_name = _("Herbarium")

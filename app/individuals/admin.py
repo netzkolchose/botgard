@@ -89,6 +89,9 @@ class TerritoryAdmin(ConfigurableTable):
 class OutplantingInline(admin.TabularInline):
     form = OutplantingForm
     model = Outplanting
+    fields = (
+        "department", "location", "seeded_date", "date", "plant_died", "comment",
+    )
     min_num = 0
     extra = 0
 

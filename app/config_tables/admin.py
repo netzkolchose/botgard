@@ -567,6 +567,10 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
             # the name of the field in related model
             foreign_field_name = None
             for i in self.list_filter:
+                try:
+                    len(i)
+                except TypeError:
+                    continue
                 # try to get name from installed ForeignKeyFilter
                 if len(i) == 2:
                     tup = i[0].split("__")

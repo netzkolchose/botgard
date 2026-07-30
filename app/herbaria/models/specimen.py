@@ -46,7 +46,7 @@ def get_default_herbarium():
     return Herbarium.objects.all().order_by("pk").first()
 
 
-class HerbariumSpecimen(BotGardBaseModel(custom_properties_unique_name="herbariumspecimen")):
+class HerbariumSpecimen(BotGardBaseModel(unique_name="herbariumspecimen", custom_properties=True)):
 
     class Meta:
         verbose_name = _("Specimen")
