@@ -17,12 +17,11 @@ import django.core.exceptions
 from django.contrib.admin.utils import label_for_field
 from django.contrib.auth import get_user_model
 
-from config_app.forms import custom_properties_patch_fieldsets
 from .forms import TableSettingsForm
 from .models import TableSettings
 from tools.csv_response import csv_response
 from config_app.models import CUSTOM_PROPERTY_TYPE_CHOICES, CustomProperty, CUSTOM_PROPERTY_MODEL_TYPES
-
+from BotGard.basemodel import botgard_base_model_patch_fieldsets, CREATION_FIELDS
 
 User = get_user_model()
 
@@ -305,8 +304,17 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
 
     def get_fieldsets(self, request, obj=None):
         fieldsets = super().get_fieldsets(request, obj)
-        fieldsets = custom_properties_patch_fieldsets(self.model, fieldsets)
+        fieldsets = botgard_base_model_patch_fieldsets(self.model, fieldsets)
         return fieldsets
+
+    def get_readonly_fields(self, request, obj=None):
+        fields = super().get_readonly_fields(request, obj)
+        if getattr(self.model, "_has_creation_fields", None):
+            fields = list(fields)
+            for field in CREATION_FIELDS:
+                if field not in fields:
+                    fields.append(field)
+        return tuple(fields)
 
     def configuretable_view(self, request, extra_context=None):
         if not (

@@ -189,6 +189,7 @@ class HerbariumSpecimenInline(admin.TabularInline):
     model = HerbariumSpecimen
     min_num = 0
     extra = 0
+    fields = ("herbarium", "collector", "collection_date", "specimen_type", "comment")
 
 
 class IndividualAdmin(ConfigurableTable):
