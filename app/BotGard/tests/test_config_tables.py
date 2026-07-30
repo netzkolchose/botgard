@@ -1,3 +1,7 @@
+import inspect
+import importlib
+import os.path
+
 import django.contrib.admin
 import django.apps
 
@@ -141,3 +145,39 @@ class TestConfigTables(TestBase):
                     raise AssertionError(f"{changelist_name} responded with {response.status_code}\n{self.get_response_error(response)}")
 
         self.assertEqual(len(fixtures.CUSTOM_PROPERTIES), num_custom_props_tested)
+
+    def test_creation_fields_filterable(self):
+        """
+        Check that all models with `creation_fields=True` have the
+        users fields in `ModelAdmin.list_filter`
+        """
+        problems = {
+            "not based on config_tables.admin.ConfigurableTable": [],
+            "missing 'created_by'/'modified_by' in ModelAdmin.list_filter": [],
+        }
+        for model_class, model_admin in self.get_model_admins():
+            if getattr(model_class, "_has_creation_fields", None):
+                if not isinstance(model_admin, ConfigurableTable):
+                    problems["not based on config_tables.admin.ConfigurableTable"].append(model_admin)
+                found = 0
+                for f in model_admin.list_filter:
+                    if isinstance(f, (list, tuple)):
+                        if isinstance(f[0], str):
+                            if f[0].startswith("created_by__"):
+                                found += 1
+                            elif f[0].startswith("modified_by__"):
+                                found += 1
+                if found < 2:
+                    problems["missing 'created_by'/'modified_by' in ModelAdmin.list_filter"].append(model_admin)
+
+        msg = io.StringIO()
+        for key, admins in problems.items():
+            if admins:
+                print(f"\n{key}:\n", file=msg)
+                for admin in admins:
+                    print(f"  {admin}", file=msg)
+        msg.seek(0)
+        msg = msg.read()
+
+        if msg:
+            raise AssertionError(f"For BotGardBaseModel(creation_fields=True):\n{msg}")

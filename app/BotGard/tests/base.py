@@ -11,10 +11,12 @@ import secrets
 import webbrowser
 import itertools
 import subprocess
+import importlib
 from pathlib import Path
 import tempfile
 from typing import Dict, Set, Optional, Type, Callable, Any
 
+import django.contrib.admin.sites
 from django.test import TestCase, Client, override_settings
 from django.test.utils import override_settings
 from django.urls import reverse
@@ -54,7 +56,47 @@ decorator to turn on logging of requests
 log_requests = override_settings(MIDDLEWARE=settings.MIDDLEWARE + ["tools.log_middleware.LogRequestMiddleware"])
 
 
+# models that are not represented in the admin views
+INVISIBLE_MODELS = (
+    "admin.logentry",
+    "sessions.session",
+    "auth.permission",
+    "auth.user_groups",
+    "auth.user_user_permissions",
+    "auth.group_permissions",
+    "contenttypes.contenttype",
+    "easy_thumbnails.source",
+    "easy_thumbnails.thumbnail",
+    "easy_thumbnails.thumbnaildimensions",
+    "config_tables.tablesettings",
+    "sidebar.bookmark",
+    "sidebar.note",
+    "tickets.etikett_individual",
+    "seedcatalog.seedcatalog_seed",
+    "plantimages.plantimage",
+    "BotGard.passwordresetcode",
+    "config_app.propertyvaluetext",
+    "config_app.propertyvaluebool",
+    "config_app.propertyvalueuser",
+    "gis.postgisspatialrefsys",
+    "gis.postgisgeometrycolumns",
+)
+
+
 class TestBase(TestCase):
+
+    def get_visible_models(self) -> List[Type[models.Model]]:
+        return [
+            model for model in django.apps.apps.get_models()
+            if model._meta.label_lower not in INVISIBLE_MODELS
+        ]
+
+    def get_model_admins(self) -> List[Tuple[Type[models.Model], admin.ModelAdmin]]:
+        admins = []
+        for klass, admin in django.contrib.admin.site._registry.items():
+            admins.append((klass, admin))
+        admins.sort(key=lambda t: t[0]._meta.label_lower)
+        return admins
 
     def login(self, username: str, password: str = "the-secret"):
         self.assertTrue(

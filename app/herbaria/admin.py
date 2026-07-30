@@ -21,6 +21,10 @@ class HerbariumAdmin(ConfigurableTable):
         'change_link_decorator', 'date_created', 'name', 'comment',
     )
     blacklist = ('id', )
+    list_filter = (
+        ("created_by__username", ForeignKeyFilter),
+        ("modified_by__username", ForeignKeyFilter),
+    )
 
 
 @register(HerbariumSpecimen)
@@ -37,6 +41,8 @@ class HerbariumSpecimenAdmin(ConfigurableTable):
         ('collector__username', ForeignKeyFilter),
         ('herbarium__name', ForeignKeyFilter),
         ('individual__id_name_generated', ForeignKeyFilter),
+        ("created_by__username", ForeignKeyFilter),
+        ("modified_by__username", ForeignKeyFilter),
     )
     blacklist = ('id', '__str__')
 
