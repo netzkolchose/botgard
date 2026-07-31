@@ -32,6 +32,8 @@ def CustomPropertiesBaseModel(related_name_model: str) -> Type[models.Model]:
         class Meta:
             abstract = True
 
+        _has_custom_properties = True
+
         custom_values_bool = CustomPropertyValuesBoolField(related_name=f"{related_name_model}_values_bool")
         custom_values_text = CustomPropertyValuesTextField(related_name=f"{related_name_model}_values_text")
         custom_values_user = CustomPropertyValuesUserField(related_name=f"{related_name_model}_values_user")

@@ -11,7 +11,7 @@ from individuals.models.individual_base import *
 import config_app
 
 
-class Entry(IndividualBase(custom_properties_unique_name="entry")):
+class Entry(IndividualBase(unique_name="entry")):
 
     class Meta:
         verbose_name = _("Seed/individual entry")

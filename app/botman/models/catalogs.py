@@ -14,81 +14,87 @@ from ajax.autocomplete import AutoCompleteForm
 from BotGard import BotGardBaseModel
 
 
-class ExternalCatalogBase(BotGardBaseModel()):
-    class Meta:
-        abstract = True
+def ExternalCatalogBase(unique_name: str):
+    class ExternalCatalogBase(BotGardBaseModel(
+        unique_name=unique_name,
+        creation_fields=False,
+    )):
+        class Meta:
+            abstract = True
 
-    garden = models.ForeignKey(
-        verbose_name=_("Botanic garden"),
-        to="BotanicGarden",
-        on_delete=models.CASCADE,
-        related_name="catalogs",
-    )
+        garden = models.ForeignKey(
+            verbose_name=_("Botanic garden"),
+            to="BotanicGarden",
+            on_delete=models.CASCADE,
+            related_name="catalogs",
+        )
 
-    date_uploaded = models.DateField(
-        verbose_name=_("Date incoming"),
-        default=timezone.now,
-    )
+        date_uploaded = models.DateField(
+            verbose_name=_("Date incoming"),
+            default=timezone.now,
+        )
 
-    date_outgoing = models.DateField(
-        verbose_name=_("Date outgoing"),
-        null=True, blank=True,
-    )
+        date_outgoing = models.DateField(
+            verbose_name=_("Date outgoing"),
+            null=True, blank=True,
+        )
 
-    file = models.FileField(
-        verbose_name=_("Catalog file"),
-        upload_to="garden-catalogs/"
-    )
+        file = models.FileField(
+            verbose_name=_("Catalog file"),
+            upload_to="garden-catalogs/"
+        )
 
-    def __str__(self):
-        if self.garden:
-            return str(_("garden catalog/%(garden)s/%(date)s") % {
-                "garden": self.garden,
+        def __str__(self):
+            if self.garden:
+                return str(_("garden catalog/%(garden)s/%(date)s") % {
+                    "garden": self.garden,
+                    "date": self.date_uploaded
+                })
+            return str(_("garden catalog/%(date)s") % {
                 "date": self.date_uploaded
             })
-        return str(_("garden catalog/%(date)s") % {
-            "date": self.date_uploaded
-        })
 
-    @configurable
-    def delete_link_decorator(self):
-        url = reverse("admin:botman_externalcatalog_delete", args=(self.pk,))
-        return mark_safe('<a href="%s" class="deletelink">%s</a>' % (url, _('delete')))
-    delete_link_decorator.short_description = _('delete')
-    delete_link_decorator.exclude_csv = True
+        @configurable
+        def delete_link_decorator(self):
+            url = reverse("admin:botman_externalcatalog_delete", args=(self.pk,))
+            return mark_safe('<a href="%s" class="deletelink">%s</a>' % (url, _('delete')))
+        delete_link_decorator.short_description = _('delete')
+        delete_link_decorator.exclude_csv = True
 
-    @configurable
-    def num_orders_decorator(self):
-        if not self.garden:
-            return 0
+        @configurable
+        def num_orders_decorator(self):
+            if not self.garden:
+                return 0
 
-        # only show for newest catalog
-        qset = self.garden.catalogs.all().order_by("-date_uploaded").values_list("pk", flat=True)
-        if qset.exists() and self.pk != qset[0]:
-            return 0
+            # only show for newest catalog
+            qset = self.garden.catalogs.all().order_by("-date_uploaded").values_list("pk", flat=True)
+            if qset.exists() and self.pk != qset[0]:
+                return 0
 
-        return self.garden.num_orders_generated
-    num_orders_decorator.admin_order_field = "garden__num_orders_generated"
-    num_orders_decorator.short_description = _('number of orders')
+            return self.garden.num_orders_generated
+        num_orders_decorator.admin_order_field = "garden__num_orders_generated"
+        num_orders_decorator.short_description = _('number of orders')
 
-    @configurable
-    def garden_link_decorator(self):
-        if self.garden:
-            url = reverse("admin:botman_botanicgarden_change", args=(self.garden.pk,))
-            return mark_safe('<a href="%s" class="changelink">%s</a>' % (url, self.garden))
-        return "-"
-    garden_link_decorator.admin_order_field = "garden__full_name_generated"
-    garden_link_decorator.short_description = _('Botanic garden')
+        @configurable
+        def garden_link_decorator(self):
+            if self.garden:
+                url = reverse("admin:botman_botanicgarden_change", args=(self.garden.pk,))
+                return mark_safe('<a href="%s" class="changelink">%s</a>' % (url, self.garden))
+            return "-"
+        garden_link_decorator.admin_order_field = "garden__full_name_generated"
+        garden_link_decorator.short_description = _('Botanic garden')
+
+    return ExternalCatalogBase
 
 
-class ExternalCatalog(ExternalCatalogBase):
+class ExternalCatalog(ExternalCatalogBase(unique_name="externalcatalog")):
     class Meta:
         verbose_name = _('external catalog')
         verbose_name_plural = _('external catalogs')
         ordering = ('date_uploaded',)
 
 
-class ExternalCatalogArchive(ExternalCatalogBase):
+class ExternalCatalogArchive(ExternalCatalogBase(unique_name="externalcatalogarchive")):
     class Meta:
         verbose_name = _('external catalog (archived)')
         verbose_name_plural = _('external catalogs (archived)')
@@ -110,7 +116,7 @@ class ExternalCatalogArchiveForm(AutoCompleteForm(ExternalCatalogArchive)):
     pass
 
 
-class OutgoingOrder(BotGardBaseModel()):
+class OutgoingOrder(BotGardBaseModel(unique_name="outgoingorder", creation_fields=False)):
     class Meta:
         verbose_name = _('outgoing order')
         verbose_name_plural = _('outgoing orders')

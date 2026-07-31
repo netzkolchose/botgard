@@ -197,8 +197,10 @@ class CustomPropertyTabularInline(admin.TabularInline):
         Need to find out how that goes at some point...
     """
     def get_fieldsets(self, request, obj=None):
+        from BotGard.basemodel import botgard_base_model_patch_fieldsets
+
         fieldsets = super().get_fieldsets(request, obj)
-        fieldsets = custom_properties_patch_fieldsets(self.model, fieldsets)
+        fieldsets = botgard_base_model_patch_fieldsets(self.model, fieldsets)
         return fieldsets
 
     def get_formset(

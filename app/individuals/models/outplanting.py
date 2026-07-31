@@ -17,7 +17,7 @@ from geo.widgets import BotGardOpenLayersWidget
 from BotGard import BotGardBaseModel
 
 
-class Outplanting(BotGardBaseModel()):
+class Outplanting(BotGardBaseModel(unique_name="outplanting")):
     class Meta:
         verbose_name = _("Outplanting")
         verbose_name_plural = _("Outplantings")

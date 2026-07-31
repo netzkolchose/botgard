@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-22 23:49+0200\n"
+"POT-Creation-Date: 2026-07-30 23:03+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -25,15 +25,36 @@ msgstr "Karte des Gartens"
 msgid "BotGard"
 msgstr "BotGard"
 
-#: BotGard/settings.py:186
+#: BotGard/basemodel.py:63
+msgid "created by"
+msgstr "erstellt von"
+
+#: BotGard/basemodel.py:70 config_app/models/customprops.py:42
+msgid "created at"
+msgstr "erstellt am"
+
+#: BotGard/basemodel.py:74
+msgid "modified by"
+msgstr "geändert von"
+
+#: BotGard/basemodel.py:81
+msgid "modified at"
+msgstr "geändert am"
+
+#: BotGard/basemodel.py:130
+msgid "Changes"
+msgstr "Änderungen"
+
+#: BotGard/settings.py:187
 msgid "German"
 msgstr "Deutsch"
 
-#: BotGard/settings.py:187
+#: BotGard/settings.py:188
 msgid "English"
 msgstr "Englisch"
 
 #: BotGard/templates/BotGard/generate-password-reset.html:7
+#: config_app/models/customprops.py:17
 msgid "User"
 msgstr "Benutzer"
 
@@ -62,7 +83,7 @@ msgid "Submit"
 msgstr "Übermitteln"
 
 #: BotGard/tests/data/label-individual-complex.html:5
-#: config_app/models/customprops.py:22
+#: config_app/models/customprops.py:25
 #: demo-data/labels/individual-multipage-inner.html:5
 #: individuals/models/individual.py:195 individuals/models/individual.py:480
 #: individuals/models/outplanting.py:94 species/models.py:59
@@ -95,14 +116,14 @@ msgid "collection date"
 msgstr "Sammeldatum"
 
 #: BotGard/tests/data/label-individual-complex.html:24
-#: demo-data/labels/individual-multipage-inner.html:24 species/admin.py:76
+#: demo-data/labels/individual-multipage-inner.html:24 species/admin.py:75
 msgid "distribution"
 msgstr "Verbreitung"
 
 #: BotGard/tests/data/label-individual-complex.html:30
-#: demo-data/labels/individual-multipage-inner.html:30 entrybook/admin.py:65
-#: entrybook/models/entry.py:59 individuals/admin.py:137
-#: individuals/admin.py:236 individuals/models/individual.py:45
+#: demo-data/labels/individual-multipage-inner.html:30 entrybook/admin.py:64
+#: entrybook/models/entry.py:59 individuals/admin.py:139
+#: individuals/admin.py:238 individuals/models/individual.py:45
 msgid "source"
 msgstr "Quelle"
 
@@ -203,15 +224,15 @@ msgstr "Neue %(model)s-Instanz erzeugen"
 msgid "Add"
 msgstr "Hinzufügen"
 
-#: botman/admin.py:123
+#: botman/admin.py:122
 msgid "Move catalogs to archive"
 msgstr "Kataloge ins Archiv bewegen"
 
-#: botman/admin.py:177
+#: botman/admin.py:176
 msgid "Mark orders as processed"
 msgstr "Bestellungen als 'bestellt' markieren"
 
-#: botman/admin.py:183
+#: botman/admin.py:182
 #, python-format
 msgid "%(num_orders)s orders have been marked as processed"
 msgstr "%(num_orders)s Bestellungen wurden als 'bestellt' markiert"
@@ -220,7 +241,7 @@ msgstr "%(num_orders)s Bestellungen wurden als 'bestellt' markiert"
 msgid "Botanic gardens database"
 msgstr "Botanische Gärten"
 
-#: botman/models/bgci_gardens.py:16 config_app/models/customprops.py:18
+#: botman/models/bgci_gardens.py:16 config_app/models/customprops.py:21
 msgid "BGCI garden"
 msgstr "BGCI Garten"
 
@@ -237,12 +258,12 @@ msgid "IPEN part"
 msgstr "IPEN-Kürzel"
 
 #: botman/models/bgci_gardens.py:23 botman/models/garden.py:47
-#: config_app/models/customprops.py:52 individuals/models/individual_base.py:86
+#: config_app/models/customprops.py:55 individuals/models/individual_base.py:86
 msgid "name"
 msgstr "Name"
 
 #: botman/models/bgci_gardens.py:24 config_app/admin.py:127
-#: config_app/models/customprops.py:48 config_app/models/keyvalue.py:13
+#: config_app/models/customprops.py:51 config_app/models/keyvalue.py:13
 #: tickets/models.py:46
 msgid "type"
 msgstr "Typ"
@@ -285,35 +306,35 @@ msgstr "BGCI Daten"
 msgid "BGCI website"
 msgstr "BGCI Webseite"
 
-#: botman/models/catalogs.py:22 botman/models/catalogs.py:81
-#: botman/models/catalogs.py:98 botman/models/catalogs.py:120
-#: botman/models/catalogs.py:168
+#: botman/models/catalogs.py:26 botman/models/catalogs.py:85
+#: botman/models/catalogs.py:104 botman/models/catalogs.py:126
+#: botman/models/catalogs.py:174
 msgid "Botanic garden"
 msgstr "Botanischer Garten"
 
-#: botman/models/catalogs.py:29
+#: botman/models/catalogs.py:33
 msgid "Date incoming"
 msgstr "Eingangsdatum"
 
-#: botman/models/catalogs.py:34
+#: botman/models/catalogs.py:38
 msgid "Date outgoing"
 msgstr "Ausgangsdatum"
 
-#: botman/models/catalogs.py:39
+#: botman/models/catalogs.py:43
 msgid "Catalog file"
 msgstr "Katalog datei"
 
-#: botman/models/catalogs.py:45
+#: botman/models/catalogs.py:49
 #, python-format
 msgid "garden catalog/%(garden)s/%(date)s"
 msgstr "Katalog/%(garden)s/%(date)s"
 
-#: botman/models/catalogs.py:49
+#: botman/models/catalogs.py:53
 #, python-format
 msgid "garden catalog/%(date)s"
 msgstr "Katalog/%(date)s"
 
-#: botman/models/catalogs.py:56 botman/models/catalogs.py:57
+#: botman/models/catalogs.py:60 botman/models/catalogs.py:61
 #: botman/models/garden.py:133 botman/models/garden.py:134
 #: entrybook/models/entry.py:117 entrybook/models/entry.py:118
 #: herbaria/models/herbarium.py:62 herbaria/models/herbarium.py:64
@@ -326,64 +347,64 @@ msgstr "Katalog/%(date)s"
 msgid "delete"
 msgstr "Löschen"
 
-#: botman/models/catalogs.py:72 botman/models/garden.py:61
+#: botman/models/catalogs.py:76 botman/models/garden.py:61
 msgid "number of orders"
 msgstr "Anzahl der Bestellungen"
 
-#: botman/models/catalogs.py:86
+#: botman/models/catalogs.py:92
 msgid "external catalog"
 msgstr "Externer Katalog"
 
-#: botman/models/catalogs.py:87
+#: botman/models/catalogs.py:93
 msgid "external catalogs"
 msgstr "Externe Kataloge"
 
-#: botman/models/catalogs.py:93
+#: botman/models/catalogs.py:99
 msgid "external catalog (archived)"
 msgstr "Externer Katalog (archiviert)"
 
-#: botman/models/catalogs.py:94
+#: botman/models/catalogs.py:100
 msgid "external catalogs (archived)"
 msgstr "Externe Kataloge (archiviert)"
 
-#: botman/models/catalogs.py:115 botman/models/catalogs.py:159
+#: botman/models/catalogs.py:121 botman/models/catalogs.py:165
 msgid "outgoing order"
 msgstr "Ausgehende Bestellung"
 
-#: botman/models/catalogs.py:116
+#: botman/models/catalogs.py:122
 msgid "outgoing orders"
 msgstr "Ausgehende Bestellungen"
 
-#: botman/models/catalogs.py:127
+#: botman/models/catalogs.py:133
 msgid "Creation date"
 msgstr "Erstellt am"
 
-#: botman/models/catalogs.py:132
+#: botman/models/catalogs.py:138
 msgid "Ordered by user"
 msgstr "Bestellt von"
 
-#: botman/models/catalogs.py:139
+#: botman/models/catalogs.py:145
 msgid "Order text"
 msgstr "Bestellung"
 
-#: botman/models/catalogs.py:143
+#: botman/models/catalogs.py:149
 msgid "Processed"
 msgstr "Bestellt"
 
-#: botman/models/catalogs.py:154
+#: botman/models/catalogs.py:160
 #, python-format
 msgid "outgoing order/%(garden)s/%(user)s %(date)s"
 msgstr "Bestellung/%(garden)s/%(user)s %(date)s"
 
-#: botman/models/catalogs.py:178
+#: botman/models/catalogs.py:184
 msgid "garden email"
 msgstr "Garten eMail"
 
-#: botman/models/catalogs.py:188
+#: botman/models/catalogs.py:194
 msgid "user email"
 msgstr "Benutzer eMail"
 
-#: botman/models/catalogs.py:197 botman/models/garden.py:62
+#: botman/models/catalogs.py:203 botman/models/garden.py:62
 msgid "latest catalog date"
 msgstr "Aktuelles Katalogdatum"
 
@@ -396,7 +417,7 @@ msgid "This name will appear at the top of all pages"
 msgstr "Dieser Name steht in der Kopfzeile jeder Seite"
 
 #: botman/models/garden.py:39 botman/models/garden.py:67
-#: botman/templates/botman/map-bgci.html:25 config_app/models/customprops.py:19
+#: botman/templates/botman/map-bgci.html:25 config_app/models/customprops.py:22
 msgid "botanic garden"
 msgstr "Botanischer Garten"
 
@@ -444,7 +465,7 @@ msgid "label"
 msgstr "Etikett"
 
 #: botman/models/garden.py:127 botman/models/garden.py:128
-#: config_app/models/customprops.py:127 config_app/models/customprops.py:128
+#: config_app/models/customprops.py:138 config_app/models/customprops.py:139
 #: entrybook/models/entry.py:110 entrybook/models/entry.py:111
 #: herbaria/models/herbarium.py:54 herbaria/models/herbarium.py:56
 #: herbaria/models/specimen.py:108 herbaria/models/specimen.py:110
@@ -590,7 +611,7 @@ msgstr "Benutzeraktivität"
 msgid "Text ({} choices)"
 msgstr "Text ({} Wahlmöglichkeiten)"
 
-#: config_app/admin.py:135
+#: config_app/admin.py:139
 msgid "# used"
 msgstr "# benutzt"
 
@@ -598,131 +619,135 @@ msgstr "# benutzt"
 msgid "Configuration"
 msgstr "Tabelleneinstellungen"
 
-#: config_app/fields.py:100
+#: config_app/fields.py:108
 msgid "bool values"
 msgstr "Boolean Werte"
 
-#: config_app/fields.py:106 config_app/models/customprops.py:161
+#: config_app/fields.py:114 config_app/models/customprops.py:172
 msgid "text values"
 msgstr "Text Werte"
 
-#: config_app/forms.py:52
+#: config_app/fields.py:120 config_app/models/customprops.py:200
+msgid "user values"
+msgstr "Benutzer Werte"
+
+#: config_app/forms.py:56
 msgid "Property '{}' is mandatory"
 msgstr "Eigenschaft '{}' ist ein Pflichfeld"
 
-#: config_app/forms.py:68
+#: config_app/forms.py:57
 msgid "Property '{}' expects a choice of {}"
 msgstr "Eigenschaft '{}' erwartet eine Auswahl aus {}"
 
-#: config_app/forms.py:208 config_app/models/customprops.py:34
+#: config_app/forms.py:243 config_app/models/customprops.py:37
 msgid "custom properties"
 msgstr "Freie Eigenschaften"
 
-#: config_app/models/customprops.py:12
+#: config_app/models/customprops.py:14
 msgid "Boolean"
 msgstr "Boolean"
 
-#: config_app/models/customprops.py:13
+#: config_app/models/customprops.py:15
 msgid "Text"
 msgstr "Text"
 
-#: config_app/models/customprops.py:14
+#: config_app/models/customprops.py:16
 msgid "Text (long)"
 msgstr "Text (lang)"
 
-#: config_app/models/customprops.py:20 geo/templates/geo/garden_map.html:32
+#: config_app/models/customprops.py:23 geo/templates/geo/garden_map.html:32
 #: geo/templates/geo/garden_map.html:73 individuals/models/outplanting.py:75
 #: individuals/models/territory.py:96 individuals/models/territory.py:207
 msgid "territory"
 msgstr "Revier"
 
-#: config_app/models/customprops.py:21 entrybook/models/entry.py:96
+#: config_app/models/customprops.py:24 entrybook/models/entry.py:96
 #: entrybook/models/entry.py:143 geo/templates/geo/garden_map.html:48
 #: geo/templates/geo/garden_map.html:74 individuals/models/outplanting.py:26
 #: individuals/models/outplanting.py:69 individuals/models/territory.py:202
 msgid "department"
 msgstr "Abteilung"
 
-#: config_app/models/customprops.py:23 species/apps.py:7 species/models.py:142
+#: config_app/models/customprops.py:26 species/apps.py:7 species/models.py:142
 #: species/models.py:143 species/models.py:154
 msgid "species"
 msgid_plural "species"
 msgstr[0] "Art"
 msgstr[1] "Arten"
 
-#: config_app/models/customprops.py:24 entrybook/models/entry.py:17
+#: config_app/models/customprops.py:27 entrybook/models/entry.py:17
 #: entrybook/models/entry.py:106
 msgid "Seed/individual entry"
 msgstr "Eingang"
 
-#: config_app/models/customprops.py:25 herbaria/models/specimen.py:132
+#: config_app/models/customprops.py:28 herbaria/models/specimen.py:132
 #: individuals/models/individual.py:23 individuals/models/outplanting.py:25
 #: individuals/models/outplanting.py:82 tickets/models.py:141
 msgid "individual"
 msgstr "Individuum"
 
-#: config_app/models/customprops.py:26 herbaria/apps.py:7
+#: config_app/models/customprops.py:29 herbaria/apps.py:7
 #: herbaria/models/herbarium.py:23 herbaria/models/herbarium.py:24
 #: herbaria/models/herbarium.py:50
 msgid "Herbarium"
 msgstr "Herbarium"
 
-#: config_app/models/customprops.py:27 herbaria/models/specimen.py:52
+#: config_app/models/customprops.py:30 herbaria/models/specimen.py:52
 #: herbaria/models/specimen.py:104 herbaria/models/specimen.py:138
 #: labels/models.py:21
 msgid "Specimen"
 msgstr "Herbarbeleg"
 
-#: config_app/models/customprops.py:33 config_app/models/customprops.py:140
-#: config_app/models/customprops.py:166
+#: config_app/models/customprops.py:36 config_app/models/customprops.py:151
+#: config_app/models/customprops.py:177 config_app/models/customprops.py:205
 msgid "custom property"
 msgstr "Freie Eigenschaft"
 
-#: config_app/models/customprops.py:39
-msgid "created at"
-msgstr "erstellt am"
-
-#: config_app/models/customprops.py:43 config_tables/models.py:13
+#: config_app/models/customprops.py:46 config_tables/models.py:13
 msgid "model"
 msgstr "Model"
 
-#: config_app/models/customprops.py:55
+#: config_app/models/customprops.py:58
 msgid "mandatory"
 msgstr "Pflichtfeld"
 
-#: config_app/models/customprops.py:59
+#: config_app/models/customprops.py:62
 msgid "order"
 msgstr "Reihenfolge"
 
-#: config_app/models/customprops.py:60
+#: config_app/models/customprops.py:63
 msgid "Order of field when viewing or editing."
 msgstr "Reihenfolge des Feldes beim Ansehen oder Editieren"
 
-#: config_app/models/customprops.py:64
+#: config_app/models/customprops.py:67
 msgid "choices"
 msgstr "Wahlmöglichkeiten"
 
-#: config_app/models/customprops.py:65
+#: config_app/models/customprops.py:68
 msgid "For text properties, limits the selection to these items, one per line"
 msgstr "Für Text-Werte, limitiert die Auswahl auf diese Werte, einen pro Zeile"
 
-#: config_app/models/customprops.py:134
+#: config_app/models/customprops.py:145
 msgid "boolean value"
 msgstr "Boolean Wert"
 
-#: config_app/models/customprops.py:135
+#: config_app/models/customprops.py:146
 msgid "boolean values"
 msgstr "Boolean Werte"
 
-#: config_app/models/customprops.py:146 config_app/models/customprops.py:172
-#: config_app/models/keyvalue.py:23 config_app/models/keyvalue.py:24
-#: config_app/models/keyvalue.py:71
+#: config_app/models/customprops.py:157 config_app/models/customprops.py:183
+#: config_app/models/customprops.py:211 config_app/models/keyvalue.py:23
+#: config_app/models/keyvalue.py:24 config_app/models/keyvalue.py:71
 msgid "value"
 msgstr "Wert"
 
-#: config_app/models/customprops.py:160
+#: config_app/models/customprops.py:171
 msgid "text value"
 msgstr "Text Wert"
+
+#: config_app/models/customprops.py:199
+msgid "user value"
+msgstr "Benutzer Wert"
 
 #: config_app/models/keyvalue.py:9
 msgid "Variable"
@@ -770,21 +795,21 @@ msgstr "Typ \"%s\" unbekannt"
 msgid "Invalid type in KeyValue \"%s\""
 msgstr "Unbekannter Typ in KeyValue \"%s\""
 
-#: config_tables/admin.py:342 config_tables/admin.py:374
+#: config_tables/admin.py:363 config_tables/admin.py:395
 #, python-format
 msgid "Configure table %(name)s"
 msgstr "%(name)s-Tabelle bearbeiten"
 
-#: config_tables/admin.py:577
+#: config_tables/admin.py:602
 #, python-format
 msgid "Remove filter for %s"
 msgstr "Filter für %s entfernen"
 
-#: config_tables/admin.py:616
+#: config_tables/admin.py:641
 msgid "yes"
 msgstr "Ja"
 
-#: config_tables/admin.py:617
+#: config_tables/admin.py:642
 msgid "no"
 msgstr "Nein"
 
@@ -904,20 +929,20 @@ msgstr "90 (Kulturpflanze/Samen wechselnder Herkünfte)"
 msgid "W (Wildsamen)"
 msgstr "W (Wildsamen)"
 
-#: entrybook/admin.py:74 individuals/admin.py:134 individuals/admin.py:233
+#: entrybook/admin.py:73 individuals/admin.py:136 individuals/admin.py:235
 msgid "habitat"
 msgstr "Herkunft"
 
-#: entrybook/admin.py:77 individuals/admin.py:140 individuals/admin.py:239
+#: entrybook/admin.py:76 individuals/admin.py:142 individuals/admin.py:241
 msgid "miscellaneous"
 msgstr "Verschiedenes"
 
-#: entrybook/admin.py:81 individuals/admin.py:144 individuals/admin.py:243
+#: entrybook/admin.py:80 individuals/admin.py:146 individuals/admin.py:245
 #: individuals/models/individual.py:468 species/models.py:301
 msgid "seeds"
 msgstr "Samen"
 
-#: entrybook/admin.py:84 individuals/models/outplanting.py:22
+#: entrybook/admin.py:83 individuals/models/outplanting.py:22
 #: individuals/models/outplanting.py:45
 msgid "Outplanting"
 msgstr "Pflanzung"
@@ -1105,7 +1130,7 @@ msgstr "{} Samen zu {} hinzugefügt"
 msgid "{} seeds removed from {}"
 msgstr "{} Samen aus {} entfernt"
 
-#: individuals/admin.py:131
+#: individuals/admin.py:133
 msgid "IPEN"
 msgstr "IPEN"
 
@@ -2017,7 +2042,7 @@ msgstr "Sie haben leider keine Berechtigung, den Katalog zu finalisieren"
 msgid "Return to catalog"
 msgstr "Zurück zu Katalog"
 
-#: species/admin.py:80
+#: species/admin.py:79
 msgid "additional"
 msgstr "Zusätzliches"
 
