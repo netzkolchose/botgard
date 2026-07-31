@@ -17,7 +17,7 @@ from .individual_base import *
 from individuals.numbers import generate_individual_ipen
 
 
-class Individual(IndividualBase(custom_properties_unique_name="individual")):
+class Individual(IndividualBase(unique_name="individual")):
 
     class Meta:
         verbose_name = _("individual")

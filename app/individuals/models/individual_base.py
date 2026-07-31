@@ -58,7 +58,7 @@ NOTE_CHOICES = (
 )
 
 
-def IndividualBase(custom_properties_unique_name: str) -> Type[models.Model]:
+def IndividualBase(unique_name: str) -> Type[models.Model]:
     """
     Base class for
         - individuals.models.Individual
@@ -67,7 +67,7 @@ def IndividualBase(custom_properties_unique_name: str) -> Type[models.Model]:
     ForeignKey fields are added by `Individual`,
     while `Entry` uses CharFields for them.
     """
-    class IndividualBase(BotGardBaseModel(custom_properties_unique_name=custom_properties_unique_name)):
+    class IndividualBase(BotGardBaseModel(unique_name=unique_name, custom_properties=True)):
         class Meta:
             abstract = True
 

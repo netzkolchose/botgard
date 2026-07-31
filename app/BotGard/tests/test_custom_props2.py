@@ -1,8 +1,3 @@
-import pprint
-
-import django.contrib.admin
-import django.apps
-
 from .base import *
 
 class TestCustomProps2(TestBase):
@@ -267,41 +262,88 @@ class TestCustomProps2(TestBase):
             f"custom-property-{prop5.pk}": "User1",
         })
 
-    def TODO_test_customprops_ordering(self):
+    def test_customprops_ordering(self):
         """
-        Just some testing ground to find a way to sort by CustomProps values
-        without creating duplicate rows in the queryset
+        Make sure the actual ordering query works when ordering by custom values
         """
         CustomProperty.objects.all().delete()
+        BotanicGarden.objects.all().delete()
 
-        prop1 = self.create_custom_property(BotanicGarden, "text1", type="text")
-        prop2 = self.create_custom_property(BotanicGarden, "text2", type="text")
+        properties = {}
+        properties["prop1"] = prop1 = self.create_custom_property(BotanicGarden, "text1", type="text")
+        properties["prop2"] = prop2 = self.create_custom_property(BotanicGarden, "text2", type="text")
+        properties["prop3"] = prop3 = self.create_custom_property(BotanicGarden, "text3", type="text")
 
-        BotanicGarden.objects.get(code="GARD1").custom_values_text.set([
-            PropertyValueText.objects.create(property=prop1, value="b"),
-            PropertyValueText.objects.create(property=prop2, value="1"),
-        ])
-        BotanicGarden.objects.get(code="GARD1").custom_values_text.set([
-            PropertyValueText.objects.create(property=prop1, value="a"),
-            PropertyValueText.objects.create(property=prop2, value="2"),
-        ])
+        for data in [
+                {"name": "GARD1", "prop1": "b",               "prop3": "1"},
+                {"name": "GARD2", "prop1": "d", "prop2": "y"              },
+                {"name": "GARD3", "prop1": "c", "prop2": "x", "prop3": "1"},
+                {"name": "GARD4", "prop1": "a", "prop2": "z", "prop3": "0"},
+                {"name": "GARD5"},
+        ]:
+            g = BotanicGarden.objects.create(name=data["name"], code=data["name"])
+            for key, value in data.items():
+               if key.startswith("prop"):
+                   g.custom_values_text.add(
+                       PropertyValueText.objects.create(
+                           property=properties[key],
+                           value=value,
+                       )
+                   )
 
-        qset = (
-            BotanicGarden.objects.all()
-            .annotate(
-                cp1=models.F("custom_values_text__value"),
-                is_cp1=models.Q(custom_values_text__property__pk=prop1.pk),
-                is_cp2=models.Q(custom_values_text__property__pk=prop2.pk),
+        def _order_by(qset: models.QuerySet, *props: Union[str, CustomProperty]):
+            annotations = {}
+            orderings = []
+            for prop in props:
+                if isinstance(prop, str):
+                    orderings.append(prop)
+                else:
+                    annotation_field_name = f"property_value_{prop.pk}"
+                    annotations[annotation_field_name] = models.Subquery(
+                        PropertyValueText.objects.filter(
+                            garden_values_text__pk=models.OuterRef("pk"),
+                            property=prop,
+                        ).values("value")
+                    )
+                    orderings.append(annotation_field_name)
+
+            return (
+                qset
+                .annotate(**annotations)
+                .order_by(*orderings)
             )
-        )
-        qset = qset.filter(is_cp1=True) | qset.filter(is_cp1=None)
-        qset = (
-            qset
-            #.annotate(f"custom_prop_{prop1.pk}")
-            #.order_by("custom_values_text__value")
-            .order_by("cp1")
-            #.order_by(f"custom_prop_{prop1.pk}")
-        )
-        for m in qset:
-            print(m, m.cp1, m.is_cp1)
 
+        # Note: sqlite puts NULL values at the beginning!
+
+        self.assertEqual(
+            ["GARD4", "GARD1", "GARD3", "GARD2", "GARD5"] if settings.IS_POSTGRES else
+            ["GARD5", "GARD4", "GARD1", "GARD3", "GARD2"],
+            list(_order_by(
+                BotanicGarden.objects.all(),
+                prop1,
+            ).values_list("name", flat=True))
+        )
+        self.assertEqual(
+            ["GARD3", "GARD2", "GARD4", "GARD1", "GARD5"] if settings.IS_POSTGRES
+            else ['GARD1', 'GARD5', 'GARD3', 'GARD2', 'GARD4'],
+            list(_order_by(
+                BotanicGarden.objects.all(),
+                prop2, "name"
+            ).values_list("name", flat=True))
+        )
+        self.assertEqual(
+            ["GARD4", "GARD1", "GARD3", "GARD2", "GARD5"] if settings.IS_POSTGRES else
+            ["GARD2", "GARD5", "GARD4", "GARD1", "GARD3"],
+            list(_order_by(
+                BotanicGarden.objects.all(),
+                prop3, "name"
+            ).values_list("name", flat=True))
+        )
+        self.assertEqual(
+            ["GARD4", "GARD3", "GARD1", "GARD2", "GARD5"] if settings.IS_POSTGRES else
+            ["GARD5", "GARD2", "GARD4", "GARD1", "GARD3"],
+            list(_order_by(
+                BotanicGarden.objects.all().order_by("name"),
+                prop3, prop2,
+            ).values_list("name", flat=True))
+        )

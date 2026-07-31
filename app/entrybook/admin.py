@@ -49,6 +49,8 @@ class EntryAdmin(ConfigurableTable):
     list_filter = (
         ("user__username", ForeignKeyFilter),
         ("department__code", ForeignKeyFilter),
+        ("created_by__username", ForeignKeyFilter),
+        ("modified_by__username", ForeignKeyFilter),
     )
 
     ordering = ('accession_number',)

@@ -29,7 +29,7 @@ def get_new_number():
     return number
 
 
-class BotanicGarden(BotGardBaseModel(custom_properties_unique_name="garden")):
+class BotanicGarden(BotGardBaseModel(unique_name="garden", custom_properties=True)):
     class Meta:
         verbose_name = _('botanic garden')
         verbose_name_plural = _('botanic gardens')

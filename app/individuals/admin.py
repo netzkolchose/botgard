@@ -46,8 +46,11 @@ class DepartmentAdmin(ConfigurableTable):
                     'delete_link_decorator',
                     )
     list_display_links = ()
-    list_filter = (('territory__name_generated', ForeignKeyFilter),
-                   )
+    list_filter = (
+        ('territory__name_generated', ForeignKeyFilter),
+        ("created_by__username", ForeignKeyFilter),
+        ("modified_by__username", ForeignKeyFilter),
+    )
     search_fields = search_fields_compatible(('code', 'name'))
     ordering = ("territory__code", 'code')
     admin_order_field = ("territory__code", "code")
@@ -78,6 +81,10 @@ class TerritoryAdmin(ConfigurableTable):
     search_fields = search_fields_compatible(('code', 'name'))
     ordering = ('code',)
     blacklist = ("id", "name_generated", )
+    list_filter = (
+        ("created_by__username", ForeignKeyFilter),
+        ("modified_by__username", ForeignKeyFilter),
+    )
 
     change_form_template = "individuals/change_form_plant_stats.html"
     change_list_template = "individuals/change_list_edit_map.html"
@@ -89,6 +96,9 @@ class TerritoryAdmin(ConfigurableTable):
 class OutplantingInline(admin.TabularInline):
     form = OutplantingForm
     model = Outplanting
+    fields = (
+        "department", "location", "seeded_date", "date", "plant_died", "comment",
+    )
     min_num = 0
     extra = 0
 
@@ -110,6 +120,8 @@ class SeedAdmin(ConfigurableTable):
         ('species__family__family', ForeignKeyFilter),
         ('species__family__genus', ForeignKeyFilter),
         (SeedInLatestCatalogFilter.QUERY_NAME, SeedInLatestCatalogFilter),
+        ("created_by__username", ForeignKeyFilter),
+        ("modified_by__username", ForeignKeyFilter),
     )
 
     blacklist = ('id', '__str__', 'ipen_transfer_restricted', 'ipen_garden_code', 'ipen_accession_number',
@@ -186,6 +198,7 @@ class HerbariumSpecimenInline(admin.TabularInline):
     model = HerbariumSpecimen
     min_num = 0
     extra = 0
+    fields = ("herbarium", "collector", "collection_date", "specimen_type", "comment")
 
 
 class IndividualAdmin(ConfigurableTable):
@@ -210,8 +223,8 @@ class IndividualAdmin(ConfigurableTable):
         ('species__area_of_distribution_background', ForeignKeyFilter),
         ('species__family__family', ForeignKeyFilter),
         ('species__family__genus', ForeignKeyFilter),
-        # ('geo_location__geo_name', ForeignKeyFilter),
-        # ('osm_location__full_name', ForeignKeyFilter),
+        ("created_by__username", ForeignKeyFilter),
+        ("modified_by__username", ForeignKeyFilter),
     )
 
     blacklist = ('id', '__str__', 'ipen_transfer_restricted', 'ipen_garden_code', 'ipen_accession_number',
@@ -367,6 +380,8 @@ class OutplantingAdmin(ConfigurableTable):
         ('individual__ipen_generated', ForeignKeyFilter),
         ('individual__species__family__family', ForeignKeyFilter),
         ('individual__species__family__genus', ForeignKeyFilter),
+        ("created_by__username", ForeignKeyFilter),
+        ("modified_by__username", ForeignKeyFilter),
     )
     blacklist = ('id', 'individual', 'department', 'location')
 

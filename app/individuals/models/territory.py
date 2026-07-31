@@ -91,7 +91,7 @@ class CalcOutplantingsMixin(models.Model):
         return _to_percent_deco(self.num_genera_alive, self.num_genera)
 
 
-class Territory(CalcOutplantingsMixin, BotGardBaseModel(custom_properties_unique_name="territory")):
+class Territory(CalcOutplantingsMixin, BotGardBaseModel(unique_name="territory", custom_properties=True)):
     class Meta:
         verbose_name = _("territory")
         verbose_name_plural = _("territories")
@@ -200,7 +200,7 @@ config_app.register_key(
 )
 
 
-class Department(CalcOutplantingsMixin, BotGardBaseModel(custom_properties_unique_name="department")):
+class Department(CalcOutplantingsMixin, BotGardBaseModel(unique_name="department", custom_properties=True)):
     class Meta:
         verbose_name = _("department")
         verbose_name_plural = _("departments")

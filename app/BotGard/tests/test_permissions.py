@@ -44,32 +44,6 @@ GUEST_PERMISSIONS = {
     'species.species': {'view'},
 }
 
-# models that are not represented in the admin views
-INVISIBLE_MODELS = (
-    "admin.logentry",
-    "sessions.session",
-    "auth.permission",
-    "auth.user_groups",
-    "auth.user_user_permissions",
-    "auth.group_permissions",
-    "contenttypes.contenttype",
-    "easy_thumbnails.source",
-    "easy_thumbnails.thumbnail",
-    "easy_thumbnails.thumbnaildimensions",
-    "config_tables.tablesettings",
-    "sidebar.bookmark",
-    "sidebar.note",
-    "tickets.etikett_individual",
-    "seedcatalog.seedcatalog_seed",
-    "plantimages.plantimage",
-    "BotGard.passwordresetcode",
-    "config_app.propertyvaluetext",
-    "config_app.propertyvaluebool",
-    "config_app.propertyvalueuser",
-    "gis.postgisspatialrefsys",
-    "gis.postgisgeometrycolumns",
-)
-
 
 class TestPermissions(TestBase):
     PW = "the-secret"

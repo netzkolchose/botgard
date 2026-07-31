@@ -20,6 +20,10 @@ class FamilyAdmin(ConfigurableTable):
             'fields': ('family', ('subfamily', 'tribus', 'subtribus'), ('genus', 'genus_author')),
         }),
     )
+    list_filter = (
+        ("created_by__username", ForeignKeyFilter),
+        ("modified_by__username", ForeignKeyFilter),
+    )
 
     class Media:
         css = {"screen": (
@@ -51,6 +55,8 @@ class SpeciesAdmin(ConfigurableTable):
         ('family__family', ForeignKeyFilter),
         ('family__genus', ForeignKeyFilter),
         AliveIndividualsListFilter,
+        ("created_by__username", ForeignKeyFilter),
+        ("modified_by__username", ForeignKeyFilter),
     )
     search_fields = search_fields_compatible(
         ['@family__family', '@family__genus', '@species', '@variety', 'synonyme', '@family__subfamily',

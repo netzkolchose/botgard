@@ -60,6 +60,12 @@ class BotanicGardenAdmin(ConfigurableTable):
             )
         }),
     )
+
+    list_filter = (
+        ("created_by__username", ForeignKeyFilter),
+        ("modified_by__username", ForeignKeyFilter),
+    )
+
     ordering = ('number',)
     inlines = (ExternalCatalogInline, OutgoingOrdersInline)
 
@@ -213,6 +219,11 @@ class BGCIGardenAdmin(ConfigurableTable):
     ])
 
     ordering = ('bgci_id',)
+
+    list_filter = (
+        ("created_by__username", ForeignKeyFilter),
+        ("modified_by__username", ForeignKeyFilter),
+    )
 
 admin.site.register(BGCIGarden, BGCIGardenAdmin)
 
