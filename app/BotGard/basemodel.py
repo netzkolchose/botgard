@@ -83,13 +83,15 @@ def BotGardBaseModel(
             )
 
             def save(self, *args, **kwargs):
-                user = get_current_user()
-                if not self.pk:
-                    self.created_date = timezone.now().date()
-                    self.created_by = user
-                else:
-                    self.modified_date = timezone.now().date()
-                    self.modified_by = user
+                no_creation_fields = kwargs.pop("_no_creation_fields", False)
+                if not no_creation_fields:
+                    user = get_current_user()
+                    if not self.pk:
+                        self.created_date = timezone.now().date()
+                        self.created_by = user
+                    else:
+                        self.modified_date = timezone.now().date()
+                        self.modified_by = user
                 return super().save(*args, **kwargs)
 
         klass = Model

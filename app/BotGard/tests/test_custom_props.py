@@ -127,3 +127,28 @@ class TestCustomProps(TestBase):
             f'custom_property_{self.CUSTOM_PROPS["g_user"].pk}': "User2",
         })
         assert_rows(["GARD6"])
+
+    def test_custom_props_are_configurable(self):
+        """
+        Check that all models with custom properties use the
+        ConfigurableTable ModelAdmin
+        """
+        problems = {
+            "not based on config_tables.admin.ConfigurableTable": [],
+        }
+        for model_class, model_admin in self.get_model_admins():
+            if getattr(model_class, "_has_custom_properties", None):
+                if not isinstance(model_admin, ConfigurableTable):
+                    problems["not based on config_tables.admin.ConfigurableTable"].append(model_admin)
+
+        msg = io.StringIO()
+        for key, admins in problems.items():
+            if admins:
+                print(f"\n{key}:\n", file=msg)
+                for admin in admins:
+                    print(f"  {admin}", file=msg)
+        msg.seek(0)
+        msg = msg.read()
+
+        if msg:
+            raise AssertionError(f"For BotGardBaseModel(custom_properties=True):\n{msg}")
