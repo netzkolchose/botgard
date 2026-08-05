@@ -1,3 +1,4 @@
+import datetime
 import json
 from typing import List
 
@@ -8,13 +9,20 @@ from django.contrib.admin.filters import FieldListFilter, AllValuesFieldListFilt
 from django.template import Template, Context, Engine
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.html import mark_safe
+from django.contrib.auth import get_user_model
+from django.utils import timezone
 
 from config_tables.admin import CustomSelectHeaderFilter
 from geo.util import geo_coord_to_html
 from species.models import Species
 from tools.admin_extensions import minimal_admin_context
+from tools.global_request import get_current_user
 from .individual_base import *
 from individuals.numbers import generate_individual_ipen
+from individuals.widgets import SpeciesAuditWidget
+
+
+User = get_user_model()
 
 
 class Individual(IndividualBase(unique_name="individual")):
@@ -45,6 +53,21 @@ class Individual(IndividualBase(unique_name="individual")):
         'botman.BotanicGarden', related_name="source_key", verbose_name=_("source"), blank=True,
         null=True, on_delete=models.CASCADE
     )
+
+    # --- audit fields ---
+
+    # format is list of
+    # {
+    #    "date": "YYYY-MM-DD"|None,
+    #    "user": "username", "user_pk": int|None,
+    #    "species": "full_name_generated", "species_pk": int,
+    # }
+    species_audit = models.JSONField(
+        verbose_name=_("Determination audit"),
+        null=True, blank=True,
+    )
+
+    # --- generated fields ---
 
     # list of PKs of Outplanting
     alive_outplantings_generated = PickledObjectField(
@@ -330,6 +353,64 @@ class Individual(IndividualBase(unique_name="individual")):
         # -- save Individual --
         super(Individual, self).save(*args, **kwargs)
 
+    def add_species_audit(self, original_instance: "Individual"):
+        """
+        Add audit for species if it has changed.
+        If nothing has changed, copy `species_audit` from `original_instance`.
+
+        :param original_instance: instance of Individual before changes to self.species
+        """
+        if (
+                original_instance.species == self.species
+                and original_instance.species_checked_by == self.species_checked_by
+                and original_instance.species_checked_date == self.species_checked_date
+        ):
+            self.species_audit = original_instance.species_audit
+            return
+
+        audit = original_instance.species_audit
+        if not audit:  # reconstruct first determination entry
+            user = None
+            user_pk = None
+            if original_instance.species_checked_by:
+                user = original_instance.species_checked_by
+                if u := User.objects.filter(username=original_instance.species_checked_by).first():
+                    user_pk = u.pk
+            else:
+                if u := original_instance.created_by:
+                    user = u.username
+                    user_pk = u.pk
+            audit = [{
+                "date": original_instance.species_checked_date or original_instance.created_date,
+                "user": user,
+                "user_pk": user_pk,
+                "species": original_instance.species.full_name_generated,
+                "species_pk": original_instance.species.pk,
+            }]
+
+        user = self.species_checked_by
+        user_pk = None
+        if user:
+            if u := User.objects.filter(username=self.species_checked_by).first():
+                user_pk = u.pk
+        else:
+            user = get_current_user()
+            if user:
+                user_pk = user.pk
+                user = user.username
+        audit.append({
+            "date": self.species_checked_date or timezone.now().date().isoformat(),
+            "user": user,
+            "user_pk": user_pk,
+            "species": self.species.full_name_generated,
+            "species_pk": self.species.pk,
+        })
+
+        for row in audit:
+            if hasattr(row["date"], "isoformat"):
+                row["date"] = row["date"].isoformat()
+        self.species_audit = audit
+
 
 class IndividualValidateMixin(object):
     """
@@ -385,9 +466,10 @@ class IndividualForm(
     IndividualValidateMixin,
     AutoCompleteForm(
         Individual,
-        #widgets={
+        widgets={
+            "species_audit": SpeciesAuditWidget(),
         #    "accession_number": widgets.NumberInput()  # don't need a spinbox for the accession number
-        #},
+        },
         autocomplete_mapping={
             "came_as_species": {"model": Species, "field": "full_name_generated"},
         }

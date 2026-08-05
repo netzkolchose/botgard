@@ -2,6 +2,7 @@ import re
 from typing import List, Type
 
 from django.contrib import admin
+from django.http import QueryDict
 from django.utils.translation import gettext_lazy as _
 from django.contrib.admin import SimpleListFilter
 from django import forms
@@ -229,15 +230,19 @@ class IndividualAdmin(ConfigurableTable):
 
     blacklist = ('id', '__str__', 'ipen_transfer_restricted', 'ipen_garden_code', 'ipen_accession_number',
                  'ipen_country', 'departments_generated', 'territories_generated', 'species',
-                 'outplantings_generated', 'alive_outplantings_generated', 'is_alive_generated',)
+                 'outplantings_generated', 'alive_outplantings_generated', 'is_alive_generated',
+                 'species_audit',)
 
     list_display_links = ()
     search_fields = INDIVIDUAL_SEARCH_FIELDS
     ordering = ('accession_number',)
     fieldsets = (
         (None, {
-            'fields': (('accession_number', 'accession_extension', 'seed_available', 'seed_in_stock',),
-                       ('species', 'species_checked_by', 'species_checked_date', 'came_as_species'),)
+            'fields': (
+                ('accession_number', 'accession_extension', 'seed_available', 'seed_in_stock',),
+                ('species', 'species_checked_by', 'species_checked_date', 'came_as_species'),
+                'species_audit',
+            )
         }),
         ('IPEN', {
             'fields': (('ipen_country', 'ipen_transfer_restricted', 'ipen_garden_code', 'ipen_accession_number'),)
@@ -273,6 +278,37 @@ class IndividualAdmin(ConfigurableTable):
         actions = super().get_actions(request)
         add_label_mass_actions(request, actions, "individual")
         return actions
+
+    def save_form(self, request, form: forms.Form, change: bool):
+        """
+        Override to store Individuals.species_audit
+        """
+        instance = super().save_form(request, form, change)
+        if instance.species_audit == '':
+            instance.species_audit = None
+        try:
+            original_instance = Individual.objects.get(pk=instance.pk)
+            instance.add_species_audit(original_instance)
+        except Individual.DoesNotExist:
+            pass
+        return instance
+
+    def get_fieldsets(self, request, obj=None):
+        """
+        Override to remove the display of `species_audit` if nothing is there
+        """
+        fieldsets = super().get_fieldsets(request, obj)
+        if not obj or not obj.species_audit:
+            fieldsets = list(fieldsets)
+            fieldsets[0] = (fieldsets[0][0], {
+                **fieldsets[0][1],
+                "fields": [
+                    f for f in fieldsets[0][1]["fields"]
+                    if f != "species_audit"
+                ]
+            })
+            fieldsets = tuple(fieldsets)
+        return fieldsets
 
 
 admin.site.register(Individual, IndividualAdmin)

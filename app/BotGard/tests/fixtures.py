@@ -15,6 +15,7 @@ DATA_PATH = pathlib.Path(__file__).resolve().parent.joinpath("data")
 USERS = [
     {"username": "User1", "password": "the-secret", "superuser": True},
     {"username": "User2", "password": "the-secret"},
+    {"username": "User3", "password": "the-secret", "superuser": True},
 ]
 
 CUSTOM_PROPERTIES = [
