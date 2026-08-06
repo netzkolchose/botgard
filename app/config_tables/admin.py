@@ -416,10 +416,8 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
         Note: This can only get decorator function defined at model level for sub treeparts
         since we have no knowledge about any model associated ModelAdmin class definition.
         """
-        # TODO: this leads to an endless loop and memory overflow
-        #  for Individual in a specific database.. hope it's not so important
         # create a dummy model instance to trigger correct function association
-        #model()
+        model()
 
         settings = settings or []
 
