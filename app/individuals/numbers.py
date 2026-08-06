@@ -141,12 +141,15 @@ def _get_new_number(
         if used_numbers[0] > method["min"]:
             return method["min"]
 
-        # all tightly packed?
-        unused_numbers = set(range(used_numbers[0], used_numbers[-1] + 1)) - set(used_numbers)
-        if not unused_numbers:
-            return used_numbers[-1] + 1
-        else:
-            return sorted(unused_numbers)[0]
+        # used_numbers contains gaps?
+        if len(used_numbers) <= used_numbers[-1] - used_numbers[0]:
+            prev_n = used_numbers[0]
+            for n in used_numbers[1:]:
+                if n - prev_n > 1:
+                    return prev_n + 1
+                prev_n = n
+
+        return used_numbers[-1] + 1
 
     elif method["method"] == "empty":
         return ""
