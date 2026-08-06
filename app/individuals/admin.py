@@ -206,7 +206,9 @@ class IndividualAdmin(ConfigurableTable):
     form = IndividualForm
     save_on_top = True
     list_display = (
-        'change_link_decorator', 'accession_number', 'accession_extension', 'ipen_generated',
+        'change_link_decorator', 'accession_number',
+        #'accession_extension',
+        'ipen_generated',
         #'sowing_number',
         'species_link_decorator',
         'departments_decorator', 'is_alive', 'source', 'etikett_link_decorator',

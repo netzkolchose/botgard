@@ -112,8 +112,14 @@ class Individual(IndividualBase(unique_name="individual")):
         try:
             self.departments_generated = " ".join(sorted(set(
                 l.department.full_code for l in locations if l.department)))
-            self.territories_generated = " ".join("(%s)" % i for i in
-                                                  sorted(set(l.department.territory.code for l in locations if l.department and l.department.territory)))
+            self.territories_generated = " ".join(
+                "(%s)" % i
+                for i in sorted(set(
+                    l.department.territory.code
+                    for l in locations
+                    if l.department and l.department.territory
+                ))
+            )
         except Department.DoesNotExist:
             pass
         self.is_alive_generated = locations_alive.count() > 0

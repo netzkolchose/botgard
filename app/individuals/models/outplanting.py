@@ -7,6 +7,7 @@ from django.dispatch import receiver
 import django.contrib.gis.db.models as gis_models
 from django.contrib.gis.geos import Point
 import django.contrib.gis.forms as gis_forms
+from django import forms
 
 from geo.util import geo_coord_to_html
 from .individual import Individual
@@ -35,9 +36,9 @@ class Outplanting(BotGardBaseModel(unique_name="outplanting")):
     seeded_date = models.DateField(verbose_name=_("sowing date"), blank=True, null=True)
     date = models.DateField(verbose_name=_("bed out date"), blank=True, null=True)
     plant_died = models.DateField(verbose_name=_("plant died on"), blank=True, null=True)
-    comment = models.CharField(
+    comment = models.TextField(
         verbose_name=_("comment"),
-        max_length=256, null=True, blank=True,
+        null=True, blank=True,
     )
 
     def __str__(self):
@@ -154,14 +155,18 @@ def _recalc_outplanting_fields(outplanting, exclude_outplanting=None):
         pass
 
 
+_RECEIVE_OUTPLANTING_SIGNALS = True
+
 @receiver(post_save, sender=Outplanting)
 def on_outplanting_save(sender, instance, **kwargs):
-    #print("OUTPLANTING POSTSAVE %s %s %s" % (sender, instance, kwargs))
-    _recalc_outplanting_fields(instance)
+    if _RECEIVE_OUTPLANTING_SIGNALS:
+        #print("OUTPLANTING POSTSAVE %s %s %s" % (sender, instance, kwargs))
+        _recalc_outplanting_fields(instance)
 
 
 @receiver(pre_delete, sender=Outplanting)
 def on_outplanting_delete(sender, instance, **kwargs):
-    #print("DELETE %s %s %s" % (sender, instance, kwargs))
-    _recalc_outplanting_fields(instance, exclude_outplanting=instance)
+    if _RECEIVE_OUTPLANTING_SIGNALS:
+        # print("DELETE %s %s %s" % (sender, instance, kwargs))
+        _recalc_outplanting_fields(instance, exclude_outplanting=instance)
 
