@@ -226,6 +226,14 @@ class TestNumberGenerator(TestCase):
         self.assertEqual(2003, numbers.get_new_accession_number())
         self.assertEqual(3005, numbers.get_new_order_number())
 
+        # worst case: a really large number from production
+        #   which memory overflowed before the BG-1028 fix
+        self.create_individual(4010009911, 4010009911)
+
+        # it's still fitting tight!
+        self.assertEqual(2003, numbers.get_new_accession_number())
+        self.assertEqual(3005, numbers.get_new_order_number())
+
     def test_number_gen_empty(self):
         KeyValue.objects.create(
             type="j",
