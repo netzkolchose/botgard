@@ -98,7 +98,6 @@ sudo -u postgres psql
 # create user and database
 CREATE USER "botgard-user" WITH PASSWORD "botgard-password";
 CREATE DATABASE "botgard" ENCODING=UTF8 TEMPLATE=template0 OWNER="botgard-user";
-CREATE EXTENSION IF NOT EXISTS postgis;
 
 # allow the user to create databases (for unit-testing)
 ALTER USER "botgard-user" CREATEDB;
