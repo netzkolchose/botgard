@@ -66,7 +66,7 @@ class TestConfigTables(TestBase):
 
     def test_config_table_individual(self):
         self.assert_changelist_columns("individuals", "individual", [
-            'change_link_decorator', 'accession_number', 'accession_extension',
+            'change_link_decorator', 'accession_number',
             'ipen_generated', 'species_link_decorator', 'departments_decorator',
             'is_alive', 'source', 'etikett_link_decorator'
         ])

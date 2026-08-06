@@ -416,8 +416,11 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
         Note: This can only get decorator function defined at model level for sub treeparts
         since we have no knowledge about any model associated ModelAdmin class definition.
         """
+        # TODO: this leads to an endless loop and memory overflow
+        #  for Individual in a specific database.. hope it's not so important
         # create a dummy model instance to trigger correct function association
-        model()
+        #model()
+
         settings = settings or []
 
         # fetch decorator functions from model
@@ -473,7 +476,7 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
 
         attributes = self.apply_blacklist(attributes)
         # alphabetic sorting
-        attributes.sort(key=itemgetter(0))
+        attributes.sort(key=lambda a: a[0].lower())
 
         ctx = {'attributes': attributes}
         return render(request, 'config_tables/treepart.html', ctx)
