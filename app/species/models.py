@@ -205,7 +205,12 @@ class Species(BotGardBaseModel(unique_name="species", custom_properties=True)):
         if self.subspecies:
             return_string += " subsp. " + self.subspecies
         if self.variety:
-            return_string += " var. " + self.variety
+            if self.variety.startswith("convar. "):
+                return_string += " " + self.variety
+            elif self.variety.startswith("subvar. "):
+                return_string += " " + self.variety
+            else:
+                return_string += " var. " + self.variety
         if self.form:
             return_string += " f. " + self.form
         if self.cultivar:
