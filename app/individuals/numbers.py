@@ -62,6 +62,31 @@ config_app.register_key(
 )
 
 
+def _lowest_gap_binary(l):
+    """
+    Find lowest number gap in list ``l`` with binary search.
+    It is important that ``l`` comes presorted.
+    """
+    offset = l[0]
+    mi = offset
+    ma = len(l) + offset - 1
+    # fast path: properly filled sequence
+    if l[-1] == ma:
+        return ma + 1
+    while ma > mi:
+        mid = (ma + mi) >> 1
+        if l[mid - offset] == mid:
+            mi = mid
+            if l[mid - offset + 1] != mid + 1:
+                return mi + 1
+        else:
+            ma = mid
+            if l[mid - offset - 1] == ma - 1:
+                return ma
+    # should never be reached
+    return l[-1] + 1
+
+
 def _get_new_number(
         Model: Union[Type[models.Model], List[Type[models.Model]]],
         fieldname: str,
@@ -142,14 +167,7 @@ def _get_new_number(
             return method["min"]
 
         # used_numbers contains gaps?
-        if len(used_numbers) <= used_numbers[-1] - used_numbers[0]:
-            prev_n = used_numbers[0]
-            for n in used_numbers[1:]:
-                if n - prev_n > 1:
-                    return prev_n + 1
-                prev_n = n
-
-        return used_numbers[-1] + 1
+        return _lowest_gap_binary(used_numbers)
 
     elif method["method"] == "empty":
         return ""

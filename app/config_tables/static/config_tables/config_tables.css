@@ -1,9 +1,13 @@
-:root {
+:root, html[data-theme="light"]:root {
     --ts-color-bg: #F2F2F2;
 }
 
+html[data-theme="dark"]:root {
+    --ts-color-bg: #383838;
+}
+
 @media (prefers-color-scheme: dark) {
-    :root {
+    :root, html[data-theme="auto"]:root {
         --ts-color-bg: #383838;
     }
 }
