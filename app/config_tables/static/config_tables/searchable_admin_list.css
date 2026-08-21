@@ -41,3 +41,16 @@
 .filter-form-wrapper button.filter-form-reset.inactive {
     display: none;
 }
+
+
+/* sticky table headers */
+
+#changelist .results:has(table#result_list.sticky-header) {
+    height: 75vh;
+    overflow-y: scroll;
+}
+
+#changelist table#result_list.sticky-header thead {
+    position: sticky;
+    top: 0;
+}

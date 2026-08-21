@@ -19,6 +19,16 @@ from django.contrib.admin.utils import label_for_field
 from .forms import TableSettingsForm
 from .models import TableSettings
 from tools.csv_response import csv_response
+import config_app
+
+
+config_app.register_key(
+    "sticky_table_headers",
+    {"sticky": False, "height": "75vh"},
+    description="""Make table headers stick to the top, so they are always visible when scrolling.
+<br/>The attribute '<b>sticky</b>' must be set to 'true' to activate sticky headers.
+<br/>The attribute '<b>height</b>' defines the height of the table container (in CSS).""",
+)
 
 
 class Configurable(object):
