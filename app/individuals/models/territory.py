@@ -11,7 +11,7 @@ from ajax.autocomplete import AutoCompleteForm
 from config_tables.admin import configurable, Configurable
 from geo.widgets import BotGardOpenLayersWidget
 import config_app
-
+from BotGard import BotGardBaseModel
 
 
 def _to_percent_deco(x, n):
@@ -67,7 +67,7 @@ class CalcOutplantingsMixin(models.Model):
         if hasattr(self, "num_genera"):
             self.num_genera_alive = locations_alive.values_list("individual__species__family__genus").distinct().count()
         if do_save:
-            self.save()
+            self.save(_no_creation_fields=True)
     
     def num_outplantings_alive_percent(self):
         return _to_percent_deco(self.num_outplantings_alive, self.num_outplantings)
@@ -91,7 +91,7 @@ class CalcOutplantingsMixin(models.Model):
         return _to_percent_deco(self.num_genera_alive, self.num_genera)
 
 
-class Territory(CalcOutplantingsMixin, models.Model, Configurable):
+class Territory(CalcOutplantingsMixin, BotGardBaseModel(unique_name="territory", custom_properties=True)):
     class Meta:
         verbose_name = _("territory")
         verbose_name_plural = _("territories")
@@ -158,7 +158,7 @@ class Territory(CalcOutplantingsMixin, models.Model, Configurable):
         # update Department.full_code
         if has_changed:
             for d in Department.objects.filter(territory=self):
-                d.save()
+                d.save(_no_creation_fields=True)
 
     def num_departments(self):
         return Department.objects.filter(territory=self).count()
@@ -197,7 +197,7 @@ config_app.register_key(
 )
 
 
-class Department(CalcOutplantingsMixin, models.Model, Configurable):
+class Department(CalcOutplantingsMixin, BotGardBaseModel(unique_name="department", custom_properties=True)):
     class Meta:
         verbose_name = _("department")
         verbose_name_plural = _("departments")

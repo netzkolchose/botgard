@@ -1,11 +1,11 @@
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
+from django.contrib import admin
 
 from .models import *
-from tools import readOnlyAdmin
 
 
-class SeedCatalogAdmin(readOnlyAdmin.ReadPermissionModelAdmin):
+class SeedCatalogAdmin(admin.ModelAdmin):
     fieldsets = (
         (None, {
             'fields' : (('release_date', 'valid_until_date'),)

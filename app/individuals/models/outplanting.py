@@ -14,9 +14,10 @@ from .territory import Department
 from config_tables.admin import configurable, Configurable
 from ajax.autocomplete import AutoCompleteForm
 from geo.widgets import BotGardOpenLayersWidget
+from BotGard import BotGardBaseModel
 
 
-class Outplanting(models.Model, Configurable):
+class Outplanting(BotGardBaseModel(unique_name="outplanting")):
     class Meta:
         verbose_name = _("Outplanting")
         verbose_name_plural = _("Outplantings")
@@ -114,6 +115,7 @@ class Outplanting(models.Model, Configurable):
         )
     map_decorator.short_description = _("Map")
     map_decorator.exclude_csv = True
+
 
 class OutplantingForm(AutoCompleteForm(Outplanting)):
     exclude_autocomplete = ["department"]

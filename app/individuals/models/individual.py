@@ -17,7 +17,7 @@ from .individual_base import *
 from individuals.numbers import generate_individual_ipen
 
 
-class Individual(IndividualBase, Configurable):
+class Individual(IndividualBase(unique_name="individual")):
 
     class Meta:
         verbose_name = _("individual")
@@ -95,7 +95,7 @@ class Individual(IndividualBase, Configurable):
             pass
         self.is_alive_generated = locations_alive.count() > 0
         if do_save:
-            self.save()
+            self.save(_no_creation_fields=True)
 
     def get_outplantings(self, alive_only=True) -> list:
         """Returns list of belonging Outplanting instances from database-cache"""

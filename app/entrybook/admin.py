@@ -11,7 +11,6 @@ from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.template.response import TemplateResponse
 
-from tools import readOnlyAdmin
 from tools.search_fields import search_fields_compatible
 from config_tables.admin import ConfigurableTable, ForeignKeyFilter
 from labels.mass_action import add_label_mass_actions
@@ -19,7 +18,7 @@ from labels.mass_action import add_label_mass_actions
 from .models import *
 
 
-class EntryAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
+class EntryAdmin(ConfigurableTable):
     form = EntryForm
     save_on_top = True
 
@@ -50,6 +49,8 @@ class EntryAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
     list_filter = (
         ("user__username", ForeignKeyFilter),
         ("department__code", ForeignKeyFilter),
+        ("created_by__username", ForeignKeyFilter),
+        ("modified_by__username", ForeignKeyFilter),
     )
 
     ordering = ('accession_number',)
