@@ -325,7 +325,7 @@ class Species(BotGardBaseModel(unique_name="species", custom_properties=True)):
         from individuals.models import Individual
         if hasattr(Individual, "id_name_generated"):
             for i in Individual.objects.filter(species=self):
-                i.save()
+                i.save(_no_creation_fields=True)
 
 
 class SpeciesForm(AutoCompleteForm(Species)):
