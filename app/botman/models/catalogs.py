@@ -212,22 +212,22 @@ class OutgoingOrderForm(AutoCompleteForm(OutgoingOrder)):
 @receiver(post_save, sender=OutgoingOrder)
 def on_outgoing_order_save(sender, instance, **kwargs):
     if instance.garden:
-        instance.garden.save()
+        instance.garden.save(_no_creation_fields=True)
 
 
 @receiver(post_delete, sender=OutgoingOrder)
 def on_outgoing_order_delete(sender, instance, **kwargs):
     if instance.garden:
-        instance.garden.save()
+        instance.garden.save(_no_creation_fields=True)
 
 
 @receiver(post_save, sender=ExternalCatalog)
 def on_external_catalog_save(sender, instance, **kwargs):
     if instance.garden:
-        instance.garden.save()
+        instance.garden.save(_no_creation_fields=True)
 
 
 @receiver(post_delete, sender=ExternalCatalog)
 def on_external_catalog_delete(sender, instance, **kwargs):
     if instance.garden:
-        instance.garden.save()
+        instance.garden.save(_no_creation_fields=True)

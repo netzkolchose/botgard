@@ -161,7 +161,7 @@ class Territory(CalcOutplantingsMixin, BotGardBaseModel(unique_name="territory",
         # update Department.full_code
         if has_changed:
             for d in Department.objects.filter(territory=self):
-                d.save()
+                d.save(_no_creation_fields=True)
 
     def num_departments(self):
         return Department.objects.filter(territory=self).count()
