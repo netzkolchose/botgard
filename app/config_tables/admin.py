@@ -144,6 +144,7 @@ class CustomSelectHeaderFilter(CustomHeaderFilter):
 class ConfigurableTable(admin.ModelAdmin, Configurable):
     change_list_template = 'config_tables/change_list.html'
     configuretable_template = 'config_tables/configuretable.html'
+    save_on_top = True
 
     def _get_actual_tablesettings_object(self, request):
         user = request.user
