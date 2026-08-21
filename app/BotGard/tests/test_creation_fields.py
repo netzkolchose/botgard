@@ -43,3 +43,18 @@ class TestCreationFields(TestBase):
                     self.assertEqual(timezone.now().date(), instance.created_date)
                     self.assertEqual(self.user2, instance.modified_by)
                     self.assertEqual(timezone.now().date(), instance.modified_date)
+
+    def test_data_migration(self):
+        """Make sure, self.modified_date is not changed during tools/data_migrations.py"""
+        from tools.data_migration import calc_all
+        User.objects.all().delete()
+        create_test_fixtures()
+        calc_all()
+
+        for Model in (
+                BotanicGarden,
+                Territory, Department,
+                Family, Species,
+                Individual, Seed,
+        ):
+            self.assertEqual(0, Model.objects.exclude(modified_date=None).count(), f"For model {Model}")
