@@ -124,7 +124,7 @@ class Individual(IndividualBase(unique_name="individual")):
             pass
         self.is_alive_generated = locations_alive.count() > 0
         if do_save:
-            self.save()
+            self.save(_no_creation_fields=True)
 
     def get_outplantings(self, alive_only=True) -> list:
         """Returns list of belonging Outplanting instances from database-cache"""

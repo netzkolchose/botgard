@@ -67,7 +67,7 @@ class CalcOutplantingsMixin(models.Model):
         if hasattr(self, "num_genera"):
             self.num_genera_alive = locations_alive.values_list("individual__species__family__genus").distinct().count()
         if do_save:
-            self.save()
+            self.save(_no_creation_fields=True)
     
     def num_outplantings_alive_percent(self):
         return _to_percent_deco(self.num_outplantings_alive, self.num_outplantings)

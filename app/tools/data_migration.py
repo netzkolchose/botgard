@@ -87,22 +87,22 @@ def calc_individuals_outplantings():
 def calc_botanic_gardens():
     with transaction.atomic():
         for self in tqdm(BotanicGarden.objects.all(), desc="calc botanic gardens"):
-            self.save()
+            self.save(_no_creation_fields=True)
 
 
 def calc_species():
     with transaction.atomic():
         for self in tqdm(Family.objects.all(), desc="calc families"):
-            self.save()
+            self.save(_no_creation_fields=True)
     with transaction.atomic():
         for self in tqdm(Species.objects.all(), desc="calc species"):
-            self.save()
+            self.save(_no_creation_fields=True)
 
 
 def calc_individuals():
     with transaction.atomic():
         for self in tqdm(Territory.objects.all(), desc="calc territory"):
-            self.save()
+            self.save(_no_creation_fields=True)
     with transaction.atomic():
         for self in tqdm(Individual.objects.all(), desc="calc individuals outplantings"):
             self.calc_outplantings(do_save=True)
@@ -111,10 +111,10 @@ def calc_individuals():
 def fix_country_code():
     for i in Individual.objects.filter(found_country="mne"):
         i.found_country = "me"
-        i.save()
+        i.save(_no_creation_fields=True)
     for i in Individual.objects.filter(ipen_country="mne"):
         i.ipen_country = "me"
-        i.save()
+        i.save(_no_creation_fields=True)
 
 
 def assign_ticket_types():
@@ -133,7 +133,7 @@ def assign_territory():
             try:
                 d.territory = Territory.objects.get(code=tcode)
                 d.code = d.code.split("-")[1]
-                d.save()
+                d.save(_no_creation_fields=True)
             except Territory.DoesNotExist:
                 pass
                 #print("Territory '%s' not found!" % tcode)
@@ -159,7 +159,7 @@ def strip_whitespace():
                 for c in changes:
                     pass #$print("  " + c)
                 try:
-                    model.save()
+                    model.save(_no_creation_fields=True)
                 except IntegrityError as e:
                     pass
                     #print(u"ERROR %s" % e)
