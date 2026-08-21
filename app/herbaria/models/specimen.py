@@ -151,7 +151,7 @@ class HerbariumSpecimen(BotGardBaseModel(unique_name="herbariumspecimen", custom
 
         if not self.individual.has_specimen_generated:
             self.individual.has_specimen_generated = True
-            self.individual.save()
+            self.individual.save(_no_creation_fields=True)
 
 
 def create_herbarium_specimen_form_class(
@@ -187,4 +187,4 @@ def on_herbarium_deleted(sender, instance: HerbariumSpecimen, **kwargs):
         has_specimen = instance.individual.herbarium_specimens.exists()
         if has_specimen != instance.individual.has_specimen_generated:
             instance.individual.has_specimen_generated = has_specimen
-            instance.individual.save()
+            instance.individual.save(_no_creation_fields=True)

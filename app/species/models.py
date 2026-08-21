@@ -103,7 +103,7 @@ class Family(BotGardBaseModel(unique_name="family", custom_properties=True)):
         # update coresponding Species.full_name_generated
         if hasattr(Species, "full_name_generated"):
             for i in Species.objects.filter(family=self):
-                i.save()
+                i.save(_no_creation_fields=True)
 
 
 class FamilyForm(AutoCompleteForm(Family)):

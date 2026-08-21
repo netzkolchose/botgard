@@ -192,7 +192,7 @@ class OutgoingOrderAdmin(ConfigurableTable):
         queryset.update(processed=True)
         # update the BotanicGarden.num_orders_generated field
         for garden_pk in queryset.values_list("garden", flat=True).distinct():
-            BotanicGarden.objects.get(pk=garden_pk).save()
+            BotanicGarden.objects.get(pk=garden_pk).save(_no_creation_fields=True)
 
     def has_mark_as_processed_permission(self, request):
         # Only catalog maintainers can mark orders as processed
