@@ -120,6 +120,7 @@ class SeedAdmin(ConfigurableTable):
         ('species__area_of_distribution_background', ForeignKeyFilter),
         ('species__family__family', ForeignKeyFilter),
         ('species__family__genus', ForeignKeyFilter),
+        ('literature__full_name_generated', ForeignKeyFilter),
         (SeedInLatestCatalogFilter.QUERY_NAME, SeedInLatestCatalogFilter),
         ("created_by__username", ForeignKeyFilter),
         ("modified_by__username", ForeignKeyFilter),
@@ -137,8 +138,11 @@ class SeedAdmin(ConfigurableTable):
     list_editable = ('seed_available', 'seed_in_stock')
     fieldsets = (
         (None, {
-            'fields': (('accession_number', 'accession_extension', 'seed_available', 'seed_in_stock',),
-                       ('species', 'species_checked_by', 'came_as_species'),)
+            'fields': (
+                ('accession_number', 'accession_extension', 'seed_available', 'seed_in_stock',),
+                ('species', 'species_checked_by', 'came_as_species'),
+                'literature',
+            )
         }),
         (_('IPEN'), {
             'fields': (('ipen_country', 'ipen_transfer_restricted', 'ipen_garden_code', 'ipen_accession_number'),)
@@ -226,6 +230,7 @@ class IndividualAdmin(ConfigurableTable):
         ('species__area_of_distribution_background', ForeignKeyFilter),
         ('species__family__family', ForeignKeyFilter),
         ('species__family__genus', ForeignKeyFilter),
+        ('literature__full_name_generated', ForeignKeyFilter),
         ("created_by__username", ForeignKeyFilter),
         ("modified_by__username", ForeignKeyFilter),
     )
@@ -243,6 +248,7 @@ class IndividualAdmin(ConfigurableTable):
             'fields': (
                 ('accession_number', 'accession_extension', 'seed_available', 'seed_in_stock',),
                 ('species', 'species_checked_by', 'species_checked_date', 'came_as_species'),
+                'literature',
                 'species_audit',
             )
         }),

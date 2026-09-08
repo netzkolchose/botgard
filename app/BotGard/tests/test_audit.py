@@ -2,6 +2,8 @@ from .base import *
 
 class TestAudit(TestBase):
 
+    maxDiff = None
+
     @classmethod
     def setUpTestData(cls):
         fixtures.create_test_fixtures()
@@ -33,6 +35,8 @@ class TestAudit(TestBase):
                     'species_pk': Species.objects.get(species="Species 1").pk,
                     'user': None,
                     'user_pk': None,
+                    'literature': None,
+                    'literature_pk': None,
                 },
                 {
                     'date': today,
@@ -40,6 +44,8 @@ class TestAudit(TestBase):
                     'species_pk': Species.objects.get(species="Species 2").pk,
                     'user': 'User1',
                     'user_pk': User.objects.get(username="User1").pk,
+                    'literature': None,
+                    'literature_pk': None,
                 }
             ],
             indi.species_audit
@@ -50,6 +56,7 @@ class TestAudit(TestBase):
         cf = self.get_changeform("individuals", "individual", indi.pk)
         cf.save({
             "species": Species.objects.get(species="Species 1").full_name_generated,
+            "literature": Literature.objects.get(title="Title 1").full_name_generated,
         })
 
         indi.refresh_from_db()
@@ -61,6 +68,8 @@ class TestAudit(TestBase):
                     'species_pk': Species.objects.get(species="Species 1").pk,
                     'user': None,
                     'user_pk': None,
+                    'literature': None,
+                    'literature_pk': None,
                 },
                 {
                     'date': today,
@@ -68,6 +77,8 @@ class TestAudit(TestBase):
                     'species_pk': Species.objects.get(species="Species 2").pk,
                     'user': 'User1',
                     'user_pk': User.objects.get(username="User1").pk,
+                    'literature': None,
+                    'literature_pk': None,
                 },
                 {
                     'date': today,
@@ -75,6 +86,8 @@ class TestAudit(TestBase):
                     'species_pk': Species.objects.get(species="Species 1").pk,
                     'user': 'User3',
                     'user_pk': User.objects.get(username="User3").pk,
+                    'literature': "1984. \"Title 1\"",
+                    'literature_pk': Literature.objects.get(title="Title 1").pk,
                 },
             ],
             indi.species_audit
@@ -86,6 +99,7 @@ class TestAudit(TestBase):
             "species": Species.objects.get(species="Species 3").full_name_generated,
             "species_checked_by": "Bob Dobbs",
             "species_checked_date": "2030-01-01",
+            "literature": Literature.objects.get(title="Title 2").full_name_generated,
         })
 
         expected_species_audit = [
@@ -95,6 +109,8 @@ class TestAudit(TestBase):
                 'species_pk': Species.objects.get(species="Species 1").pk,
                 'user': None,
                 'user_pk': None,
+                'literature': None,
+                'literature_pk': None,
             },
             {
                 'date': today,
@@ -102,6 +118,8 @@ class TestAudit(TestBase):
                 'species_pk': Species.objects.get(species="Species 2").pk,
                 'user': 'User1',
                 'user_pk': User.objects.get(username="User1").pk,
+                'literature': None,
+                'literature_pk': None,
             },
             {
                 'date': today,
@@ -109,6 +127,8 @@ class TestAudit(TestBase):
                 'species_pk': Species.objects.get(species="Species 1").pk,
                 'user': 'User3',
                 'user_pk': User.objects.get(username="User3").pk,
+                'literature': "1984. \"Title 1\"",
+                'literature_pk': Literature.objects.get(title="Title 1").pk,
             },
             {
                 'date': "2030-01-01",
@@ -116,6 +136,8 @@ class TestAudit(TestBase):
                 'species_pk': Species.objects.get(species="Species 3").pk,
                 'user': 'Bob Dobbs',
                 'user_pk': None,
+                'literature': '"Title 2" Plants of the Moon, vol. 23',
+                'literature_pk': Literature.objects.get(title="Title 2").pk,
             }
         ]
         indi.refresh_from_db()
@@ -146,10 +168,10 @@ class TestAudit(TestBase):
         #pprint.pprint(rows)
         self.assertEqual(
             [
-                ['Genus 1 Species 1 Baill.', '-', today],
-                ['Genus 1 Species 2 A. Cunn.', 'User1', today],
-                ['Genus 1 Species 1 Baill.', 'User3', today],
-                ['Genus 2 Species 3 C. Morren', 'Bob Dobbs', '2030-01-01'],
+                ['Genus 1 Species 1 Baill.', '-', today, '-'],
+                ['Genus 1 Species 2 A. Cunn.', 'User1', today, '-'],
+                ['Genus 1 Species 1 Baill.', 'User3', today, '1984. "Title 1"'],
+                ['Genus 2 Species 3 C. Morren', 'Bob Dobbs', '2030-01-01', '"Title 2" Plants of the Moon, vol. 23'],
             ],
             rows
         )

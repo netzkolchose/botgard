@@ -70,6 +70,7 @@ class Entry(IndividualBase(unique_name="entry")):
         db_index=True,
     )
 
+    # replace `related_name`
     user = models.ForeignKey(
         verbose_name=_("Created by"),
         to=get_user_model(),
@@ -77,6 +78,15 @@ class Entry(IndividualBase(unique_name="entry")):
         null=True,
         blank=True,
         db_index=True,
+        related_name="entries",
+    )
+
+    # replace `related_name`
+    literature = models.ForeignKey(
+        verbose_name=_("literature"),
+        to="literature.Literature",
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
         related_name="entries",
     )
 

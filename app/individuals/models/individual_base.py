@@ -100,6 +100,14 @@ def IndividualBase(unique_name: str) -> Type[models.Model]:
             max_length=100, verbose_name=_("received as species"), blank=True
         )
 
+        literature = models.ForeignKey(
+            verbose_name=_("literature"),
+            to="literature.Literature",
+            on_delete=models.SET_NULL,
+            null=True, blank=True,
+            related_name="individuals",
+        )
+
         ipen_country = models.CharField(max_length=3, choices=ISO_COUNTRY_CHOICES, verbose_name="IPEN", db_index=True)
         ipen_transfer_restricted = models.CharField(max_length=1, choices=IPEN_TRANSFER_RESTRICTIONS, verbose_name="-")
         ipen_accession_number = models.CharField(max_length=50, verbose_name="-")

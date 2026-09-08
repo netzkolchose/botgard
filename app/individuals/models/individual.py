@@ -61,6 +61,7 @@ class Individual(IndividualBase(unique_name="individual")):
     #    "date": "YYYY-MM-DD"|None,
     #    "user": "username", "user_pk": int|None,
     #    "species": "full_name_generated", "species_pk": int,
+    #    "literature": "full_name_generated"|None, "literature_pk": int|None,
     # }
     species_audit = models.JSONField(
         verbose_name=_("Determination audit"),
@@ -370,6 +371,7 @@ class Individual(IndividualBase(unique_name="individual")):
                 original_instance.species == self.species
                 and original_instance.species_checked_by == self.species_checked_by
                 and original_instance.species_checked_date == self.species_checked_date
+                and original_instance.literature == self.literature
         ):
             self.species_audit = original_instance.species_audit
             return
@@ -392,6 +394,10 @@ class Individual(IndividualBase(unique_name="individual")):
                 "user_pk": user_pk,
                 "species": original_instance.species.full_name_generated,
                 "species_pk": original_instance.species.pk,
+                "literature": original_instance.literature.full_name_generated
+                    if original_instance.literature else None,
+                "literature_pk": original_instance.literature.pk
+                    if original_instance.literature else None,
             }]
 
         user = self.species_checked_by
@@ -410,6 +416,8 @@ class Individual(IndividualBase(unique_name="individual")):
             "user_pk": user_pk,
             "species": self.species.full_name_generated,
             "species_pk": self.species.pk,
+            "literature": self.literature.full_name_generated if self.literature else None,
+            "literature_pk": self.literature.pk if self.literature else None,
         })
 
         for row in audit:
@@ -484,6 +492,7 @@ class IndividualForm(
     def __init__(self, *args, **kwargs):
         self._update_initial(kwargs)
         super(IndividualForm, self).__init__(*args, **kwargs)
+        self.fields["literature"].widget.attrs["style"] = "width: 40rem;"
 
 
 class SeedInLatestCatalogFilter(FieldListFilter):

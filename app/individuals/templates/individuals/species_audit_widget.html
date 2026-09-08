@@ -6,6 +6,7 @@
                 <th>{% trans 'genus & Species' %}</th>
                 <th>{% trans 'plant categorized by' %}</th>
                 <th>{% trans 'categorized at' %}</th>
+                <th>{% trans 'literature' %}</th>
             </tr>
         </thead>
         <tbody>
@@ -32,7 +33,15 @@
                         <input
                             disabled
                             type="text"
-                            value="{{ row.date}}"
+                            value="{{ row.date }}"
+                        >
+                    </td>
+                    <td>
+                        <input
+                            disabled
+                            type="text"
+                            style="width: 20rem;"
+                            value="{{ row.literature }}"
                         >
                     </td>
                 </tr>

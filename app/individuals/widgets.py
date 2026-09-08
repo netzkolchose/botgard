@@ -11,6 +11,7 @@ class SpeciesAuditWidget(widgets.Input):
                     **row,
                     "user": row["user"] or "-",
                     "date": row["date"] or "-",
+                    "literature": row["literature"] or "-",
                 }
                 for row in value
             ]
