@@ -28,6 +28,7 @@ CUSTOM_PROPERTY_MODEL_CHOICES = (
     ("individuals.Individual", _("individual")),
     ("herbaria.Herbarium", _("Herbarium")),
     ("herbaria.HerbariumSpecimen", _("Specimen")),
+    ("literature.Literature", _("literature")),
 )
 
 

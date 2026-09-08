@@ -74,6 +74,7 @@ INSTALLED_APPS = [
     'herbaria.apps.HerbariaConfig',
     'ajax.apps.AjaxConfig',
     'geo.apps.GeoConfig',
+    'literature.apps.LiteratureConfig',
     'easy_thumbnails',
     'BotGard.apps.BotGardAppConfig',
 ]

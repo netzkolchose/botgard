@@ -33,6 +33,7 @@ class Migration(migrations.Migration):
                         ("individuals.Individual", ("individual")),
                         ("herbaria.Herbarium", ("Herbarium")),
                         ("herbaria.HerbariumSpecimen", ("Specimen")),
+                        ("literature.Literature", ("literature")),
                     ),
                     max_length=64, verbose_name='model')
                  ),
