@@ -184,6 +184,30 @@ class Species(BotGardBaseModel(unique_name="species", custom_properties=True)):
     comment = models.TextField(verbose_name=_('comment'), max_length=10000, blank=True, null=True)
     picture = models.ImageField(verbose_name=_('picture'), upload_to="pictures", blank=True)
 
+    literature = models.ForeignKey(
+        verbose_name=_("literature"),
+        to="literature.Literature",
+        on_delete=models.SET_NULL,
+        related_name="species",
+        null=True, blank=True,
+    )
+
+    literature_distribution = models.ForeignKey(
+        verbose_name=_("literature (distribution)"),
+        to="literature.Literature",
+        on_delete=models.SET_NULL,
+        related_name="species_distribution",
+        null=True, blank=True,
+    )
+
+    literature_german_name = models.ForeignKey(
+        verbose_name=_("literature (german name)"),
+        to="literature.Literature",
+        on_delete=models.SET_NULL,
+        related_name="species_german_name",
+        null=True, blank=True,
+    )
+
     @configurable
     def get_author_name(self):
         for author in filter(bool, (
@@ -339,3 +363,6 @@ class SpeciesForm(AutoCompleteForm(Species)):
         super(SpeciesForm, self).__init__(*args, **kwargs)
         if not global_request.get_current_user().has_perm("species.can_check_nomenclature"):
             self.fields["nomenclature_checked"] = forms.NullBooleanField(disabled=True)
+        for key in ("literature", "literature_distribution", "literature_german_name"):
+            if key in self.fields:
+                self.fields[key].widget.attrs["style"] = "width: 30rem;"

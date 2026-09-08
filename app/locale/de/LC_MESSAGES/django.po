@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-08 14:15+0200\n"
+"POT-Creation-Date: 2026-09-08 15:31+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -87,7 +87,7 @@ msgstr "Übermitteln"
 #: demo-data/labels/individual-multipage-inner.html:5
 #: individuals/models/individual.py:224 individuals/models/individual.py:568
 #: individuals/models/outplanting.py:95 species/models.py:59
-#: species/models.py:70 species/models.py:265
+#: species/models.py:70 species/models.py:289
 msgid "genus"
 msgstr "Gattung"
 
@@ -116,7 +116,7 @@ msgid "collection date"
 msgstr "Sammeldatum"
 
 #: BotGard/tests/data/label-individual-complex.html:24
-#: demo-data/labels/individual-multipage-inner.html:24 species/admin.py:81
+#: demo-data/labels/individual-multipage-inner.html:24 species/admin.py:88
 msgid "distribution"
 msgstr "Verbreitung"
 
@@ -342,8 +342,8 @@ msgstr "Katalog/%(date)s"
 #: individuals/models/individual.py:187 individuals/models/individual.py:189
 #: individuals/models/territory.py:131 individuals/models/territory.py:132
 #: individuals/models/territory.py:254 individuals/models/territory.py:255
-#: species/models.py:95 species/models.py:96 species/models.py:278
-#: species/models.py:279
+#: species/models.py:95 species/models.py:96 species/models.py:302
+#: species/models.py:303
 msgid "delete"
 msgstr "Löschen"
 
@@ -474,9 +474,9 @@ msgstr "Etikett"
 #: individuals/models/outplanting.py:63 individuals/models/outplanting.py:64
 #: individuals/models/territory.py:124 individuals/models/territory.py:125
 #: individuals/models/territory.py:240 individuals/models/territory.py:241
-#: literature/models/literature.py:105 literature/models/literature.py:106
-#: species/models.py:88 species/models.py:89 species/models.py:271
-#: species/models.py:272
+#: literature/models/literature.py:108 literature/models/literature.py:109
+#: species/models.py:88 species/models.py:89 species/models.py:295
+#: species/models.py:296
 msgid "show"
 msgstr "Anzeigen"
 
@@ -701,7 +701,7 @@ msgid "Specimen"
 msgstr "Herbarbeleg"
 
 #: config_app/models/customprops.py:31 literature/models/literature.py:17
-#: literature/models/literature.py:18
+#: literature/models/literature.py:18 species/models.py:188
 msgid "literature"
 msgstr "Literatur"
 
@@ -945,7 +945,7 @@ msgid "miscellaneous"
 msgstr "Verschiedenes"
 
 #: entrybook/admin.py:82 individuals/admin.py:156 individuals/admin.py:262
-#: individuals/models/individual.py:556 species/models.py:306
+#: individuals/models/individual.py:556 species/models.py:330
 msgid "seeds"
 msgstr "Samen"
 
@@ -1146,7 +1146,7 @@ msgstr "IPEN"
 msgid "Individuals and their locations"
 msgstr "Individuen und Standorte"
 
-#: individuals/models/individual.py:32 species/models.py:296
+#: individuals/models/individual.py:32 species/models.py:320
 #: tickets/models.py:142
 msgid "individuals"
 msgstr "Individuen"
@@ -1187,7 +1187,7 @@ msgstr "Individuum"
 
 #: individuals/models/individual.py:218 individuals/models/individual.py:562
 #: individuals/models/outplanting.py:89 species/models.py:66
-#: species/models.py:259
+#: species/models.py:283
 msgid "family"
 msgstr "Familie"
 
@@ -1912,15 +1912,15 @@ msgstr "Wo ist es zu finden"
 msgid "signature"
 msgstr "Signatur"
 
-#: literature/models/literature.py:120
+#: literature/models/literature.py:123
 msgid "untitled"
 msgstr "Unbenannt"
 
-#: literature/models/literature.py:126
+#: literature/models/literature.py:129
 msgid "vol."
 msgstr "Bd."
 
-#: literature/models/literature.py:128
+#: literature/models/literature.py:131
 msgid "pr."
 msgstr "Aufl."
 
@@ -2117,7 +2117,7 @@ msgstr "Sie haben leider keine Berechtigung, den Katalog zu finalisieren"
 msgid "Return to catalog"
 msgstr "Zurück zu Katalog"
 
-#: species/admin.py:85
+#: species/admin.py:96
 msgid "additional"
 msgstr "Zusätzliches"
 
@@ -2217,19 +2217,27 @@ msgstr "Lebensform"
 msgid "picture"
 msgstr "Bild"
 
-#: species/models.py:197
+#: species/models.py:196
+msgid "literature (distribution)"
+msgstr "Literatur (Verbreitung)"
+
+#: species/models.py:204
+msgid "literature (german name)"
+msgstr "Literatur (Deutscher Name)"
+
+#: species/models.py:221
 msgid "author name"
 msgstr "Autorname"
 
-#: species/models.py:223
+#: species/models.py:247
 msgid "Full species name (with author)"
 msgstr "Ganzer Artenname (mit Autor)"
 
-#: species/models.py:247
+#: species/models.py:271
 msgid "Full species name (without author)"
 msgstr "Ganzer Artenname (ohne Autor)"
 
-#: species/models.py:252
+#: species/models.py:276
 msgid ""
 "Area of distribution (each line separate, access with "
 "{{obj.species.distribution_lines.0}}, {{obj.species.distribution_lines.0}}, "
@@ -2239,23 +2247,23 @@ msgstr ""
 "{{obj.species.distribution_lines.0}}, {{obj.species.distribution_lines.0}}, "
 "usw...)"
 
-#: species/models.py:285 tickets/models.py:125 tickets/models.py:127
+#: species/models.py:309 tickets/models.py:125 tickets/models.py:127
 msgid "check"
 msgstr "prüfen"
 
-#: species/models.py:286
+#: species/models.py:310
 msgid "availability"
 msgstr "Verfügbarkeit"
 
-#: species/models.py:294
+#: species/models.py:318
 msgid "search individuals"
 msgstr "Individuen durchsuchen"
 
-#: species/models.py:304
+#: species/models.py:328
 msgid "search seeds"
 msgstr "Samen durchsuchen"
 
-#: species/models.py:319
+#: species/models.py:343
 msgid "alive individuals"
 msgstr "Lebende Individuen"
 

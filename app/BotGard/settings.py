@@ -64,6 +64,7 @@ INSTALLED_APPS = [
     'django.contrib.gis',
 
     'config_tables.apps.ConfigTablesConfig',
+    'literature.apps.LiteratureConfig',
     'species.apps.SpeciesConfig',
     'individuals.apps.IndividualsConfig',
     'entrybook.apps.EntryBookConfig',
@@ -74,7 +75,6 @@ INSTALLED_APPS = [
     'herbaria.apps.HerbariaConfig',
     'ajax.apps.AjaxConfig',
     'geo.apps.GeoConfig',
-    'literature.apps.LiteratureConfig',
     'easy_thumbnails',
     'BotGard.apps.BotGardAppConfig',
 ]

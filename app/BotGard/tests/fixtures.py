@@ -29,6 +29,7 @@ CUSTOM_PROPERTIES = [
     {"model": "individuals.Individual", "type": "text", "name": "individual_comment"},
     {"model": "herbaria.Herbarium", "type": "text", "name": "herbarium_comment"},
     {"model": "herbaria.HerbariumSpecimen", "type": "text", "name": "specimen_comment"},
+    {"model": "literature.Literature", "type": "text", "name": "literature_comment"},
 ]
 
 if missing_set := set(
@@ -38,6 +39,7 @@ if missing_set := set(
 ):
     raise AssertionError(
         f"Not all custom property models in test fixtures\n{sorted(missing_set)}"
+        f"\nAdd them to {__file__}:CUSTOM_PROPERTIES"
     )
 
 
@@ -59,6 +61,11 @@ OUTGOING_ORDERS = [
 EXTERNAL_CATALOGS = [
     {"garden": "Garden 1"},
     {"garden": "Garden 2"},
+]
+
+LITERATURES = [
+    {"title": "Title 1", "year": 1984},
+    {"title": "Title 2", "compilation": "Plants of the Moon", "volume": "23"},
 ]
 
 FAMILIES = [
@@ -153,6 +160,7 @@ def create_test_fixtures():
     from tickets.models import BasicTicket, LaserGravurTicket
     from seedcatalog.models import SeedCatalog
     from config_app.models import CustomProperty, PropertyValueText, PropertyValueBool
+    from literature.models import Literature
 
     UserModel = get_user_model()
 
@@ -241,6 +249,10 @@ def create_test_fixtures():
             genus_author=data.get("genus_author") or rnd.choice(RANDOM_AUTHORS),
         )
         _add_prop(model, data)
+
+    log("creating Literatures")
+    for i, data in enumerate(LITERATURES):
+        Literature.objects.create(**data)
 
     log("creating Species")
     for i, data in enumerate(SPECIES):

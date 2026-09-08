@@ -100,6 +100,9 @@ class Literature(BotGardBaseModel(unique_name="literature", custom_properties=Tr
         unique=True,
     )
 
+    def __str__(self):
+        return self.full_name_generated
+
     @configurable
     def change_link_decorator(self):
         return mark_safe('<a href="%d/" class="changelink">%s</a>' % (self.pk, _('show')))

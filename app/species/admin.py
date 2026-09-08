@@ -54,6 +54,9 @@ class SpeciesAdmin(ConfigurableTable):
         ('family__full_name_generated', ForeignKeyFilter),
         ('family__family', ForeignKeyFilter),
         ('family__genus', ForeignKeyFilter),
+        ('literature__full_name_generated', ForeignKeyFilter),
+        ('literature_distribution__full_name_generated', ForeignKeyFilter),
+        ('literature_german_name__full_name_generated', ForeignKeyFilter),
         AliveIndividualsListFilter,
         ("created_by__username", ForeignKeyFilter),
         ("modified_by__username", ForeignKeyFilter),
@@ -67,12 +70,16 @@ class SpeciesAdmin(ConfigurableTable):
     fieldsets = (
         (None, {
             'fields': (
-            'family',
-            ('species', 'species_author'),
-            ('subspecies', 'subspecies_author'),
-            ('variety', 'variety_author'),
-            ('form', 'form_author'),
-            'cultivar', 'deutscher_name', 'synonyme')
+                'family',
+                ('species', 'species_author'),
+                ('subspecies', 'subspecies_author'),
+                ('variety', 'variety_author'),
+                ('form', 'form_author'),
+                'cultivar',
+                'literature',
+                ('deutscher_name', 'literature_german_name'),
+                'synonyme',
+            )
         }),
         #           ('Asteraceae', {
         #           	'classes' : 'collapse',
@@ -80,7 +87,11 @@ class SpeciesAdmin(ConfigurableTable):
         #          }),
         (_('distribution'), {
             'classes': 'collapse',
-            'fields': ('area_of_distribution_etikettxt', 'area_of_distribution_background')
+            'fields': (
+                'area_of_distribution_etikettxt',
+                'area_of_distribution_background',
+                'literature_distribution',
+            )
         }),
         (_('additional'), {
             'classes': 'collapse',

@@ -21,6 +21,7 @@ GARDENER_PERMISSIONS = {
     'individuals.territory': {'add', 'change'},
     'individuals.': {'change'},
     'labels.labeldefinition': {'view'},
+    'literature.literature': {'change', 'add'},
     'seedcatalog.seedcatalog': {'view'},
     'species.family': {'add', 'change'},
     'species.species': {'add', 'change'},
@@ -39,6 +40,7 @@ GUEST_PERMISSIONS = {
     'individuals.seed': {'view'},
     'individuals.territory': {'view'},
     'individuals.': {'change'},
+    'literature.literature': {'view'},
     'seedcatalog.seedcatalog': {'view'},
     'species.family': {'view'},
     'species.species': {'view'},
@@ -151,6 +153,7 @@ class TestPermissions(TestBase):
             'individuals.seed': {'add', 'change'},
             'individuals.territory': {'add', 'change'},
             'individuals.': {'change'},
+            'literature.literature': {'add', 'change'},
             'labels.labeldefinition': {'add', 'change'},
             'seedcatalog.seedcatalog': {'add', 'change'},
             'species.family': {'add', 'change'},
@@ -179,6 +182,7 @@ class TestPermissions(TestBase):
             'individuals.seed': {'add', 'change'},
             'individuals.territory': {'add', 'change'},
             'individuals.': {'change'},
+            'literature.literature': {'add', 'change'},
             'labels.labeldefinition': {'change'},
             'seedcatalog.seedcatalog': {'change'},
             'species.family': {'add', 'change'},
@@ -193,6 +197,7 @@ class TestPermissions(TestBase):
         self.assert_models_access(
             can_change_models=[
                 BGCIGarden, BotanicGarden, OutgoingOrder,
+                Literature,
                 Species, Family,
                 Entry, Department, Territory, Individual, Seed, Outplanting,
                 BasicTicket, LaserGravurTicket, MyTicket
@@ -208,7 +213,7 @@ class TestPermissions(TestBase):
         self.assert_models_access(
             can_change_models=[],
             can_view_models=[
-                BGCIGarden, BotanicGarden,
+                BGCIGarden, BotanicGarden, Literature,
                 Species, Family,
                 Entry, Department, Territory, Individual, Seed, Outplanting,
                 SeedCatalog,
