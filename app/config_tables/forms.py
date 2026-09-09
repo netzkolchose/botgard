@@ -59,16 +59,20 @@ class TableSettingsForm(ModelForm):
         super(TableSettingsForm, self).__init__(*args, **kwargs)
         instance = getattr(self, 'instance')
         if instance:
-            self.fields['user'].widget.attrs['disabled'] = True
-            self.fields['user'].widget.attrs['disabled'] = True
-            self.fields['model'].widget.attrs['disabled'] = True
-            self.fields['settings'].widget.instance = instance
-        self.fields['settings'].widget.extra_opts = extra_opts
-        #if selected:
-        #    self.fields['settings'].widget.selected = selected
-        #    self.fields['settings'].initial = dumps(selected)
-        self.fields['settings'].widget.selected = selected
-        self.fields['settings'].initial = dumps(selected, cls=DjangoJSONEncoder)
+            if "user" in self.fields:
+                self.fields['user'].widget.attrs['disabled'] = True
+                self.fields['user'].widget.attrs['disabled'] = True
+            if "model" in self.fields:
+                self.fields['model'].widget.attrs['disabled'] = True
+            if "settings" in self.fields:
+                self.fields['settings'].widget.instance = instance
+        if "settings" in self.fields:
+            self.fields['settings'].widget.extra_opts = extra_opts
+            #if selected:
+            #    self.fields['settings'].widget.selected = selected
+            #    self.fields['settings'].initial = dumps(selected)
+            self.fields['settings'].widget.selected = selected
+            self.fields['settings'].initial = dumps(selected, cls=DjangoJSONEncoder)
 
     def clean_settings(self):
         data = self.cleaned_data['settings']
@@ -77,5 +81,6 @@ class TableSettingsForm(ModelForm):
         return next(zip(*data))
 
     def reset_selection(self, selected):
-        self.fields['settings'].widget.selected = selected
-        self.fields['settings'].initial = dumps(selected)
+        if "settings" in self.fields:
+            self.fields['settings'].widget.selected = selected
+            self.fields['settings'].initial = dumps(selected)

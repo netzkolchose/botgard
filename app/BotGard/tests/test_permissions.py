@@ -44,6 +44,8 @@ GUEST_PERMISSIONS = {
     'seedcatalog.seedcatalog': {'view'},
     'species.family': {'view'},
     'species.species': {'view'},
+    'herbaria.herbarium': {'view'},
+    'herbaria.herbariumspecimen': {'view'},
 }
 
 
@@ -217,6 +219,7 @@ class TestPermissions(TestBase):
                 Species, Family,
                 Entry, Department, Territory, Individual, Seed, Outplanting,
                 SeedCatalog,
+                Herbarium, HerbariumSpecimen
             ]
         )
 

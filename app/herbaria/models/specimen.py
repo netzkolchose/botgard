@@ -167,16 +167,18 @@ def create_herbarium_specimen_form_class(
         )
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
-            self.fields["collector"].queryset = (
-                get_user_model()
-                .objects.filter(is_active=True, is_staff=True)
-                .order_by("username")
-            )
-            if no_default_specimen_type:
-                self.fields["specimen_type"].choices = (
-                    [("", _("Please select..."))] + list(self.fields["specimen_type"].choices)
+            if field := self.fields.get("collector"):
+                field.queryset = (
+                    get_user_model()
+                    .objects.filter(is_active=True, is_staff=True)
+                    .order_by("username")
                 )
-                self.fields["specimen_type"].initial = ""
+            if no_default_specimen_type:
+                if field := self.fields.get("specimen_type"):
+                    field.choices = (
+                        [("", _("Please select..."))] + list(self.fields["specimen_type"].choices)
+                    )
+                    field.initial = ""
 
     return HerbariumSpecimenForm
 

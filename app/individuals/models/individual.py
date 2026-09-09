@@ -492,7 +492,8 @@ class IndividualForm(
     def __init__(self, *args, **kwargs):
         self._update_initial(kwargs)
         super(IndividualForm, self).__init__(*args, **kwargs)
-        self.fields["literature"].widget.attrs["style"] = "width: 40rem;"
+        if field := self.fields.get("literature"):
+            field.widget.attrs["style"] = "width: 40rem;"
 
 
 class SeedInLatestCatalogFilter(FieldListFilter):
