@@ -377,3 +377,7 @@ nav#changelist-filter:not(:has(details:not([data-filter-title="-invisible-"]))) 
 .custom-properties-fieldset .errorlist{
     margin-left: 0;
 }
+
+.submit-row-info-box {
+    width: 100%;
+}
