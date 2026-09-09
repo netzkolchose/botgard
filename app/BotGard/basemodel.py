@@ -130,7 +130,7 @@ def botgard_base_model_patch_fieldsets(
         # append at the end
         fieldsets.append(
             (_("Changes"), {
-                "classes": ("collapse", ),
+                # "classes": ("collapse", ),
                 "fields": (CREATION_FIELDS, ),
             })
         )
