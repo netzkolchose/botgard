@@ -262,6 +262,43 @@ class TestCustomProps2(TestBase):
             f"custom-property-{prop5.pk}": "User1",
         })
 
+    def test_customprops_instance_attributes(self):
+        """Check the Model instance helper functions"""
+        CustomProperty.objects.all().delete()
+
+        prop_t = self.create_custom_property(BotanicGarden, "t", type="text")
+        prop_b = self.create_custom_property(BotanicGarden, "b", type="bool")
+        prop_u = self.create_custom_property(BotanicGarden, "u", type="user")
+
+        instance = BotanicGarden.objects.get(code="GARD1")
+
+        self.assertEqual(None, getattr(instance, f"custom_property_{prop_t.pk}"))
+        # bool properties return False if not existing
+        self.assertEqual(False, getattr(instance, f"custom_property_{prop_b.pk}"))
+        self.assertEqual(None, getattr(instance, f"custom_property_{prop_u.pk}"))
+        self.assertEqual(None, instance.custom_property("t"))
+        self.assertEqual(False, instance.custom_property("b"))
+        self.assertEqual(None, instance.custom_property("u"))
+
+        user1 = User.objects.get(username="User1")
+        instance.custom_values_text.add(PropertyValueText.objects.create(property=prop_t, value="Bob"))
+        instance.custom_values_bool.add(PropertyValueBool.objects.create(property=prop_b, value=True))
+        instance.custom_values_user.add(PropertyValueUser.objects.create(property=prop_u, value=user1))
+
+        self.assertEqual("Bob", getattr(instance, f"custom_property_{prop_t.pk}"))
+        self.assertEqual(True, getattr(instance, f"custom_property_{prop_b.pk}"))
+        self.assertEqual(user1, getattr(instance, f"custom_property_{prop_u.pk}"))
+        self.assertEqual("Bob", instance.custom_property("t"))
+        self.assertEqual(True, instance.custom_property("b"))
+        self.assertEqual(user1, instance.custom_property("u"))
+
+        # -- if properties do not exist --
+        with self.assertRaises(AttributeError):
+            print(instance.custom_property_666)
+
+        with self.assertRaises(AttributeError):
+            print(instance.custom_property("unknown"))
+
     def test_customprops_ordering(self):
         """
         Make sure the actual ordering query works when ordering by custom values

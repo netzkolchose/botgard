@@ -89,16 +89,20 @@ instance.custom_values_text.add(
     PropertyValueText.objects.create(property=prop, value="some text")
 )
 
-# assume prop.pk == 1
+# models have special methods/attributes to access their custom-prop values:
+
+print(instance.custom_property("my attribute"))
+
+# or without function call (useful in label templates), assume prop.pk == 1
 print(instance.custom_property_1)
-# 'some text'
 ```
 
-MyModel has many-to-many relations called `custom_values_text` and `custom_values_bool`. They link 
-to `PropertyValueText` and `PropertyValueBool` models respectively.
+MyModel has many-to-many relations called `custom_values_text`, `custom_values_bool` or `custom_values_user`.
+They link to `PropertyValueText`, `PropertyValueBool` and `PropertyValueUser` models respectively.
 
 The `instance.custom_property_1` trick above is made by overloading the `MyModel.__getattr__` method
 and fetching the value from database. It is implemented to make properties available to label templates.
+
 
 ### TODO: proper display in read-only changeform
 

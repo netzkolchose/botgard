@@ -84,10 +84,20 @@ class CustomProperty(models.Model):
             model=model._meta.label,
         ).order_by("order", "name"))
 
-    def get_value_for_model(self, model: models.Model) -> Union[None, "PropertyValueBool", "PropertyValueText"]:
+    def get_value_for_model(self, model: models.Model) -> Union[None, "PropertyValueBool", "PropertyValueText", "PropertyValueUser"]:
         type = self.type.split("_")[0]
         if rel_manager := getattr(model, f"custom_values_{type}"):
             return rel_manager.filter(property=self).first()
+
+    def get_python_value_for_model(self, model: models.Model) -> Union[None, bool, str, User]:
+        type = self.type.split("_")[0]
+        if rel_manager := getattr(model, f"custom_values_{type}"):
+            prop_value = rel_manager.filter(property=self).first()
+            if prop_value:
+                return prop_value.value
+            if self.type == "bool":
+                return False
+            return None
 
     def get_decorator_value_for_model(self, model: models.Model):
         if v := self.get_value_for_model(model):

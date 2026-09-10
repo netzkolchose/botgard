@@ -1,5 +1,5 @@
 import pprint
-from typing import Type
+from typing import Type, Union
 
 from django.db import models
 
@@ -52,15 +52,30 @@ def CustomPropertiesBaseModel(related_name_model: str) -> Type[models.Model]:
 
             pk = item[16:]
             try:
-                prop = (
-                    self.custom_values_bool.filter(property__pk=pk).first()
-                    or self.custom_values_text.filter(property__pk=pk).first()
-                    or self.custom_values_user.filter(property__pk=pk).first()
+                prop = CustomProperty.objects.get(model=self._meta.label, pk=pk)
+            except CustomProperty.DoesNotExist:
+                msg = f"CustomProperty missing: {item}"
+                available_pks = sorted(
+                    CustomProperty.objects.filter(model=self._meta.label).values_list("pk", flat=True)
                 )
-                return prop.value
-            except:
-                raise AttributeError(f"CustomProperty missing: {item}")
+                if not available_pks:
+                    msg = f"{msg}. {type(self).__name__} has no custom properties"
+                else:
+                    msg = (
+                        f"{msg}. {type(self).__name__} has the following custom property PKs: "
+                        + ', '.join(str(pk) for pk in available_pks)
+                    )
+                raise AttributeError(msg)
 
+            return prop.get_python_value_for_model(self)
+
+        def custom_property(self, name: str) -> Union[None, bool, str, User]:
+            try:
+                prop = CustomProperty.objects.get(model=self._meta.label, name=name)
+            except CustomProperty.DoesNotExist:
+                raise AttributeError(f"Model {type(self).__name__} has no CustomProperty named '{name}'")
+
+            return prop.get_python_value_for_model(self)
 
     return _CustomPropertiesModel
 
