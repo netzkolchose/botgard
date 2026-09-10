@@ -674,6 +674,10 @@ class ChangeForm:
         def is_prefix(self) -> bool:
             return "__prefix__" in self.name
 
+        @property
+        def is_multiselect(self) -> bool:
+            return self.type == "select" and "multiple" in self.element.attrs
+
     def __init__(self, parent: TestBase, app_name: str, model_name: str, pk: Union[None, int, str]):
         self.pk = pk
         self.parent = parent
@@ -798,6 +802,8 @@ class ChangeForm:
                             continue
                         value = "on"
                 elif value is None:
+                    if field.is_multiselect:
+                        continue
                     value = ""
                 actual_values.appendlist(key, value)
 
@@ -815,7 +821,7 @@ class ChangeForm:
             if expect_validation_errors:
                 self.parent.assert_admin_form_errors(response)
                 self.parse(response)
-                return
+                return response
             self.parent.assert_no_admin_form_errors(response)
 
             # in case of admin/app/model/add, catch the redirect and extract pk
@@ -830,7 +836,7 @@ class ChangeForm:
             if expect_validation_errors:
                 self.parent.assert_admin_form_errors(response)
                 self.parse(response)
-                return
+                return response
 
         self.parent.assert_no_admin_form_errors(response)
 
