@@ -46,10 +46,10 @@ def fuzzy_find_bgci_garden(
         keys: Tuple[str] = ("name", "city"),
         with_scores: bool = False,
 ) -> Union[
-        List[BGCIGarden],
-        List[Tuple[BGCIGarden, float]],
-        List[List[BGCIGarden]],
-        List[List[Tuple[BGCIGarden, float]]]
+    List[BGCIGarden],
+    List[Tuple[BGCIGarden, float]],
+    List[List[BGCIGarden]],
+    List[List[Tuple[BGCIGarden, float]]]
 ]:
     """
     Find a BGCI garden by fuzzy-matching against `BGCIGarden.<key>`
@@ -100,4 +100,5 @@ def fuzzy_find_bgci_garden(
 
     if len(terms) == 1:
         return results[0]
+
     return results

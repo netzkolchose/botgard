@@ -1,0 +1,51 @@
+{% load i18n %}
+<div class="species-audit-widget">
+    <table>
+        <thead>
+            <tr>
+                <th>{% trans 'genus & Species' %}</th>
+                <th>{% trans 'plant categorized by' %}</th>
+                <th>{% trans 'categorized at' %}</th>
+                <th>{% trans 'literature' %}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in widget.value %}
+                <tr>
+                    <td>
+                        <input
+                            disabled
+                            type="text"
+                            value="{{ row.species }}"
+                            class="autocomplete-modelfield autocomplete-verify"
+                            data-ac-json-url="/de/ajax/model/model.json"
+                            data-ac-id="species-species-full_name_generated"
+                        >
+                    </td>
+                    <td>
+                        <input
+                            disabled
+                            type="text"
+                            value="{{ row.user }}"
+                        >
+                    </td>
+                    <td>
+                        <input
+                            disabled
+                            type="text"
+                            value="{{ row.date }}"
+                        >
+                    </td>
+                    <td>
+                        <input
+                            disabled
+                            type="text"
+                            style="width: 20rem;"
+                            value="{{ row.literature }}"
+                        >
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

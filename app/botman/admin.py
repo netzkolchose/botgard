@@ -3,7 +3,6 @@ from django.contrib.admin.models import LogEntry
 from django.utils.translation import gettext_lazy as _
 
 from config_tables.admin import ConfigurableTable, configurable, ForeignKeyFilter
-from tools import readOnlyAdmin
 from tools.search_fields import search_fields_compatible
 from tools.permissions import check_user_has_permissions
 from .models import *
@@ -39,7 +38,7 @@ class OutgoingOrdersInline(admin.TabularInline):
         return qset.filter(processed=False)
 
 
-class BotanicGardenAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
+class BotanicGardenAdmin(ConfigurableTable):
     form = BotanicGardenForm
     list_display = ('change_link_decorator', #'number',
                     'name', 'code', 'phone',
@@ -61,6 +60,12 @@ class BotanicGardenAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTab
             )
         }),
     )
+
+    list_filter = (
+        ("created_by__username", ForeignKeyFilter),
+        ("modified_by__username", ForeignKeyFilter),
+    )
+
     ordering = ('number',)
     inlines = (ExternalCatalogInline, OutgoingOrdersInline)
 
@@ -102,7 +107,7 @@ class BotanicGardenAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTab
 admin.site.register(BotanicGarden, BotanicGardenAdmin)
 
 
-class ExternalCatalogAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
+class ExternalCatalogAdmin(ConfigurableTable):
     form = ExternalCatalogForm
     list_display = (
         "__str__",
@@ -134,7 +139,7 @@ class ExternalCatalogAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableT
 admin.site.register(ExternalCatalog, ExternalCatalogAdmin)
 
 
-class ExternalCatalogArchiveAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
+class ExternalCatalogArchiveAdmin(ConfigurableTable):
     form = ExternalCatalogArchiveForm
     list_display = (
         "__str__",
@@ -187,7 +192,7 @@ class OutgoingOrderAdmin(ConfigurableTable):
         queryset.update(processed=True)
         # update the BotanicGarden.num_orders_generated field
         for garden_pk in queryset.values_list("garden", flat=True).distinct():
-            BotanicGarden.objects.get(pk=garden_pk).save()
+            BotanicGarden.objects.get(pk=garden_pk).save(_no_creation_fields=True)
 
     def has_mark_as_processed_permission(self, request):
         # Only catalog maintainers can mark orders as processed
@@ -202,7 +207,7 @@ class OutgoingOrderAdmin(ConfigurableTable):
 admin.site.register(OutgoingOrder, OutgoingOrderAdmin)
 
 
-class BGCIGardenAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
+class BGCIGardenAdmin(ConfigurableTable):
     form = BGCIGardenForm
     list_display = (
         'bgci_id', 'ipen_code', 'name', 'country', 'city', 'bgci_link_decorator'
@@ -214,6 +219,11 @@ class BGCIGardenAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable)
     ])
 
     ordering = ('bgci_id',)
+
+    list_filter = (
+        ("created_by__username", ForeignKeyFilter),
+        ("modified_by__username", ForeignKeyFilter),
+    )
 
 admin.site.register(BGCIGarden, BGCIGardenAdmin)
 

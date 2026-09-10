@@ -1,3 +1,5 @@
+from typing import Optional
+
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.apps import apps
@@ -5,6 +7,7 @@ from django.core.exceptions import FieldError, ValidationError
 from django.db import OperationalError, ProgrammingError
 from django.db.models import Func
 
+from config_app.models import CustomProperty
 from tools.permissions import login_required
 
 
@@ -75,10 +78,12 @@ def model_fieldvalues_json(request):
                     return _reduce(FModel, "__".join(names[1:]))
         return Model, fieldname
 
-    def _get_entries(Model, fieldname, terms, filter_mode):
+    def _get_entries(Model, fieldname, terms, filter_mode, custom_prop: Optional[CustomProperty] = None):
         Model, fieldname = _reduce(Model, fieldname)
         # find entries that start with first term
         filters = _get_filters(fieldname, terms, filter_mode)
+        if custom_prop:
+            filters.append({"property": custom_prop})
         entries = _filter(Model, filters, fieldname)
         if entries is None:
             if filter_mode == "startswith":
@@ -105,7 +110,16 @@ def model_fieldvalues_json(request):
         return short
 
     def _get_list(request):
-        app, modelname, fieldname = request.GET.get("id").split("-")
+        custom_prop: Optional[CustomProperty] = None
+        if (request.GET.get("id") or "").startswith("custom_property_"):
+            app, modelname, fieldname = "config_app", "propertyvaluetext", "value"
+            try:
+                custom_prop = CustomProperty.objects.get(pk=request.GET["id"][16:])
+            except CustomProperty.DoesNotExist:
+                pass
+        else:
+            app, modelname, fieldname = request.GET.get("id").split("-")
+
         terms = request.GET.get("term")
         Model = apps.get_model(app, modelname)
 
@@ -114,15 +128,15 @@ def model_fieldvalues_json(request):
 
         ret_state = None
 
-        entries = _get_entries(Model, fieldname, terms, "exact")
+        entries = _get_entries(Model, fieldname, terms, "exact", custom_prop)
         if entries and len(entries) == 1:
             ret_state = "one"
 
         if not entries:
-            entries = _get_entries(Model, fieldname, terms, "startswith")
+            entries = _get_entries(Model, fieldname, terms, "startswith", custom_prop)
 
         if not entries or len(entries) < max_unique_items:
-            entries2 = _get_entries(Model, fieldname, terms, "contains")
+            entries2 = _get_entries(Model, fieldname, terms, "contains", custom_prop)
             if entries2 is not None:
                 eset = set(entries)
                 for e in entries2:

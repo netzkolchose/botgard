@@ -8,7 +8,7 @@ from django.conf import settings
 import django.contrib.gis.forms as gis_forms
 from modeltranslation.admin import TranslationAdmin, TranslationTabularInline
 
-from .models import KeyValue
+from .models import *
 from geo.widgets import BotGardOpenLayersWidget
 
 
@@ -93,3 +93,66 @@ class KeyValueAdmin(TabbedTranslationAdmin):
 
 
 admin.site.register(KeyValue, KeyValueAdmin)
+
+
+
+class CustomPropertyAdmin(admin.ModelAdmin):
+    list_display = (
+        'change_link_decorator',
+        'model', 'name', 'type_decorator', 'required', 'order', 'times_used_decorator', 'date_created',
+    )
+    search_fields = ('name', )
+
+    fieldsets = (
+        (None, {"fields": (
+            "model",
+            ("name", "order"),
+            ("type", "required"),
+            "choices",
+        )}),
+    )
+
+    list_filter = ("model", )
+    list_editable = ("order", "required")
+
+    def type_decorator(self, instance: CustomProperty):
+        type = instance.type
+        for key, label in CUSTOM_PROPERTY_TYPE_CHOICES:
+            if type == key:
+                type = label
+                break
+        if ch := instance.get_choices():
+            type = _("Text ({} choices)").format(len(ch))
+        return type
+    type_decorator.short_description = _("type")
+    type_decorator.admin_order_field = "type"
+
+    def times_used_decorator(self, instance: CustomProperty):
+        if instance.type == "bool":
+            return instance.values_bool.count()
+        elif instance.type in ("text", "text_long"):
+            return instance.values_text.count()
+        elif instance.type == "user":
+            return instance.values_user.count()
+        else:
+            raise NotImplementedError(instance.type)
+    times_used_decorator.short_description = _("# used")
+
+
+admin.site.register(CustomProperty, CustomPropertyAdmin)
+
+
+if 0:  # just for debugging, take a look at the actual values
+
+    class PropertyValueBoolAdmin(admin.ModelAdmin):
+        list_display = ('property__model', 'property__name', 'value')
+        search_fields = ('propery__name', )
+
+    admin.site.register(PropertyValueBool, PropertyValueBoolAdmin)
+
+
+    class PropertyValueTextAdmin(admin.ModelAdmin):
+        list_display = ('property__model', 'property__name', 'value')
+        search_fields = ('propery__name', 'value')
+
+    admin.site.register(PropertyValueText, PropertyValueTextAdmin)

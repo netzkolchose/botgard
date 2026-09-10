@@ -8,11 +8,10 @@ from django.utils import timezone
 from species.models import Species
 from botman.models import BotanicGarden
 from individuals.models.individual_base import *
-from individuals.models.territory import Department
 import config_app
 
 
-class Entry(IndividualBase, Configurable):
+class Entry(IndividualBase(unique_name="entry")):
 
     class Meta:
         verbose_name = _("Seed/individual entry")
@@ -71,6 +70,8 @@ class Entry(IndividualBase, Configurable):
         db_index=True,
     )
 
+    # ---- replace `related_name` attributes ----
+
     user = models.ForeignKey(
         verbose_name=_("Created by"),
         to=get_user_model(),
@@ -78,6 +79,21 @@ class Entry(IndividualBase, Configurable):
         null=True,
         blank=True,
         db_index=True,
+        related_name="entries",
+    )
+
+    projects = models.ManyToManyField(
+        verbose_name=_("project assignment"),
+        to="meta.Project",
+        related_name="entries",
+        blank=True,
+    )
+
+    literature = models.ForeignKey(
+        verbose_name=_("literature"),
+        to="literature.Literature",
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
         related_name="entries",
     )
 
@@ -182,17 +198,19 @@ class EntryForm(
         }
     )
 ):
-    exclude_autocomplete = ("department", )
+    exclude_autocomplete = ("department", "projects")
 
     def __init__(self, *args, **kwargs):
         if not kwargs.get("instance"):
             kwargs.setdefault("initial", {})
-            # create same random accession number in two fields when creating a new individual
+            # create same accession number in two fields when creating a new individual
             kwargs["initial"]["accession_number"] = kwargs["initial"]["ipen_accession_number"] = (
                 get_new_accession_number()
             )
-
         super(EntryForm, self).__init__(*args, **kwargs)
+        for key in ("literature", "species_comment"):
+            if field := self.fields.get(key):
+                field.widget.attrs["style"] = "width: 40rem;"
 
 
 def _validate_ipen_creation(code):

@@ -11,7 +11,7 @@ from ajax.autocomplete import AutoCompleteForm
 from config_tables.admin import configurable, Configurable
 from geo.widgets import BotGardOpenLayersWidget
 import config_app
-
+from BotGard import BotGardBaseModel
 
 
 def _to_percent_deco(x, n):
@@ -67,7 +67,7 @@ class CalcOutplantingsMixin(models.Model):
         if hasattr(self, "num_genera"):
             self.num_genera_alive = locations_alive.values_list("individual__species__family__genus").distinct().count()
         if do_save:
-            self.save()
+            self.save(_no_creation_fields=True)
     
     def num_outplantings_alive_percent(self):
         return _to_percent_deco(self.num_outplantings_alive, self.num_outplantings)
@@ -91,13 +91,13 @@ class CalcOutplantingsMixin(models.Model):
         return _to_percent_deco(self.num_genera_alive, self.num_genera)
 
 
-class Territory(CalcOutplantingsMixin, models.Model, Configurable):
+class Territory(CalcOutplantingsMixin, BotGardBaseModel(unique_name="territory", custom_properties=True)):
     class Meta:
         verbose_name = _("territory")
         verbose_name_plural = _("territories")
         ordering = ['code']
 
-    code = models.CharField(max_length=10, unique=True, verbose_name=_("territory code"))
+    code = models.CharField(max_length=20, unique=True, verbose_name=_("territory code"))
     name = models.CharField(max_length=100, unique=True, verbose_name=_("territory name"))
 
     name_generated = models.CharField(max_length=120, verbose_name=_("display name"), default="", editable=False)
@@ -142,7 +142,10 @@ class Territory(CalcOutplantingsMixin, models.Model, Configurable):
     def save(self, *args, **kwargs):
         # update name_generated
         if hasattr(self, "name_generated"):
-            self.name_generated = "%s (%s)" % (self.code, self.name)
+            name = self.code
+            if self.name != self.code:
+                name = f"{name} ({self.name})"
+            self.name_generated = name
 
         has_changed = False
         if self.id:
@@ -158,7 +161,7 @@ class Territory(CalcOutplantingsMixin, models.Model, Configurable):
         # update Department.full_code
         if has_changed:
             for d in Department.objects.filter(territory=self):
-                d.save()
+                d.save(_no_creation_fields=True)
 
     def num_departments(self):
         return Department.objects.filter(territory=self).count()
@@ -197,7 +200,7 @@ config_app.register_key(
 )
 
 
-class Department(CalcOutplantingsMixin, models.Model, Configurable):
+class Department(CalcOutplantingsMixin, BotGardBaseModel(unique_name="department", custom_properties=True)):
     class Meta:
         verbose_name = _("department")
         verbose_name_plural = _("departments")
@@ -207,7 +210,7 @@ class Department(CalcOutplantingsMixin, models.Model, Configurable):
         Territory, on_delete=models.SET_DEFAULT, verbose_name=_("territory"), db_index=True,
         null=True, default=None,
     )
-    code = models.CharField(max_length=10)
+    code = models.CharField(max_length=20)
     name = models.CharField(max_length=100, unique=True)
 
     full_code = models.CharField(max_length=30, default="", editable=False)
@@ -226,7 +229,10 @@ class Department(CalcOutplantingsMixin, models.Model, Configurable):
 
     @configurable
     def __str__(self):
-        return "%s (%s)" % (self.full_code, self.name)
+        name = self.full_code
+        if self.name != self.full_code:
+            name = f"{name} ({self.name})"
+        return name
     __str__.admin_order_field = 'full_code'
 
     @configurable

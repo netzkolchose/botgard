@@ -1,5 +1,5 @@
 import types
-from typing import List, Tuple
+from typing import List, Tuple, Union, Dict, Callable
 
 from django.db import models
 from django.contrib import admin
@@ -15,11 +15,17 @@ from django.urls import reverse
 from operator import itemgetter
 import django.core.exceptions
 from django.contrib.admin.utils import label_for_field
+from django.contrib.auth import get_user_model
 
 from .forms import TableSettingsForm
 from .models import TableSettings
 from tools.csv_response import csv_response
+from config_app.models import CUSTOM_PROPERTY_TYPE_CHOICES, CustomProperty, CUSTOM_PROPERTY_MODEL_TYPES
+from BotGard.basemodel import botgard_base_model_patch_fieldsets, CREATION_FIELDS
 import config_app
+
+
+User = get_user_model()
 
 
 config_app.register_key(
@@ -151,10 +157,64 @@ class CustomSelectHeaderFilter(CustomHeaderFilter):
         )
 
 
+class CustomPropertyHeaderFilter(CustomHeaderFilter):
+
+    def __init__(
+            self,
+            property: CustomProperty,
+    ):
+        self.property = property
+        self.query_name = f"custom_property_{self.property.pk}"
+
+    def render_widget(self, request: HttpRequest):
+        value = request.GET.get(self.query_name) or ""
+        context = {
+            "query": self.query_name,
+            "value": value,
+            "inactive": "" if value else "inactive",
+        }
+        if self.property.type == "bool":
+            return ConfigurableTable._get_search_widget_boolean(context)
+        elif self.property.type in ("text", "text_long"):
+            if choices := self.property.get_choices():
+                return ConfigurableTable._get_search_widget_choice_box(
+                    context,
+                    choices=[(c, c) for c in choices],
+                )
+            else:
+                context.update({
+                    "data-ac-json-url": reverse("ajax:model_json"),
+                    "data-ac-id": f"custom_property_{self.property.pk}",
+                })
+                return ConfigurableTable._get_search_widget_text(context)
+        elif self.property.type == "user":
+            return ConfigurableTable._get_search_widget_choice_box(
+                context,
+                choices=[
+                    (u, u) for u in User.objects.all().order_by("username").values_list("username", flat=True)
+                ],
+            )
+
+        raise NotImplementedError(f"CustomProperty.type '{self.property.type}'")
+
+
 class ConfigurableTable(admin.ModelAdmin, Configurable):
     change_list_template = 'config_tables/change_list.html'
     configuretable_template = 'config_tables/configuretable.html'
     save_on_top = True
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._custom_properties: Union[None, List[CustomProperty]] = None
+        self._custom_property_decorators: Dict[str, Callable] = {}
+
+    @property
+    def custom_properties(self) -> List[CustomProperty]:
+        if self._custom_properties is None:
+            self._custom_properties = list(CustomProperty.objects.filter(
+                model=CustomProperty.get_model_label(self.model)
+            ).order_by("order", "name"))
+        return self._custom_properties
 
     def _get_actual_tablesettings_object(self, request):
         user = request.user
@@ -162,13 +222,42 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
         try:
             tablesettings = TableSettings.objects.get(user=user, model=modelstring)
         except TableSettings.DoesNotExist:
-            tablesettings = TableSettings(user=user, model=modelstring, settings=self.apply_blacklist(self.list_display))
+            tablesettings = TableSettings(
+                user=user,
+                model=modelstring,
+                settings=self.apply_blacklist(super().get_list_display(request)),
+            )
+
         return tablesettings
+
+    def __getattr__(self, key):
+        if not (isinstance(key, str) and key.startswith("custom_property_decorator_")):
+            return super().__getattribute__(key)
+
+        # dynamically create a decorator method that displays the custom property for use in changelist
+        if key not in self._custom_property_decorators:
+            try:
+                prop = CustomProperty.objects.get(
+                    pk=key[26:],  # slice the "custom_property_decorator_" part away
+                    model=CustomProperty.get_model_label(self.model),
+                )
+            except CustomProperty.DoesNotExist:
+                raise AttributeError(f"No property: {key}")
+
+            def _func(instance):
+                return prop.get_decorator_value_for_model(instance)
+            _func.__name__ = f"custom_property_decorator_{prop.pk}"
+            _func.short_description = prop.name
+            # TODO: this might duplicate the rows :-(
+            # _func.admin_order_field = f"custom_values_{prop.type.split('_')[0]}__value"
+            _func.custom_header_filter = CustomPropertyHeaderFilter(property=prop)
+            self._custom_property_decorators[key] = _func
+        return self._custom_property_decorators[key]
 
     def get_list_display(self, request):
         names = self._get_actual_tablesettings_object(request).settings
         # fix old configurations that require fields that are gone
-        names = [n for n in names if hasattr(self.model, n)]
+        names = [n for n in names if hasattr(self.model, n) or hasattr(self, n)]
         return names
 
     def get_list_display_csv(self, request):
@@ -181,6 +270,14 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
                     continue
             ret.append(x)
         return tuple(ret)
+
+    def get_list_filter(self, request):
+        ret_list = super().get_list_filter(request)
+        ret_list = list(ret_list)
+        # add custom properties to list filters
+        for prop in CustomProperty.get_properties_for_model(self.model):
+            ret_list.append(prop.create_list_filter())
+        return ret_list
 
     def get_urls(self):
         urls = super(ConfigurableTable, self).get_urls()
@@ -220,6 +317,20 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
             obj = tmp
         return s.strip(' --> ')
 
+    def get_fieldsets(self, request, obj=None):
+        fieldsets = super().get_fieldsets(request, obj)
+        fieldsets = botgard_base_model_patch_fieldsets(self.model, fieldsets)
+        return fieldsets
+
+    def get_readonly_fields(self, request, obj=None):
+        fields = super().get_readonly_fields(request, obj)
+        if getattr(self.model, "_has_creation_fields", None):
+            fields = list(fields)
+            for field in CREATION_FIELDS:
+                if field not in fields:
+                    fields.append(field)
+        return tuple(fields)
+
     def configuretable_view(self, request, extra_context=None):
         if not (
             self.has_view_or_change_permission(request) or self.has_add_permission(request)
@@ -234,7 +345,7 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
             if "_delete" in request.POST:
                 try:
                     tablesettings.delete()
-                except AssertionError:  # in case, there is no settings yet
+                except (ValueError, AssertionError):  # in case, there is no settings yet
                     pass
                 return redirect(return_url)
             POST = request.POST.copy()
@@ -286,7 +397,7 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
         selected = []
         for elem in tablesettings.settings:
             # fix old configurations that require fields that are gone
-            if hasattr(self.model, elem):
+            if hasattr(self.model, elem) or hasattr(self, elem):
                 selected.append((elem, label_for_field(elem, self.model, self)))
 
         form = TableSettingsForm(instance=tablesettings, selected=selected, extra_opts=opts)
@@ -322,14 +433,18 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
         """
         # create a dummy model instance to trigger correct function association
         model()
+
         settings = settings or []
 
         # fetch decorator functions from model
-        funcs = self.get_configurable_funcs(model)
+        funcs = self.get_configurable_funcs(model).copy()
 
         # if we are at base admin level fetch also ModelAdmin decorator function
         if model == self.model:
             funcs |= self.get_configurable_funcs(self.__class__)
+            for prop in CustomProperty.get_properties_for_model(self.model):
+                if f := getattr(self, f"custom_property_decorator_{prop.pk}", None):
+                    funcs.add(f)
 
         return [
             (
@@ -373,9 +488,8 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
         attributes += self.get_decorated_functions(model, path, settings)
 
         attributes = self.apply_blacklist(attributes)
-
         # alphabetic sorting
-        attributes.sort(key=itemgetter(0))
+        attributes.sort(key=lambda a: a[0].lower())
 
         ctx = {'attributes': attributes}
         return render(request, 'config_tables/treepart.html', ctx)
@@ -401,6 +515,7 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
                            models.EmailField, models.IPAddressField, models.GenericIPAddressField,
                            models.URLField, models.UUIDField, models.BooleanField, models.NullBooleanField,
                            models.FileField, models.FilePathField,
+                           models.ManyToManyField,
                            )
 
         ac_model = "%s.%s" % (self.model._meta.app_label, self.model._meta.model_name)
@@ -415,14 +530,11 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
 
         # see if decorator function
         except django.core.exceptions.FieldDoesNotExist:
-            func = None
-            import inspect
-            mems = inspect.getmembers(self.model)
-            for mem in mems:
-                if field_name == mem[0]:
-                    func = mem[1]
-                    break
-            if not func:
+            if field_name.startswith("custom_property_decorator_"):
+                func = getattr(self, field_name, None)
+            else:
+                func = getattr(self.model, field_name, None)
+            if not callable(func):
                 return None
 
             # check for CustomHeaderFilter
@@ -479,6 +591,10 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
             # the name of the field in related model
             foreign_field_name = None
             for i in self.list_filter:
+                try:
+                    len(i)
+                except TypeError:
+                    continue
                 # try to get name from installed ForeignKeyFilter
                 if len(i) == 2:
                     tup = i[0].split("__")
@@ -607,6 +723,26 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
             ret.setdefault(k, v)
         ret.setdefault("all", "1")
         return ret
+
+    def construct_change_message(
+        self, request, form, formsets, add = ...
+    ):
+        """Patch change_message to avoid logging no-updates to custom_values_text|bool"""
+        messages = super().construct_change_message(request, form, formsets, add)
+        # first of all, remove logs about "values text|bool" entirely
+        for message in messages:
+            if changed := message.get("changed"):
+                if fields := changed.get("fields"):
+                    changed["fields"] = [f for f in fields if f not in ("text values", "bool values")]
+
+        # TODO: unfortunately this method is called after the ModelAdmin has saved the model instance
+        #   so i'm really not sure how we could detect changes to PropertyValue<Type> instances
+        #for prop in self.custom_properties:
+        #    if value := form.data.get(f"custom-property-{prop.pk}"):
+        #        if prop.type == "bool":
+        #            value = value == "on"
+
+        return messages
 
     def changelist_view(self, request, extra_context=None, **kwargs):
         """

@@ -19,6 +19,7 @@ from config_tables.admin import configurable, Configurable
 from ajax.autocomplete import AutoCompleteForm
 from individuals.models import Individual
 from tools.global_request import get_current_user
+from BotGard import BotGardBaseModel
 
 
 HERBARIUM_SPECIMEN_TYPES = (
@@ -45,7 +46,7 @@ def get_default_herbarium():
     return Herbarium.objects.all().order_by("pk").first()
 
 
-class HerbariumSpecimen(Configurable, models.Model):
+class HerbariumSpecimen(BotGardBaseModel(unique_name="herbariumspecimen", custom_properties=True)):
 
     class Meta:
         verbose_name = _("Specimen")
@@ -150,7 +151,7 @@ class HerbariumSpecimen(Configurable, models.Model):
 
         if not self.individual.has_specimen_generated:
             self.individual.has_specimen_generated = True
-            self.individual.save()
+            self.individual.save(_no_creation_fields=True)
 
 
 def create_herbarium_specimen_form_class(
@@ -166,16 +167,18 @@ def create_herbarium_specimen_form_class(
         )
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
-            self.fields["collector"].queryset = (
-                get_user_model()
-                .objects.filter(is_active=True, is_staff=True)
-                .order_by("username")
-            )
-            if no_default_specimen_type:
-                self.fields["specimen_type"].choices = (
-                    [("", _("Please select..."))] + list(self.fields["specimen_type"].choices)
+            if field := self.fields.get("collector"):
+                field.queryset = (
+                    get_user_model()
+                    .objects.filter(is_active=True, is_staff=True)
+                    .order_by("username")
                 )
-                self.fields["specimen_type"].initial = ""
+            if no_default_specimen_type:
+                if field := self.fields.get("specimen_type"):
+                    field.choices = (
+                        [("", _("Please select..."))] + list(self.fields["specimen_type"].choices)
+                    )
+                    field.initial = ""
 
     return HerbariumSpecimenForm
 
@@ -186,4 +189,4 @@ def on_herbarium_deleted(sender, instance: HerbariumSpecimen, **kwargs):
         has_specimen = instance.individual.herbarium_specimens.exists()
         if has_specimen != instance.individual.has_specimen_generated:
             instance.individual.has_specimen_generated = has_specimen
-            instance.individual.save()
+            instance.individual.save(_no_creation_fields=True)

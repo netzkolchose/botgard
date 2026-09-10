@@ -1,13 +1,17 @@
 from django.db import models
+from django.db.models import QuerySet
 from django.utils.translation import gettext_lazy as _
 from django.utils.translation import ngettext_lazy
 from django.utils.safestring import mark_safe
 from django.urls import reverse
 from django import forms
+from django.contrib import admin
 
-from config_tables.admin import Configurable, configurable
+from BotGard import BotGardBaseModel
+from config_tables.admin import Configurable, configurable, CustomSelectHeaderFilter
 from ajax.autocomplete import AutoCompleteForm
 from tools import global_request
+
 
 PROTECTION_OF_SPECIES_CHOICES = (
     ('LC', 'LC (Least Concern)'),
@@ -50,7 +54,7 @@ if len(LIFEFORM_CHOICES) != len(set([i[0] for i in LIFEFORM_CHOICES])):
     raise ValueError("Duplicate LIFEFORM_CHOICES!!")
 
 
-class Family(models.Model, Configurable):
+class Family(BotGardBaseModel(unique_name="family", custom_properties=True)):
     class Meta:
         verbose_name = _('genus')
         verbose_name_plural = _('genera')
@@ -99,14 +103,40 @@ class Family(models.Model, Configurable):
         # update coresponding Species.full_name_generated
         if hasattr(Species, "full_name_generated"):
             for i in Species.objects.filter(family=self):
-                i.save()
+                i.save(_no_creation_fields=True)
 
 
 class FamilyForm(AutoCompleteForm(Family)):
     pass
 
 
-class Species(models.Model, Configurable):
+class AliveIndividualsListFilter(admin.SimpleListFilter):
+    title = "-invisible-"
+
+    # Parameter for the filter that will be used in the URL query.
+    parameter_name = "individuals_exist"
+    CHOICES = [
+        ("1", _("Exist")),
+        ("0", _("Don't exist")),
+    ]
+
+    def lookups(self, request, model_admin):
+        return self.CHOICES
+
+    def queryset(self, request, queryset: QuerySet):
+        if self.value() == "1":
+            return queryset.filter(
+                individual__is_alive_generated=True,
+            ).distinct()
+        elif self.value() == "0":
+            return queryset.exclude(
+                individual__is_alive_generated=True,
+            ).distinct()
+        else:
+            return queryset
+
+
+class Species(BotGardBaseModel(unique_name="species", custom_properties=True)):
 
     class Meta:
         verbose_name = ngettext_lazy('species', 'species', 1)
@@ -154,6 +184,30 @@ class Species(models.Model, Configurable):
     comment = models.TextField(verbose_name=_('comment'), max_length=10000, blank=True, null=True)
     picture = models.ImageField(verbose_name=_('picture'), upload_to="pictures", blank=True)
 
+    literature = models.ForeignKey(
+        verbose_name=_("literature"),
+        to="literature.Literature",
+        on_delete=models.SET_NULL,
+        related_name="species",
+        null=True, blank=True,
+    )
+
+    literature_distribution = models.ForeignKey(
+        verbose_name=_("literature (distribution)"),
+        to="literature.Literature",
+        on_delete=models.SET_NULL,
+        related_name="species_distribution",
+        null=True, blank=True,
+    )
+
+    literature_german_name = models.ForeignKey(
+        verbose_name=_("literature (german name)"),
+        to="literature.Literature",
+        on_delete=models.SET_NULL,
+        related_name="species_german_name",
+        null=True, blank=True,
+    )
+
     @configurable
     def get_author_name(self):
         for author in filter(bool, (
@@ -175,7 +229,12 @@ class Species(models.Model, Configurable):
         if self.subspecies:
             return_string += " subsp. " + self.subspecies
         if self.variety:
-            return_string += " var. " + self.variety
+            if self.variety.startswith("convar. "):
+                return_string += " " + self.variety
+            elif self.variety.startswith("subvar. "):
+                return_string += " " + self.variety
+            else:
+                return_string += " var. " + self.variety
         if self.form:
             return_string += " f. " + self.form
         if self.cultivar:
@@ -282,6 +341,10 @@ class Species(models.Model, Configurable):
             "yes" if has_individuals else "no",
         ))
     alive_individuals_decorator.short_description = _('alive individuals')
+    alive_individuals_decorator.custom_header_filter = CustomSelectHeaderFilter(
+        query_name=AliveIndividualsListFilter.parameter_name,
+        choices=AliveIndividualsListFilter.CHOICES,
+    )
 
     def save(self, *args, **kawrgs):
         if hasattr(self, "full_name_generated"):
@@ -291,11 +354,15 @@ class Species(models.Model, Configurable):
         from individuals.models import Individual
         if hasattr(Individual, "id_name_generated"):
             for i in Individual.objects.filter(species=self):
-                i.save()
+                i.save(_no_creation_fields=True)
 
 
 class SpeciesForm(AutoCompleteForm(Species)):
+
     def __init__(self, *args, **kwargs):
         super(SpeciesForm, self).__init__(*args, **kwargs)
         if not global_request.get_current_user().has_perm("species.can_check_nomenclature"):
             self.fields["nomenclature_checked"] = forms.NullBooleanField(disabled=True)
+        for key in ("literature", "literature_distribution", "literature_german_name"):
+            if key in self.fields:
+                self.fields[key].widget.attrs["style"] = "width: 30rem;"

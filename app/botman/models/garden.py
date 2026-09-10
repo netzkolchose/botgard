@@ -2,19 +2,14 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.urls import reverse
 from django.utils.safestring import mark_safe
-from django.utils import timezone
 from django.contrib.auth import get_user_model
-from django.dispatch import receiver
-from django.db.models.signals import post_save, pre_delete, post_delete, post_init
-from django import forms
+from django.conf import settings
 
 from config_tables.admin import Configurable, configurable
 from ajax.autocomplete import AutoCompleteForm
 from tools.urls import full_url
-
 import config_app
-
-# TODO: replace get_new_number, link methods still needed?, save still needed?
+from BotGard import BotGardBaseModel
 
 
 config_app.register_key(
@@ -25,18 +20,16 @@ config_app.register_key(
 
 
 def get_new_number():
-    '''
-        get an available number for a new garden
-    '''
-    latest_garden = BotanicGarden.objects.all().order_by('-number')
-    if not latest_garden.exists():
-        new_number = 1
-    else:
-        new_number = latest_garden[0].number + 1
-    return new_number
+    """
+    get an available number for a new garden
+    """
+    number = BotanicGarden.objects.all().count() + 1
+    while BotanicGarden.objects.filter(number=number).exists():
+        number += 1
+    return number
 
 
-class BotanicGarden(Configurable, models.Model):
+class BotanicGarden(BotGardBaseModel(unique_name="garden", custom_properties=True)):
     class Meta:
         verbose_name = _('botanic garden')
         verbose_name_plural = _('botanic gardens')
@@ -46,9 +39,12 @@ class BotanicGarden(Configurable, models.Model):
 
     _id_field = "full_name_generated"
 
-    name = models.CharField(verbose_name=_('name'), max_length=50, unique=True, db_index=True)
+    name = models.CharField(verbose_name=_('name'), max_length=120, unique=True, db_index=True)
     code = models.CharField(verbose_name=_('IPEN part'), max_length=6, blank=True, null=True, db_index=True)
-    number = models.IntegerField(verbose_name=_('garden number'), unique=True, blank=False, default=get_new_number)
+    number = models.CharField(
+        verbose_name=_('garden number'), max_length=16, unique=True, blank=False, default=get_new_number,
+        db_collation="natural_sort" if settings.IS_POSTGRES else None,
+    )
     address = models.TextField(verbose_name=_('address'), max_length=255, blank=True, null=True)
     phone = models.CharField(verbose_name=_('phone'), max_length=80, blank=True, null=True)
     website = models.URLField(verbose_name=_('website'), blank=True, null=True)
