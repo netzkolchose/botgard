@@ -14,7 +14,7 @@ import subprocess
 import importlib
 from pathlib import Path
 import tempfile
-from typing import Dict, Set, Optional, Type, Callable, Any
+from typing import Dict, Set, Optional, Type, Callable, Any, Literal
 
 import django.contrib.admin.sites
 from django.test import TestCase, Client, override_settings
@@ -82,6 +82,8 @@ INVISIBLE_MODELS = (
     "config_app.propertyvaluetext",
     "config_app.propertyvaluebool",
     "config_app.propertyvalueuser",
+    "entrybook.entry_projects",
+    "individuals.individual_projects",
     "gis.postgisspatialrefsys",
     "gis.postgisgeometrycolumns",
 )
