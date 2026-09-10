@@ -399,20 +399,22 @@ class IndividualFromEntryAdmin(IndividualAdmin):
             form_set_class: Type[BaseModelFormSet]
             if isinstance(inline_instance, OutplantingInline):
                 entry = self._entry
+                if entry.department:
 
-                class PatchedFormSet(form_set_class):
-                    def __init__(self, *args, **kwargs):
-                        kwargs["initial"] = [{
-                            "department": str(entry.department.pk) if entry.department else None,
-                            "seeded_date": entry.seeded_date,
-                            "date": entry.bed_out_date,
-                        }]
-                        super().__init__(*args, **kwargs)
+                    class PatchedFormSet(form_set_class):
+                        min_num = 1
+                        def __init__(self, *args, **kwargs):
+                            kwargs["initial"] = [{
+                                "department": str(entry.department.pk) if entry.department else None,
+                                "seeded_date": entry.seeded_date,
+                                "date": entry.bed_out_date,
+                            }]
+                            super().__init__(*args, **kwargs)
 
-                    def has_changed(self):
-                        return True
+                        def has_changed(self):
+                            return True
 
-                form_set_class = PatchedFormSet
+                    form_set_class = PatchedFormSet
 
             yield form_set_class, inline_instance
 

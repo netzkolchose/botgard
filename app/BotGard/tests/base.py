@@ -565,7 +565,11 @@ class ChangeListForm:
     def _parse_form(self):
         form = self.soup.find("form", {"id": "changelist-form"})
         if not form:
-            raise AssertionError(f"No changelist-form found in {self.url}")
+            form_ids = list(filter(bool, [
+                form.attrs.get("id")
+                for form in self.soup.find_all("form")
+            ]))
+            raise AssertionError(f"No changelist-form found in {self.url}, found ids: {form_ids}")
 
         def _add_field(inp: bs4.PageElement, value):
             self.fields.append(self.FormField(
@@ -735,7 +739,37 @@ class ChangeForm:
             self,
             override_values: Union[None, Dict, QueryDict] = None,
             expect_validation_errors: bool = False,
+            action_name: str = "_continue",
     ):
+        response = self._save(
+            override_values=override_values,
+            expect_validation_errors=expect_validation_errors,
+            action_name=action_name
+        )
+        self.parse(response)
+
+    def save_as_individual(self):
+        """
+        Special case for saved Entry -> "Save as individual"
+        """
+        response = self._save(
+            action_name="_saveasindividual",
+        )
+        self.pk = None
+        self.app_name = "individuals"
+        self.model_name = "individual"
+        self.parse(response)
+        self.parent.assertEqual(
+            "Add individual",
+            self.soup.find("div", {"id": "content"}).find("h1").text,
+        )
+
+    def _save(
+            self,
+            override_values: Union[None, Dict, QueryDict] = None,
+            expect_validation_errors: bool = False,
+            action_name: str = "_continue",
+    ) -> HttpResponse:
         if override_values is None:
             values = QueryDict(mutable=True)
         elif isinstance(override_values, QueryDict):
@@ -771,7 +805,7 @@ class ChangeForm:
         if self.query_params:
             url = f"{url}?{urllib.parse.urlencode(self.query_params)}"
 
-        actual_values["_continue"] = ""
+        actual_values[action_name] = ""
 
         # don't put a QueryDict into client.post(), it only yields the LAST entry of a list value
         actual_values = dict(actual_values)
@@ -802,7 +836,7 @@ class ChangeForm:
 
         self.parent.assert_response(response, status=200)
         self.parent.assert_no_warning(response)
-        self.parse(response)
+        return response
 
     def get_form_field(self, name_or_element: Union[str, bs4.PageElement]) -> FormField:
         for field in self.fields:
@@ -819,7 +853,13 @@ class ChangeForm:
     def _parse_form(self):
         form = self.soup.find("form", {"id": f"{self.model_name}_form"})
         if not form:
-            raise AssertionError(f"No changeform with id='{self.model_name}_form' found in {self.url}")
+            form_ids = list(filter(bool, [
+                form.attrs.get("id")
+                for form in self.soup.find_all("form")
+            ]))
+            raise AssertionError(
+                f"No changeform with id='{self.model_name}_form' found in {self.url}. Found ids: {form_ids}"
+            )
 
         def _add_field(inp: bs4.PageElement, value, type: Optional[str] = None):
             try:
@@ -844,7 +884,7 @@ class ChangeForm:
                 _add_field(inp, value)
 
         for inp in form.find_all("textarea"):
-            _add_field(inp, inp.text, type="textarea")
+            _add_field(inp, inp.text.lstrip("\n") if inp.text else inp.text, type="textarea")
 
         for inp in form.find_all("select"):
             if inp.attrs.get("name"):
