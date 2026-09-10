@@ -3,6 +3,7 @@
 import django.db.models.deletion
 import individuals.numbers
 from django.db import migrations, models
+from django.conf import settings
 
 
 class Migration(migrations.Migration):
@@ -21,26 +22,26 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='entry',
             name='accession_number',
-            field=models.CharField(db_collation='natural_sort', db_index=True, default=individuals.numbers.get_new_accession_number, max_length=30, null=True, unique=True, verbose_name='accession #'),
+            field=models.CharField(db_collation='natural_sort' if settings.IS_POSTGRES else None, db_index=True, default=individuals.numbers.get_new_accession_number, max_length=30, null=True, unique=True, verbose_name='accession #'),
         ),
         migrations.AlterField(
             model_name='entry',
             name='collector_number',
-            field=models.CharField(blank=True, db_collation='natural_sort', max_length=100, verbose_name='collection number'),
+            field=models.CharField(blank=True, db_collation='natural_sort' if settings.IS_POSTGRES else None, max_length=100, verbose_name='collection number'),
         ),
         migrations.AlterField(
             model_name='entry',
             name='id_name_generated',
-            field=models.CharField(db_collation='natural_sort', default='', editable=False, max_length=100, verbose_name='name'),
+            field=models.CharField(db_collation='natural_sort' if settings.IS_POSTGRES else None, default='', editable=False, max_length=100, verbose_name='name'),
         ),
         migrations.AlterField(
             model_name='entry',
             name='order_number',
-            field=models.CharField(db_collation='natural_sort', default=individuals.numbers.get_new_order_number, max_length=20, unique=True, verbose_name='order number'),
+            field=models.CharField(db_collation='natural_sort' if settings.IS_POSTGRES else None, default=individuals.numbers.get_new_order_number, max_length=20, unique=True, verbose_name='order number'),
         ),
         migrations.AlterField(
             model_name='entry',
             name='sowing_number',
-            field=models.CharField(blank=True, db_collation='natural_sort', max_length=100, verbose_name='sowing number'),
+            field=models.CharField(blank=True, db_collation='natural_sort' if settings.IS_POSTGRES else None, max_length=100, verbose_name='sowing number'),
         ),
     ]
