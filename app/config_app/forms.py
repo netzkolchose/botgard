@@ -237,7 +237,7 @@ def custom_properties_patch_fieldsets(
                 if fields := entry[1].get("fields"):
                     entry[1]["fields"] = [f for f in fields if not str(f).startswith("custom_values_")]
 
-        if CustomProperty.objects.filter(model=model._meta.label).exists():
+        if CustomProperty.objects.filter(model=CustomProperty.get_model_label(model)).exists():
             # and append them at the end
             fieldsets = list(fieldsets) + [
                 (_('custom properties'), {

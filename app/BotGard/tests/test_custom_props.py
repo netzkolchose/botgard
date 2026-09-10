@@ -37,7 +37,7 @@ class TestCustomProps(TestBase):
         }
         def _add_props(model, data):
             for key, prop in cls.CUSTOM_PROPS.items():
-                if prop.model == model._meta.label and data.get(key):
+                if prop.model == CustomProperty.get_model_label(model) and data.get(key):
                     value = data[key]
                     if prop.type == "bool":
                         mgr = model.custom_values_bool

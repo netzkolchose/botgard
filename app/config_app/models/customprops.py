@@ -1,4 +1,4 @@
-from typing import Type, Union, List
+from typing import Type, Union, List, Literal, Optional
 
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -35,12 +35,31 @@ CUSTOM_PROPERTY_MODEL_CHOICES = (
 )
 
 
+class CustomPropertyManager(models.Manager):
+
+    def create_for_model(
+            self,
+            model: Union[models.Model, Type[models.Model]],
+            type: Literal["text", "text_long", "user"],
+            name: str,
+            choices: str = "",
+    ):
+        return self.create(
+            model=CustomProperty.get_model_label(model),
+            type=type,
+            name=name,
+            choices=choices,
+        )
+
+
 class CustomProperty(models.Model):
     class Meta:
         verbose_name = _("custom property")
         verbose_name_plural = _("custom properties")
         ordering = ("model", "name")
         unique_together = ("model", "name")
+
+    objects = CustomPropertyManager()
 
     date_created = models.DateTimeField(
         verbose_name=_("created at"),
@@ -82,9 +101,19 @@ class CustomProperty(models.Model):
         return f"{name}/{self.name}"
 
     @classmethod
+    def get_model_label(cls, model: Union[models.Model, Type[models.Model]]) -> str:
+        """
+        Return the label of the model as used in `CustomProperty.model?.
+        If the model is a proxy-model return the label of the proxied model
+        """
+        while model._meta.proxy_for_model:
+            model = model._meta.proxy_for_model
+        return model._meta.label
+
+    @classmethod
     def get_properties_for_model(self, model: Union[models.Model, Type[models.Model]]) -> List["CustomProperty"]:
         return list(CustomProperty.objects.filter(
-            model=model._meta.label,
+            model=self.get_model_label(model),
         ).order_by("order", "name"))
 
     def get_value_for_model(self, model: models.Model) -> Union[None, "PropertyValueBool", "PropertyValueText", "PropertyValueUser"]:

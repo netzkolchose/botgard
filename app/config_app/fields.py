@@ -30,7 +30,7 @@ class CustomPropertyValuesBaseField(models.ManyToManyField):
     ):
         super().__init__(
             verbose_name=self.verbose_name,
-            to=self.property_value_model_class._meta.label,
+            to=CustomProperty.get_model_label(self.property_value_model_class),
             related_name=related_name,
         )
 

@@ -76,8 +76,8 @@ However, the internals look like this:
 from config_app.models import *
 
 # create a new property
-prop = CustomProperty.objects.create(
-    model=MyModel._meta.label, 
+prop = CustomProperty.objects.create_for_model(
+    model=MyModel, 
     name="my attribute", 
     type="text", 
     required=True,      # makes it mandatory in the `PropertyValuesFormField`

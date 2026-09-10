@@ -212,7 +212,7 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
     def custom_properties(self) -> List[CustomProperty]:
         if self._custom_properties is None:
             self._custom_properties = list(CustomProperty.objects.filter(
-                model=self.model._meta.label
+                model=CustomProperty.get_model_label(self.model)
             ).order_by("order", "name"))
         return self._custom_properties
 
@@ -237,7 +237,10 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
         # dynamically create a decorator method that displays the custom property for use in changelist
         if key not in self._custom_property_decorators:
             try:
-                prop = CustomProperty.objects.get(pk=key[26:], model=self.model._meta.label)
+                prop = CustomProperty.objects.get(
+                    pk=key[26:],  # slice the "custom_property_decorator_" part away
+                    model=CustomProperty.get_model_label(self.model),
+                )
             except CustomProperty.DoesNotExist:
                 raise AttributeError(f"No property: {key}")
 

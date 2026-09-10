@@ -52,11 +52,11 @@ def CustomPropertiesBaseModel(related_name_model: str) -> Type[models.Model]:
 
             pk = item[16:]
             try:
-                prop = CustomProperty.objects.get(model=self._meta.label, pk=pk)
+                prop = CustomProperty.objects.get(model=CustomProperty.get_model_label(self), pk=pk)
             except CustomProperty.DoesNotExist:
                 msg = f"CustomProperty missing: {item}"
                 available_pks = sorted(
-                    CustomProperty.objects.filter(model=self._meta.label).values_list("pk", flat=True)
+                    CustomProperty.objects.filter(model=CustomProperty.get_model_label(self)).values_list("pk", flat=True)
                 )
                 if not available_pks:
                     msg = f"{msg}. {type(self).__name__} has no custom properties"
@@ -71,7 +71,7 @@ def CustomPropertiesBaseModel(related_name_model: str) -> Type[models.Model]:
 
         def custom_property(self, name: str) -> Union[None, bool, str, User]:
             try:
-                prop = CustomProperty.objects.get(model=self._meta.label, name=name)
+                prop = CustomProperty.objects.get(model=CustomProperty.get_model_label(self), name=name)
             except CustomProperty.DoesNotExist:
                 raise AttributeError(f"Model {type(self).__name__} has no CustomProperty named '{name}'")
 

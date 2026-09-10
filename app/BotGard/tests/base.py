@@ -348,8 +348,8 @@ class TestBase(TestCase):
             type: str = "text",
             choices: Optional[List[str]] = None,
     ):
-        return CustomProperty.objects.create(
-            model=model._meta.label,
+        return CustomProperty.objects.create_for_model(
+            model=model,
             type=type,
             name=name,
             choices="\n".join(choices) if choices else "",
