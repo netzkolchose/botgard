@@ -30,6 +30,7 @@ CUSTOM_PROPERTIES = [
     {"model": "herbaria.Herbarium", "type": "text", "name": "herbarium_comment"},
     {"model": "herbaria.HerbariumSpecimen", "type": "text", "name": "specimen_comment"},
     {"model": "literature.Literature", "type": "text", "name": "literature_comment"},
+    {"model": "meta.Project", "type": "text", "name": "project_comment"},
 ]
 
 if missing_set := set(
@@ -68,6 +69,11 @@ LITERATURES = [
     {"title": "Title 2", "compilation": "Plants of the Moon", "volume": "23"},
 ]
 
+PROJECTS = [
+    {"abbreviation": "PR1", "title": "Project One", "manager": "Dr. Strangelove"},
+    {"title": "Project Two", "funding": "Society of Proper Funding", "partner": "Society of Good things"},
+]
+
 FAMILIES = [
     {"family": "Family 1", "genus": "Genus 1"},
     {"family": "Family 2", "genus": "Genus 1", "custom_property": {"name": "distinct", "value": "Yes"}},
@@ -76,8 +82,8 @@ FAMILIES = [
 
 SPECIES = [
     {"species": "Species 1", "family": "Family 1/Genus 1", "custom_property": {"name": "distinct", "value": "Almost"}},
-    {"species": "Species 2", "family": "Family 2/Genus 1"},
-    {"species": "Species 3", "family": "Family 2/Genus 2"},
+    {"species": "Species 2", "family": "Family 2/Genus 1", "literature": "Title 1"},
+    {"species": "Species 3", "family": "Family 2/Genus 2", "literature_distribution": "Title 2"},
 ]
 
 TERRITORIES = [
@@ -99,8 +105,8 @@ ENTRIES = [
 
 INDIVIDUALS = [
     {"accession_number": 1000, "species": "Species 1", "source": "Garden 1", "found_country": "AU", "custom_property": {"name": "individual_comment", "value": "A tree"}},
-    {"accession_number": 1001, "species": "Species 2", "source": "Garden 2", "found_country": "IT", "accession_extension": "10"},
-    {"accession_number": 1002, "species": "Species 3", "source": "Garden 1", "found_country": "CZ", "accession_extension": "20"},
+    {"accession_number": 1001, "species": "Species 2", "source": "Garden 2", "found_country": "IT", "accession_extension": "10", "literature": "Title 1"},
+    {"accession_number": 1002, "species": "Species 3", "source": "Garden 1", "found_country": "CZ", "accession_extension": "20", "literature": "Title 2"},
     {"accession_number": 1003, "species": "Species 3", "source": "Garden 2", "found_country": "ES", "accession_extension": "W"},
 ]
 
@@ -161,6 +167,7 @@ def create_test_fixtures():
     from seedcatalog.models import SeedCatalog
     from config_app.models import CustomProperty, PropertyValueText, PropertyValueBool
     from literature.models import Literature
+    from meta.models import Project
 
     UserModel = get_user_model()
 
@@ -254,6 +261,10 @@ def create_test_fixtures():
     for i, data in enumerate(LITERATURES):
         Literature.objects.create(**data)
 
+    log("creating Projects")
+    for i, data in enumerate(PROJECTS):
+        Project.objects.create(**data)
+
     log("creating Species")
     for i, data in enumerate(SPECIES):
         family, genus = data["family"].split("/")
@@ -276,6 +287,9 @@ def create_test_fixtures():
             poisonous_plant=False,
             lifeform="",
             nomenclature_checked=bool(data.get("nomenclature_checked")),
+            literature=Literature.objects.get(title=data["literature"]) if data.get("literature") else None,
+            literature_german_name=Literature.objects.get(title=data["literature_german_name"]) if data.get("literature_german_name") else None,
+            literature_distribution=Literature.objects.get(title=data["literature_distribution"]) if data.get("literature_distribution") else None,
         )
         _add_prop(model, data)
 
@@ -318,7 +332,8 @@ def create_test_fixtures():
             collector_date=None,
             gender="",
             comment="",
-    
+            literature=Literature.objects.get(title=data["literature"]) if data.get("literature") else None,
+
             seed_available=True,
             order_number=i,
     

@@ -435,7 +435,7 @@ class IndividualValidateMixin(object):
         """
         Adjust the kwargs["initial"] before passing to ModelForm constructor
         """
-        # create same random accession number in two fields when creating a new individual
+        # create same accession number in two fields when creating a new individual
         initialize_accession = not kwargs.pop("do_not_initialize_accession", False)
         if not kwargs.get("instance") and initialize_accession:
             kwargs.setdefault("initial", {})
@@ -489,11 +489,13 @@ class IndividualForm(
         }
     )
 ):
+    exclude_autocomplete = ("projects", )
     def __init__(self, *args, **kwargs):
         self._update_initial(kwargs)
         super(IndividualForm, self).__init__(*args, **kwargs)
-        if field := self.fields.get("literature"):
-            field.widget.attrs["style"] = "width: 40rem;"
+        for key in ("literature", "species_comment"):
+            if field := self.fields.get(key):
+                field.widget.attrs["style"] = "width: 40rem;"
 
 
 class SeedInLatestCatalogFilter(FieldListFilter):
@@ -657,6 +659,9 @@ class SeedForm(
     def __init__(self, *args, **kwargs):
         self._update_initial(kwargs)
         super(SeedForm, self).__init__(*args, **kwargs)
+        for key in ("literature", "species_comment"):
+            if field := self.fields.get(key):
+                field.widget.attrs["style"] = "width: 40rem;"
 
 
 

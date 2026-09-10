@@ -100,6 +100,12 @@ def IndividualBase(unique_name: str) -> Type[models.Model]:
             max_length=100, verbose_name=_("received as species"), blank=True
         )
 
+        species_comment = models.CharField(
+            verbose_name=_("comment (determination)"),
+            max_length=1024,
+            blank=True,
+        )
+
         literature = models.ForeignKey(
             verbose_name=_("literature"),
             to="literature.Literature",
@@ -156,6 +162,13 @@ def IndividualBase(unique_name: str) -> Type[models.Model]:
         sowing_number = models.CharField(
             verbose_name=_("sowing number"), max_length=100, blank=True,
             db_collation="natural_sort" if settings.IS_POSTGRES else None,
+        )
+
+        projects = models.ManyToManyField(
+            verbose_name=_("project assignment"),
+            to="meta.Project",
+            related_name="individuals",
+            blank=True,
         )
 
         import_reference = models.CharField(

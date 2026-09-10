@@ -49,6 +49,8 @@ class EntryAdmin(ConfigurableTable):
     list_filter = (
         ("user__username", ForeignKeyFilter),
         ("department__code", ForeignKeyFilter),
+        ("literature__full_name_generated", ForeignKeyFilter),
+        ("projects__full_name_generated", ForeignKeyFilter),
         ("created_by__username", ForeignKeyFilter),
         ("modified_by__username", ForeignKeyFilter),
     )
@@ -60,7 +62,8 @@ class EntryAdmin(ConfigurableTable):
             'fields': (
                 ('accession_number', 'accession_extension', 'seed_available', 'seed_in_stock',),
                 ('species', 'species_checked_by', 'species_checked_date', 'came_as_species'),
-                ('user',),
+                'species_comment',
+                'literature',
             )
         }),
         (_('source'), {
@@ -77,7 +80,13 @@ class EntryAdmin(ConfigurableTable):
         }),
         (_('miscellaneous'), {
             'classes': 'collapse',
-            'fields': ('gender', 'comment', 'import_reference', 'status')
+            'fields': (
+                'gender',
+                'comment',
+                'projects',
+                'import_reference',
+                'status',
+            )
         }),
         (_('seeds'), {
             'fields': ('order_number', 'sowing_number')

@@ -17,6 +17,8 @@ CUSTOM_PROPERTY_TYPE_CHOICES = (
     ("user", _("User")),
 )
 
+# if you add models here, please also add them to config_app/migrations/0004_custom_props.py
+#   to avoid useless auto-generated migration files
 CUSTOM_PROPERTY_MODEL_CHOICES = (
     ("botman.BGCIGarden", _("BGCI garden")),
     ("botman.BotanicGarden", _("botanic garden")),
@@ -29,6 +31,7 @@ CUSTOM_PROPERTY_MODEL_CHOICES = (
     ("herbaria.Herbarium", _("Herbarium")),
     ("herbaria.HerbariumSpecimen", _("Specimen")),
     ("literature.Literature", _("literature")),
+    ("meta.Project", _("project")),
 )
 
 

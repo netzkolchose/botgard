@@ -42,6 +42,7 @@ from tickets.models import *
 from seedcatalog.models import *
 from herbaria.models import *
 from literature.models import *
+from meta.models import *
 
 from . import fixtures
 from .fixtures import create_permission_group, create_test_fixtures

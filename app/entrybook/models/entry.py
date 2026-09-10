@@ -70,7 +70,8 @@ class Entry(IndividualBase(unique_name="entry")):
         db_index=True,
     )
 
-    # replace `related_name`
+    # ---- replace `related_name` attributes ----
+
     user = models.ForeignKey(
         verbose_name=_("Created by"),
         to=get_user_model(),
@@ -81,7 +82,13 @@ class Entry(IndividualBase(unique_name="entry")):
         related_name="entries",
     )
 
-    # replace `related_name`
+    projects = models.ManyToManyField(
+        verbose_name=_("project assignment"),
+        to="meta.Project",
+        related_name="entries",
+        blank=True,
+    )
+
     literature = models.ForeignKey(
         verbose_name=_("literature"),
         to="literature.Literature",
@@ -191,17 +198,19 @@ class EntryForm(
         }
     )
 ):
-    exclude_autocomplete = ("department", )
+    exclude_autocomplete = ("department", "projects")
 
     def __init__(self, *args, **kwargs):
         if not kwargs.get("instance"):
             kwargs.setdefault("initial", {})
-            # create same random accession number in two fields when creating a new individual
+            # create same accession number in two fields when creating a new individual
             kwargs["initial"]["accession_number"] = kwargs["initial"]["ipen_accession_number"] = (
                 get_new_accession_number()
             )
-
         super(EntryForm, self).__init__(*args, **kwargs)
+        for key in ("literature", "species_comment"):
+            if field := self.fields.get(key):
+                field.widget.attrs["style"] = "width: 40rem;"
 
 
 def _validate_ipen_creation(code):

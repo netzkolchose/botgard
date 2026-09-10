@@ -231,6 +231,7 @@ class IndividualAdmin(ConfigurableTable):
         ('species__family__family', ForeignKeyFilter),
         ('species__family__genus', ForeignKeyFilter),
         ('literature__full_name_generated', ForeignKeyFilter),
+        ('projects__full_name_generated', ForeignKeyFilter),
         ("created_by__username", ForeignKeyFilter),
         ("modified_by__username", ForeignKeyFilter),
     )
@@ -248,6 +249,7 @@ class IndividualAdmin(ConfigurableTable):
             'fields': (
                 ('accession_number', 'accession_extension', 'seed_available', 'seed_in_stock',),
                 ('species', 'species_checked_by', 'species_checked_date', 'came_as_species'),
+                'species_comment',
                 'literature',
                 'species_audit',
             )
@@ -263,7 +265,11 @@ class IndividualAdmin(ConfigurableTable):
         }),
         (_('miscellaneous'), {
             'classes': 'collapse',
-            'fields': ('gender', 'comment', 'import_reference', 'status')
+            'fields': (
+                'gender', 'comment',
+                'projects',
+                'import_reference', 'status'
+            )
         }),
         (_('seeds'), {
             'fields': ('order_number', 'sowing_number')
@@ -366,6 +372,7 @@ class IndividualFromEntryAdmin(IndividualAdmin):
             for field in self._entry._meta.fields
             if hasattr(Individual, field.name)
         }
+        entry_values["projects"] = list(self._entry.projects.all().values_list("pk", flat=True))
         return entry_values
 
     def get_form(self, request, obj=None, change=False, **kwargs):

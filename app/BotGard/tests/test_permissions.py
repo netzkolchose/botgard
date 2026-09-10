@@ -22,6 +22,7 @@ GARDENER_PERMISSIONS = {
     'individuals.': {'change'},
     'labels.labeldefinition': {'view'},
     'literature.literature': {'change', 'add'},
+    'meta.project': {'add', 'change'},
     'seedcatalog.seedcatalog': {'view'},
     'species.family': {'add', 'change'},
     'species.species': {'add', 'change'},
@@ -41,6 +42,7 @@ GUEST_PERMISSIONS = {
     'individuals.territory': {'view'},
     'individuals.': {'change'},
     'literature.literature': {'view'},
+    'meta.project': {'view'},
     'seedcatalog.seedcatalog': {'view'},
     'species.family': {'view'},
     'species.species': {'view'},
@@ -155,8 +157,9 @@ class TestPermissions(TestBase):
             'individuals.seed': {'add', 'change'},
             'individuals.territory': {'add', 'change'},
             'individuals.': {'change'},
-            'literature.literature': {'add', 'change'},
             'labels.labeldefinition': {'add', 'change'},
+            'literature.literature': {'add', 'change'},
+            'meta.project': {'add', 'change'},
             'seedcatalog.seedcatalog': {'add', 'change'},
             'species.family': {'add', 'change'},
             'species.species': {'add', 'change'},
@@ -184,8 +187,9 @@ class TestPermissions(TestBase):
             'individuals.seed': {'add', 'change'},
             'individuals.territory': {'add', 'change'},
             'individuals.': {'change'},
-            'literature.literature': {'add', 'change'},
             'labels.labeldefinition': {'change'},
+            'literature.literature': {'add', 'change'},
+            'meta.project': {'add', 'change'},
             'seedcatalog.seedcatalog': {'change'},
             'species.family': {'add', 'change'},
             'species.species': {'add', 'change'},
@@ -199,7 +203,7 @@ class TestPermissions(TestBase):
         self.assert_models_access(
             can_change_models=[
                 BGCIGarden, BotanicGarden, OutgoingOrder,
-                Literature,
+                Literature, Project,
                 Species, Family,
                 Entry, Department, Territory, Individual, Seed, Outplanting,
                 BasicTicket, LaserGravurTicket, MyTicket
@@ -215,7 +219,7 @@ class TestPermissions(TestBase):
         self.assert_models_access(
             can_change_models=[],
             can_view_models=[
-                BGCIGarden, BotanicGarden, Literature,
+                BGCIGarden, BotanicGarden, Literature, Project,
                 Species, Family,
                 Entry, Department, Territory, Individual, Seed, Outplanting,
                 SeedCatalog,
