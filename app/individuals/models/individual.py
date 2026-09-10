@@ -482,7 +482,6 @@ class IndividualForm(
         Individual,
         widgets={
             "species_audit": SpeciesAuditWidget(),
-        #    "accession_number": widgets.NumberInput()  # don't need a spinbox for the accession number
         },
         autocomplete_mapping={
             "came_as_species": {"model": Species, "field": "full_name_generated"},
@@ -613,13 +612,6 @@ class Seed(Individual):
     etikett_text_decorator.searchable_field = "species__area_of_distribution_etikettxt"
 
     @configurable
-    def etikett_detail_decorator(self):
-        return self.species.area_of_distribution_background
-    etikett_detail_decorator.short_description = _("detailed")
-    etikett_detail_decorator.admin_order_field = "species__area_of_distribution_background"
-    etikett_detail_decorator.searchable_field = "species__area_of_distribution_background"
-
-    @configurable
     def seed_add_to_latest_catalog_decorator(self):
         catalog = SeedCatalog.objects.latest_editable_catalog()
         if not catalog:
@@ -651,11 +643,13 @@ class SeedForm(
     IndividualValidateMixin,
     AutoCompleteForm(
         Seed,
-        #widgets={
-        #    "accession_number": widgets.Input()  # don't need a spinbox for the accession number
-        #}
+        widgets={
+            "species_audit": SpeciesAuditWidget(),
+            #    "accession_number": widgets.NumberInput()  # don't need a spinbox for the accession number
+        },
     )
 ):
+    exclude_autocomplete = ("projects", )
     def __init__(self, *args, **kwargs):
         self._update_initial(kwargs)
         super(SeedForm, self).__init__(*args, **kwargs)

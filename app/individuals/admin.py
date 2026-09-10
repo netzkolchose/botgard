@@ -23,22 +23,6 @@ from .models.individual import SeedInLatestCatalogFilter
 from geo.columns import MAP_COLUMN_CSS, MAP_COLUMN_JS
 
 
-INDIVIDUAL_SEARCH_FIELDS = search_fields_compatible((
-    'accession_number',
-    'ipen_generated',
-    '@species__species',
-    '@species__subspecies',
-    '@species__variety',
-    '@species__form',
-    '@species__family__genus',
-    '@species__family__family',
-    '@species__full_name_generated',
-    '@species__deutscher_name',
-    '@species__synonyme',
-    '@source__name',
-))
-
-
 class DepartmentAdmin(ConfigurableTable):
 
     form = DepartmentForm
@@ -104,92 +88,6 @@ class OutplantingInline(admin.TabularInline):
     extra = 0
 
 
-class SeedAdmin(ConfigurableTable):
-    form = SeedForm
-    save_on_top = True
-    actions_on_top = True
-    list_display = (
-        'change_link_decorator', 'order_number', 'accession_number', 'accession_extension', 'ipen_generated',
-        'species_link_decorator', 'seed_available', 'seed_in_stock', 'seed_add_to_latest_catalog_decorator',
-        'seed_etikett_decorator', 'endangering_decorator')
-    list_filter = (
-        # 'seed_available', 'seed_in_stock', 'source__name',
-        ('species__full_name_generated', ForeignKeyFilter),
-        ('species__nomenclature_checked', ForeignKeyFilter),
-        ('species__area_of_distribution_etikettxt', ForeignKeyFilter),
-        ('species__area_of_distribution_background', ForeignKeyFilter),
-        ('species__family__family', ForeignKeyFilter),
-        ('species__family__genus', ForeignKeyFilter),
-        ('literature__full_name_generated', ForeignKeyFilter),
-        (SeedInLatestCatalogFilter.QUERY_NAME, SeedInLatestCatalogFilter),
-        ("created_by__username", ForeignKeyFilter),
-        ("modified_by__username", ForeignKeyFilter),
-    )
-
-    blacklist = ('id', '__str__', 'ipen_transfer_restricted', 'ipen_garden_code', 'ipen_accession_number',
-                 'ipen_country', 'departments_generated', 'territories_generated', 'species',
-                 'outplantings_generated', 'alive_outplantings_generated', 'is_alive_generated',)
-
-    search_fields = (
-        'order_number',
-        *INDIVIDUAL_SEARCH_FIELDS,
-    )
-    ordering = ('accession_number',)
-    list_editable = ('seed_available', 'seed_in_stock')
-    fieldsets = (
-        (None, {
-            'fields': (
-                ('accession_number', 'accession_extension', 'seed_available', 'seed_in_stock',),
-                ('species', 'species_checked_by', 'came_as_species'),
-                'literature',
-            )
-        }),
-        (_('IPEN'), {
-            'fields': (('ipen_country', 'ipen_transfer_restricted', 'ipen_garden_code', 'ipen_accession_number'),)
-        }),
-        (_('habitat'), {
-            'fields': (('found_country'), 'found_text', ('collector_name', 'collector_number', 'collector_date'),)
-        }),
-        (_('source'), {
-            'fields': (('source', 'source_date', 'came_in_as'),)
-        }),
-        (_('miscellaneous'), {
-            'classes': 'collapse',
-            'fields': ('gender', 'comment', 'import_reference', 'status')
-        }),
-        (_('seeds'), {
-            'fields': ('order_number',)
-        })
-    )
-    #   	raw_id_fields = ("species", "came_as_species", )
-    raw_id_fields = ("species",)
-    inlines = [OutplantingInline]
-
-    class Media:
-        css = {"screen": (
-            'BotGard/css_dropdown/css_dropdown.css',
-            'BotGard/css/no-changelist-filter-box.css',
-        )}
-
-    def get_search_results(self, request, queryset, search_term):
-        order_ids = get_seed_order_ids(search_term)
-        if not order_ids:
-            return super().get_search_results(request, queryset, search_term)
-
-        return queryset.filter(order_number__in=order_ids), False
-
-    def get_actions(self, request):
-        actions = {}
-        add_seed_catalog_actions(request, actions)
-        add_label_mass_actions(request, actions, "individual")
-        actions.update(super().get_actions(request))
-        return actions
-
-
-def get_seed_order_ids(s: str) -> List[str]:
-    return re.findall(r"\d+", s)
-
-
 class HerbariumSpecimenInline(admin.TabularInline):
     form = create_herbarium_specimen_form_class(
         # remove one of the defaults, otherwise user might click "add specimen"
@@ -206,7 +104,41 @@ class HerbariumSpecimenInline(admin.TabularInline):
     fields = ("herbarium", "collector", "collection_date", "specimen_type", "comment")
 
 
-class IndividualAdmin(ConfigurableTable):
+class IndividualAdminMixin:
+
+    def save_form(self, request, form: forms.Form, change: bool):
+        """
+        Override to store Individuals.species_audit
+        """
+        instance = super().save_form(request, form, change)
+        if instance.species_audit == '':
+            instance.species_audit = None
+        try:
+            original_instance = Individual.objects.get(pk=instance.pk)
+            instance.add_species_audit(original_instance)
+        except Individual.DoesNotExist:
+            pass
+        return instance
+
+    def get_fieldsets(self, request, obj=None):
+        """
+        Override to remove the display of `species_audit` if nothing is there
+        """
+        fieldsets = super().get_fieldsets(request, obj)
+        if not obj or not obj.species_audit:
+            fieldsets = list(fieldsets)
+            fieldsets[0] = (fieldsets[0][0], {
+                **fieldsets[0][1],
+                "fields": [
+                    f for f in fieldsets[0][1]["fields"]
+                    if f != "species_audit"
+                ]
+            })
+            fieldsets = tuple(fieldsets)
+        return fieldsets
+
+
+class IndividualAdmin(IndividualAdminMixin, ConfigurableTable):
     form = IndividualForm
     save_on_top = True
     list_display = (
@@ -242,7 +174,20 @@ class IndividualAdmin(ConfigurableTable):
                  'species_audit',)
 
     list_display_links = ()
-    search_fields = INDIVIDUAL_SEARCH_FIELDS
+    search_fields = search_fields_compatible((
+        'accession_number',
+        'ipen_generated',
+        '@species__species',
+        '@species__subspecies',
+        '@species__variety',
+        '@species__form',
+        '@species__family__genus',
+        '@species__family__family',
+        '@species__full_name_generated',
+        '@species__deutscher_name',
+        '@species__synonyme',
+        '@source__name',
+    ))
     ordering = ('accession_number',)
     fieldsets = (
         (None, {
@@ -293,36 +238,58 @@ class IndividualAdmin(ConfigurableTable):
         add_label_mass_actions(request, actions, "individual")
         return actions
 
-    def save_form(self, request, form: forms.Form, change: bool):
-        """
-        Override to store Individuals.species_audit
-        """
-        instance = super().save_form(request, form, change)
-        if instance.species_audit == '':
-            instance.species_audit = None
-        try:
-            original_instance = Individual.objects.get(pk=instance.pk)
-            instance.add_species_audit(original_instance)
-        except Individual.DoesNotExist:
-            pass
-        return instance
 
-    def get_fieldsets(self, request, obj=None):
-        """
-        Override to remove the display of `species_audit` if nothing is there
-        """
-        fieldsets = super().get_fieldsets(request, obj)
-        if not obj or not obj.species_audit:
-            fieldsets = list(fieldsets)
-            fieldsets[0] = (fieldsets[0][0], {
-                **fieldsets[0][1],
-                "fields": [
-                    f for f in fieldsets[0][1]["fields"]
-                    if f != "species_audit"
-                ]
-            })
-            fieldsets = tuple(fieldsets)
-        return fieldsets
+
+class SeedAdmin(IndividualAdminMixin, ConfigurableTable):
+    form = SeedForm
+    save_on_top = True
+    actions_on_top = True
+    list_display = (
+        'change_link_decorator', 'order_number', 'accession_number', 'accession_extension', 'ipen_generated',
+        'species_link_decorator', 'seed_available', 'seed_in_stock', 'seed_add_to_latest_catalog_decorator',
+        'seed_etikett_decorator', 'endangering_decorator')
+    list_filter = (
+        *IndividualAdmin.list_filter,
+        (SeedInLatestCatalogFilter.QUERY_NAME, SeedInLatestCatalogFilter),
+    )
+
+    blacklist = IndividualAdmin.blacklist
+
+    search_fields = (
+        'order_number',
+        *IndividualAdmin.search_fields,
+    )
+    ordering = IndividualAdmin.ordering
+    list_editable = ('seed_available', 'seed_in_stock')
+    fieldsets = IndividualAdmin.fieldsets
+    raw_id_fields = IndividualAdmin.raw_id_fields
+
+    class Media:
+        css = {"screen": (
+            'BotGard/css_dropdown/css_dropdown.css',
+            'BotGard/css/no-changelist-filter-box.css',
+        )}
+        js = (
+            "individuals/change_form_tools.js",
+        )
+
+    def get_search_results(self, request, queryset, search_term):
+        order_ids = get_seed_order_ids(search_term)
+        if not order_ids:
+            return super().get_search_results(request, queryset, search_term)
+
+        return queryset.filter(order_number__in=order_ids), False
+
+    def get_actions(self, request):
+        actions = {}
+        add_seed_catalog_actions(request, actions)
+        add_label_mass_actions(request, actions, "individual")
+        actions.update(super().get_actions(request))
+        return actions
+
+
+def get_seed_order_ids(s: str) -> List[str]:
+    return re.findall(r"\d+", s)
 
 
 admin.site.register(Individual, IndividualAdmin)
