@@ -22,8 +22,19 @@ from .models import TableSettings
 from tools.csv_response import csv_response
 from config_app.models import CUSTOM_PROPERTY_TYPE_CHOICES, CustomProperty, CUSTOM_PROPERTY_MODEL_TYPES
 from BotGard.basemodel import botgard_base_model_patch_fieldsets, CREATION_FIELDS
+import config_app
+
 
 User = get_user_model()
+
+
+config_app.register_key(
+    "sticky_table_headers",
+    {"sticky": False, "height": "75vh"},
+    description="""Make table headers stick to the top, so they are always visible when scrolling.
+<br/>The attribute '<b>sticky</b>' must be set to 'true' to activate sticky headers.
+<br/>The attribute '<b>height</b>' defines the height of the table container (in CSS).""",
+)
 
 
 class Configurable(object):
