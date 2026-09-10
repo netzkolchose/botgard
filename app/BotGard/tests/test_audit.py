@@ -94,7 +94,8 @@ class TestAudit(TestBase):
         )
 
         # -- User2 changes species but provides different username and date --
-        cf = self.get_changeform("individuals", "individual", indi.pk)
+        # ALSO: check that seed admin also adds to the audit
+        cf = self.get_changeform("individuals", "seed", indi.pk)
         cf.save({
             "species": Species.objects.get(species="Species 3").full_name_generated,
             "species_checked_by": "Bob Dobbs",
