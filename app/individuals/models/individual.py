@@ -61,6 +61,7 @@ class Individual(IndividualBase(unique_name="individual")):
     #    "date": "YYYY-MM-DD"|None,
     #    "user": "username", "user_pk": int|None,
     #    "species": "full_name_generated", "species_pk": int,
+    #    "species_comment": str|None,
     #    "literature": "full_name_generated"|None, "literature_pk": int|None,
     # }
     species_audit = models.JSONField(
