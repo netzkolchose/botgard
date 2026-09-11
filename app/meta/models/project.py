@@ -31,6 +31,11 @@ class Project(BotGardBaseModel(unique_name="project", custom_properties=True)):
         max_length=128,
     )
 
+    purpose = models.TextField(
+        verbose_name=_("purpose"),
+        blank=True,
+    )
+
     date_start = models.DateField(
         verbose_name=_("start date"),
         null=True, blank=True,

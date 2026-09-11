@@ -22,9 +22,9 @@ class ProjectAdmin(ConfigurableTable):
 
     list_display = (
         'change_link_decorator',
-        'full_name_generated',
-        'date_start',
-        'date_end',
+        'abbreviation',
+        'title',
+        'purpose',
         'manager',
         'partner',
     )
@@ -36,6 +36,7 @@ class ProjectAdmin(ConfigurableTable):
     list_display_links = ()
     search_fields = search_fields_compatible((
         '@full_name_generated',
+        'purpose',
         'manager',
         'partner',
         'funding',
@@ -49,6 +50,7 @@ class ProjectAdmin(ConfigurableTable):
             "fields": (
                 ("abbreviation", "title"),
                 ("date_start", "date_end"),
+                "purpose",
                 "manager",
                 "partner",
                 "funding",

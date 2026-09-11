@@ -25,6 +25,7 @@ class Migration(migrations.Migration):
                 ('modified_date', models.DateField(blank=True, null=True, verbose_name='modified at')),
                 ('abbreviation', models.CharField(blank=True, max_length=32, verbose_name='abbreviation')),
                 ('title', models.CharField(max_length=128, verbose_name='title')),
+                ('purpose', models.TextField(blank=True, verbose_name='purpose')),
                 ('date_start', models.DateField(blank=True, null=True, verbose_name='start date')),
                 ('date_end', models.DateField(blank=True, null=True, verbose_name='end date')),
                 ('manager', models.TextField(blank=True, verbose_name='manager(s)')),
