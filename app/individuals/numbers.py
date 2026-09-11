@@ -21,7 +21,7 @@ NUMBER_METHOD_HELP_TEXT = (
     "<li><b>random_range</b>: A random number between attributes 'min' and 'max'</li>\n"
     "<li><b>incremental</b>: Increasing numbers starting at 'min' (skips existing number gaps)</li>\n"
     "<li><b>incremental_tight</b>: Increasing numbers starting at 'min' (will also pick free numbers in existing gaps)</li>\n"
-    "<li><b>year_id</b>: Make the accession number from current year and an increasing number-per-year starting at 'min'</li>\n"
+    "<li><b>year_id</b>: Make the accession number from current year and an increasing number-per-year starting at 'min'. Optionally, the number-per-year can be zero-padded to the length 'zero_pad'</li>\n"
     "</ul>"
 )
 
@@ -50,6 +50,11 @@ def _number_generation_validator(val):
             raise ValidationError(_('Property "max" must be of type int or long.'))
         if (val['max'] - val['min']) < 100000:
             raise ValidationError(_('Property "max" must be much larger than "min". :)'))
+
+    if val['method'] == 'year_id':
+        if pad := val.get('zero_pad'):
+            if not isinstance(pad, int):
+                raise ValidationError('Property "zero_pad" must be of type int')
 
 
 config_app.register_key(
@@ -195,12 +200,15 @@ def _get_new_number(
                 if qset.exists():
                     value = qset.values_list(fieldname, flat=True).first()
                     try:
-                        value = int(value.split("-")[1])
+                        value = int(value.split("-")[1].lstrip("0") or 0)
                         max_num = max(max_num, value + 1)
                     except ValueError:
                         pass
 
-        return f"{year}-{max_num}"
+        if pad := method.get("zero_pad"):
+            return f"{year}-{max_num:0{pad}}"
+        else:
+            return f"{year}-{max_num}"
 
     raise ValueError("Unknown number generation method '%s'" % method["method"])
 

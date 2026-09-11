@@ -304,3 +304,32 @@ class TestNumberGenerator(TestCase):
             # without natural sort we have 1, 10, 2, 3, 4
             self.assertEqual(f"{year}-5", numbers.get_new_accession_number())
             self.assertEqual(f"{year}-6", numbers.get_new_order_number())
+
+    def test_number_gen_year_id_zero_pad(self):
+        KeyValue.objects.create(
+            type="j",
+            key="accession_generation",
+            value_json={
+                "method": "year_id",
+                "min": 1,
+                "zero_pad": 4,
+            },
+        )
+        year = datetime.date.today().year
+
+        # take min value if no collision yet
+        self.assertEqual(f"{year}-0001", numbers.get_new_accession_number())
+
+        self.create_individual(f"{year}-0001")
+        # create some other accession numbers as well
+        # they should not interfere with the year_id counter
+        self.create_individual("test1")
+        self.create_individual("XY-1992")
+        self.create_individual(f"{year-1}-23")
+
+        self.assertEqual(f"{year}-0002", numbers.get_new_accession_number())
+
+        self.create_individual(f"{year}-0003")
+        self.create_individual("ABC")
+
+        self.assertEqual(f"{year}-0004", numbers.get_new_accession_number())
