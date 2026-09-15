@@ -40,7 +40,7 @@ class CustomPropertyManager(models.Manager):
     def create_for_model(
             self,
             model: Union[models.Model, Type[models.Model]],
-            type: Literal["text", "text_long", "user"],
+            type: Literal["text", "text_long", "bool", "user"],
             name: str,
             choices: str = "",
     ):

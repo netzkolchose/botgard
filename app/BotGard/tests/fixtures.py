@@ -223,8 +223,9 @@ def create_test_fixtures():
     for i, data in enumerate(EXTERNAL_CATALOGS):
         data = deepcopy(data)
         data["garden"] = BotanicGarden.objects.get(name=data["garden"])
-        ExternalCatalog.objects.create(**data)
-        ExternalCatalogArchive.objects.create(**data)
+        for instance in (ExternalCatalog(**data), ExternalCatalogArchive(**data)):
+            instance.file.name = "/a/b.txt"
+            instance.save()
 
     log("creating OutgoingOrder")
     for i, data in enumerate(OUTGOING_ORDERS):

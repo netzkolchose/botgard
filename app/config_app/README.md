@@ -1,3 +1,5 @@
+from ajax.autocomplete import AutoCompleteForm
+
 # BotGard config_app
 
 This module provides custom settings for the BotGard database that are persisted in the database.
@@ -60,16 +62,21 @@ the ModelAdmin needs to derive from `config_tables.admin.ConfigurableTable`.
 ```python
 from BotGard import BotGardBaseModel
 from config_tables.admin import ConfigurableTable
+from ajax.autocomplete import AutoCompleteForm
 
 class MyModel(BotGardBaseModel(unique_name="mymodel", custom_properties=True)):
     pass
 
+# To correctly detect changes to custom properties for django's LogEntry 
+class MyModelForm(AutoCompleteForm(MyModel)):
+  pass
+
 class MyModelAdmin(ConfigurableTable):
-    pass
+    form = MyModelForm
 ```
 
 All is managed by the admin and form/field classes. The custom properties are automatically added to the
-ModelAdmin `fieldsets`.
+ModelAdmin `fieldsets` by the ConfigurabeTable ModelAdmin.
 
 However, the internals look like this: 
 ```python

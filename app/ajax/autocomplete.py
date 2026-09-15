@@ -9,6 +9,9 @@ from django.utils.html import format_html
 from django.urls import reverse
 from django.db import models
 from django.urls import NoReverseMatch
+from django.contrib.auth import get_user_model
+
+from config_app.models import CustomProperty
 
 
 class AutoFieldMixin:
@@ -296,4 +299,89 @@ def AutoCompleteForm(
                     self.fields[key] = AutoModelField(model_class, key, **attrs)
                 elif isinstance(field, forms.ChoiceField) and len(list(field.choices)) > 30:
                     self.fields[key] = AutoCharField(model_class, key, **attrs)
+
+        @property
+        def changed_data(self):
+            """
+            Override to ignore certain changes which aren't changes
+            related to AutoComplete fields or CustomProperty values
+            """
+            from config_app.forms import PropertyValuesFormField
+            User = get_user_model()
+
+            extra_field_names = set()
+            def _has_changed(bf: forms.BoundField) -> bool:
+                #print("X", bf.field.label, bf._has_changed(), repr(bf.initial), repr(bf.value()), repr(bf.field.to_python(bf.value())))
+                if bf._has_changed():
+                    if isinstance(bf.field, (AutoCharField, AutoModelField, PropertyValuesFormField)):
+
+                        if isinstance(bf.field, AutoCharField):
+                            #print("XX", bf.field.label, repr(bf.initial), repr(bf.value()))
+                            if bf.initial is None and bf.value() == "":
+                                return False
+
+                        # compare PropertyValue(Text|Bool|User).value
+                        if isinstance(bf.field, PropertyValuesFormField):
+                            prop_values = bf.value()  # dict of {CustomProperty.pk: value}
+                            if isinstance(prop_values, dict):
+                                # remove empty entries like {pk: ''}
+                                if not bf.initial and prop_values:
+                                    prop_values = prop_values.copy()
+                                    for prop_pk, initial_prop in list(prop_values.items()):
+                                        if not initial_prop:
+                                            prop_values.pop(prop_pk)
+
+                                # catch changes to number of properties
+                                # (for bool values which appear or disappear)
+                                if len(bf.initial or []) != len(prop_values):
+                                    for prop_pk in prop_values:
+                                        try:
+                                            extra_field_names.add(CustomProperty.objects.get(pk=prop_pk).name)
+                                        except CustomProperty.DoesNotExist:
+                                            pass
+                                    for prop in (bf.initial or []):
+                                        extra_field_names.add(prop.property.name)
+                                    return True
+
+                                # compare initial values with prop_values dict
+                                for initial_prop in (bf.initial or []):
+                                    value = prop_values.get(initial_prop.property.pk)
+                                    if initial_prop.value != value:
+                                        if initial_prop.property.type == "bool" and initial_prop.value and value == "on":
+                                            continue
+                                        if initial_prop.property.type == "user":
+                                            if isinstance(initial_prop.value, User):
+                                                if initial_prop.value.username == value:
+                                                    continue
+                                        # also add name to changed fields in LogEntry
+                                        extra_field_names.add(initial_prop.property.name)
+                                        return True
+
+                                return False
+
+                        if str(bf.initial) == str(bf.value()):
+                            return False
+
+                        try:
+                            v = bf.field.to_python(bf.value())
+                            # resolve Model.full_name_generated to pk
+                            if isinstance(v, models.Model):
+                                if bf.initial == v.pk:
+                                    return False
+                            # special case for empty country == "unknown"
+                            if bf.field.af_fieldname == "country":
+                                if bf.value() == "" and v == "xx":
+                                    return False
+
+                        except:
+                            return True
+                    #print("X", bf.field.label, bf.field, repr(bf.initial), repr(bf.value()), repr(bf.field.to_python(bf.value())))
+                return bf._has_changed()
+
+            names = set(
+                name for name, bf in self._bound_items()
+                if _has_changed(bf)
+            )
+            return sorted(names | extra_field_names)
+
     return Form

@@ -1,3 +1,5 @@
+from weasyprint.css.validation.properties import content
+
 from .base import *
 
 class TestAudit(TestBase):

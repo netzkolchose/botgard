@@ -729,14 +729,15 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
     ):
         """Patch change_message to avoid logging no-updates to custom_values_text|bool"""
         messages = super().construct_change_message(request, form, formsets, add)
-        # first of all, remove logs about "values text|bool" entirely
+        # first of all, remove logs about "values text|bool|user" entirely
         for message in messages:
             if changed := message.get("changed"):
                 if fields := changed.get("fields"):
-                    changed["fields"] = [f for f in fields if f not in ("text values", "bool values")]
+                    changed["fields"] = [f for f in fields if f not in ("text values", "bool values", "user values")]
 
         # TODO: unfortunately this method is called after the ModelAdmin has saved the model instance
         #   so i'm really not sure how we could detect changes to PropertyValue<Type> instances
+        # UPDATE: The comparison is made in AutoCompleteForm.changed_fields
         #for prop in self.custom_properties:
         #    if value := form.data.get(f"custom-property-{prop.pk}"):
         #        if prop.type == "bool":
