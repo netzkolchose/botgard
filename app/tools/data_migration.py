@@ -18,7 +18,13 @@ Tests should go into BotGard/tests/test_model_dependencies.py
 
     botman:
         BotanicGarden.full_name_generated -> self
-       
+    
+    literatur:
+        Literature.full_name_generated -> self
+    
+    meta:
+        Project.full_name_generated -> self
+        
     individuals:
         Territory.name_generated -> self
         Territory.num_xxx -> Outplanting
