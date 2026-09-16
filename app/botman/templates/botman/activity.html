@@ -24,7 +24,9 @@
     <tr>
         <td><nobr>{{ log.action_time }}</nobr></td>
         <td><nobr>{{ log.user }}</nobr></td>
-        <td>{{ log }}</td>
+        <td><nobr>{{ log.content_type }}</nobr></td>
+        <td>{% if log.link %}<a href="{{ log.link }}">↗</a>{% endif %}</td>
+        <td>{{ log.text }}</td>
     </tr>
 {% endfor %}
 </table>
