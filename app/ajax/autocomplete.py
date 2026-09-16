@@ -314,6 +314,7 @@ def AutoCompleteForm(
                 #print("X", bf.field.label, bf._has_changed(), repr(bf.initial), repr(bf.value()), repr(bf.field.to_python(bf.value())))
                 if bf._has_changed():
                     if isinstance(bf.field, (AutoCharField, AutoModelField, PropertyValuesFormField)):
+                        #print("X", bf.field.label, repr(bf.initial), repr(bf.value()), repr(bf.field.to_python(bf.value())))
 
                         if isinstance(bf.field, AutoCharField):
                             #print("XX", bf.field.label, repr(bf.initial), repr(bf.value()))
@@ -322,13 +323,24 @@ def AutoCompleteForm(
 
                         # compare PropertyValue(Text|Bool|User).value
                         if isinstance(bf.field, PropertyValuesFormField):
+                            has_changed = False
                             prop_values = bf.value()  # dict of {CustomProperty.pk: value}
                             if isinstance(prop_values, dict):
+
                                 # remove empty entries like {pk: ''}
                                 if not bf.initial and prop_values:
                                     prop_values = prop_values.copy()
                                     for prop_pk, initial_prop in list(prop_values.items()):
                                         if not initial_prop:
+                                            prop_values.pop(prop_pk)
+                                if bf.initial and prop_values:
+                                    prop_values = prop_values.copy()
+                                    text_props_in_initial = [
+                                        prop.property.pk for prop in bf.initial
+                                        if prop.property.type in ("text", "text_long")
+                                    ]
+                                    for prop_pk, value in list(prop_values.items()):
+                                        if not value and prop_pk not in text_props_in_initial:
                                             prop_values.pop(prop_pk)
 
                                 # catch changes to number of properties
@@ -341,7 +353,7 @@ def AutoCompleteForm(
                                             pass
                                     for prop in (bf.initial or []):
                                         extra_field_names.add(prop.property.name)
-                                    return True
+                                    has_changed = True
 
                                 # compare initial values with prop_values dict
                                 for initial_prop in (bf.initial or []):
@@ -355,9 +367,20 @@ def AutoCompleteForm(
                                                     continue
                                         # also add name to changed fields in LogEntry
                                         extra_field_names.add(initial_prop.property.name)
-                                        return True
+                                        has_changed = True
 
-                                return False
+                                # new prop not in initial? (for appearing booleans)
+                                initial_prop_pks = [prop.property.pk for prop in (bf.initial or [])]
+                                for prop_pk, value in prop_values.items():
+                                    if prop_pk not in initial_prop_pks:
+                                        try:
+                                            prop = CustomProperty.objects.get(pk=prop_pk)
+                                            extra_field_names.add(prop.name)
+                                        except CustomProperty.DoesNotExist:
+                                            pass
+                                        has_changed = True
+
+                                return has_changed
 
                         if str(bf.initial) == str(bf.value()):
                             return False

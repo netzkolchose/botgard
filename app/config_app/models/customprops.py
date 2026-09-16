@@ -203,6 +203,9 @@ class PropertyValueBool(models.Model):
     def __str__(self):
         return f"{self.property.name}: {'✔' if self.value else '❌'}"
 
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self.property.pk}): {self.__str__()}"
+
     def value_decorator(self):
         return mark_safe('<span class="icon-%s"></span>' % (
             "yes" if self.value else "no",
@@ -228,10 +231,13 @@ class PropertyValueText(models.Model):
     )
 
     # TODO: showing the full value could be disturbing in the admin views
-    #   however, PropertyValue<Type> instances are not shown in changelist or changeform
+    #   however, PropertyValue<Type> instances are not shown in changelist or changeform.
     #   Right now, this is the workaround to show the values in read-only changeforms
     def __str__(self):
         return f"{self.property.name}: {self.value}"
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self.property.pk}): {self.__str__()}"
 
     def value_decorator(self):
         return self.value
@@ -258,6 +264,9 @@ class PropertyValueUser(models.Model):
 
     def __str__(self):
         return f"{self.property.name}: {self.value}"
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self.property.pk}): {self.__str__()}"
 
     def value_decorator(self):
         return self.value

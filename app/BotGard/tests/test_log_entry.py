@@ -54,6 +54,9 @@ class TestLogEntry(TestBase):
             raise AssertionError(f"No changed fields in LogEntry for {instance}. change_message={entry.change_message}")
 
     def test_log_entry_no_change(self):
+        """
+        Make sure that saving an unchanged changeform does not create changed-fields in django's LogEntry
+        """
         self.login("User1")
         for model_class in (
                 BotanicGarden, BGCIGarden, OutgoingOrder, ExternalCatalog,
@@ -71,48 +74,74 @@ class TestLogEntry(TestBase):
             self.assert_no_log_entries(instance)
 
     def test_log_entry_individual_customprop(self):
-        indi = Individual.objects.get(accession_number=1000)
-        self.assert_no_log_entries(indi)
+        instance = Individual.objects.get(accession_number=1000)
+        self.assert_no_log_entries(instance)
+        user1 = User.objects.get(username="User1")
+        user2 = User.objects.get(username="User2")
         prop1 = CustomProperty.objects.get(name="individual_comment")
-        prop2 = CustomProperty.objects.create_for_model(indi, type="bool", name="individual_check")
-        prop3 = CustomProperty.objects.create_for_model(indi, type="user", name="individual_user")
+        prop2 = CustomProperty.objects.create_for_model(instance, type="bool", name="individual_check")
+        prop3 = CustomProperty.objects.create_for_model(instance, type="user", name="individual_user")
 
         self.login("User1")
-        cf = self.get_changeform("individuals", "individual", indi.pk)
+        cf = self.get_changeform("individuals", "individual", instance.pk)
 
         cf.save()
-        self.assert_no_log_entry(indi)
+        self.assert_no_log_entry(instance)
 
-        cf.save({f"custom-property-{prop1.pk}": "A bush"})
-        indi.refresh_from_db()
-        self.assertEqual("A bush", indi.custom_property(prop1.name))
-        self.assert_log_entry_changed_fields(indi, [prop1.name])
-
-        cf.save({f"custom-property-{prop2.pk}": True})
-        indi.refresh_from_db()
-        self.assertEqual(True, indi.custom_property(prop2.name))
-        self.assert_log_entry_changed_fields(indi, [prop2.name])
-
-        cf.save({f"custom-property-{prop3.pk}": User.objects.get(username="User1")})
-        indi.refresh_from_db()
-        self.assertEqual(User.objects.get(username="User1"), indi.custom_property(prop3.name))
-        self.assert_log_entry_changed_fields(indi, [prop3.name])
-
-        cf.save({f"custom-property-{prop2.pk}": False})
-        indi.refresh_from_db()
-        self.assertEqual(False, indi.custom_property(prop2.name))
-        self.assert_log_entry_changed_fields(indi, [prop2.name])
-
-        cf.save({
-            f"custom-property-{prop1.pk}": "A fungus",
-            f"custom-property-{prop2.pk}": True,
-            f"custom-property-{prop3.pk}": User.objects.get(username="User2"),
-        })
-        indi.refresh_from_db()
-        self.assertEqual("A fungus", indi.custom_property(prop1.name))
-        self.assertEqual(True, indi.custom_property(prop2.name))
-        self.assertEqual(User.objects.get(username="User2"), indi.custom_property(prop3.name))
-        self.assert_log_entry_changed_fields(indi, [prop1.name, prop2.name, prop3.name])
+        for props in (
+                ((prop1, "A bush"), ),
+                ((prop2, True), ),
+                ((prop3, user1), ),
+                ((prop2, False), ),
+                ((prop1, "A fungus"), (prop2, True), (prop3, user2), ),
+        ):
+            cf.save({
+                f"custom-property-{prop.pk}": value
+                for prop, value in props
+            })
+            instance.refresh_from_db()
+            for prop, value in props:
+                self.assertEqual(value, instance.custom_property(prop.name))
+            self.assert_log_entry_changed_fields(instance, [prop.name for prop, value in props])
 
         cf.save()
-        self.assert_no_log_entry(indi)
+        self.assert_no_log_entry(instance)
+
+    def test_log_entry_individual_customprop_multi(self):
+        instance = Individual.objects.get(accession_number=1000)
+        self.assert_no_log_entries(instance)
+        user1 = User.objects.get(username="User1")
+        user2 = User.objects.get(username="User2")
+        prop1a = CustomProperty.objects.get(name="individual_comment")
+        prop1b = CustomProperty.objects.create_for_model(instance, type="text_long", name="individual_comment2")
+        prop2a = CustomProperty.objects.create_for_model(instance, type="bool", name="individual_check1")
+        prop2b = CustomProperty.objects.create_for_model(instance, type="bool", name="individual_check2")
+        prop3a = CustomProperty.objects.create_for_model(instance, type="user", name="individual_user1")
+        prop3b = CustomProperty.objects.create_for_model(instance, type="user", name="individual_user2")
+
+        self.login("User1")
+        cf = self.get_changeform("individuals", "individual", instance.pk)
+
+        cf.save()
+        self.assert_no_log_entry(instance)
+
+        for props in (
+                ((prop1a, "A bush"), (prop1b, "green"), ),
+                ((prop2a, True), (prop2b, True), ),
+                ((prop3a, user1), (prop3b, user2)),
+                ((prop2a, False), (prop2b, True) ),
+                ((prop2a, True), (prop2b, False) ),
+                ((prop2a, False), ),
+                ((prop1a, "A fungus"), (prop1b, "blue"), (prop2a, True), (prop2b, True), (prop3a, user2), (prop3b, user1)),
+        ):
+            cf.save({
+                f"custom-property-{prop.pk}": value
+                for prop, value in props
+            })
+            instance.refresh_from_db()
+            for prop, value in props:
+                self.assertEqual(value, instance.custom_property(prop.name))
+            self.assert_log_entry_changed_fields(instance, [prop.name for prop, value in props])
+
+        cf.save()
+        self.assert_no_log_entry(instance)
