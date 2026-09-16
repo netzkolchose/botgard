@@ -1,9 +1,12 @@
+from typing import Optional, Type, Tuple
+
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.apps import apps
 from django.core.exceptions import FieldError, ValidationError
 from django.db import OperationalError, ProgrammingError
 from django.db.models import Func
+from django.db import models
 
 from tools.permissions import login_required
 
@@ -27,14 +30,25 @@ def model_fieldvalues_json(request):
         except (OperationalError, ProgrammingError):
             return qset.order_by(order_field)
 
-    def _filter(Model, filters, order_field):
+    def _filter(
+            Model: Type[models.Model],
+            filters,
+            order_field: str,
+            limit: Optional[Tuple[Type[models.Model], str]] = None,
+    ):
         try:
             try:
                 entries = Model.objects.filter(**filters[0]).distinct()
             except ValidationError:
                 return None
             for i in filters[1:]:
-                entries &= Model.objects.filter(**i).distinct()
+                entries = entries.filter(**i).distinct()
+
+            if limit:
+                entries = entries.filter(
+                    pk__in=limit[0].objects.values_list(f"{limit[1]}_id", flat=True)
+                ).distinct()
+
             if not entries.exists():
                 return []
             entries = _order_qset(entries, order_field)
@@ -75,11 +89,14 @@ def model_fieldvalues_json(request):
                     return _reduce(FModel, "__".join(names[1:]))
         return Model, fieldname
 
-    def _get_entries(Model, fieldname, terms, filter_mode):
+    def _get_entries(
+            Model: Type[models.Model],
+            fieldname, terms, filter_mode: str,
+            limit: Optional[Tuple[Type[models.Model], str]] = None):
         Model, fieldname = _reduce(Model, fieldname)
         # find entries that start with first term
         filters = _get_filters(fieldname, terms, filter_mode)
-        entries = _filter(Model, filters, fieldname)
+        entries = _filter(Model, filters, fieldname, limit=limit)
         if entries is None:
             if filter_mode == "startswith":
                 return None
@@ -105,29 +122,37 @@ def model_fieldvalues_json(request):
         return short
 
     def _get_list(request):
-        app, modelname, fieldname = request.GET.get("id").split("-")
         terms = request.GET.get("term")
+        app, modelname, fieldname = request.GET["id"].split("-")
         Model = apps.get_model(app, modelname)
 
+        limit = request.GET.get("limit")
+        if limit:
+            limit = limit.split("-")
+            limit = (apps.get_model(*limit[:2]), limit[2])
+
         if not terms:
-            return JsonResponse({"state": "empty"})
+            return JsonResponse({"state": "none", "items": []})
 
         ret_state = None
 
-        entries = _get_entries(Model, fieldname, terms, "exact")
+        entries = _get_entries(Model, fieldname, terms, "exact", limit=limit)
         if entries and len(entries) == 1:
             ret_state = "one"
 
         if not entries:
-            entries = _get_entries(Model, fieldname, terms, "startswith")
+            entries = _get_entries(Model, fieldname, terms, "startswith", limit=limit)
 
         if not entries or len(entries) < max_unique_items:
-            entries2 = _get_entries(Model, fieldname, terms, "contains")
+            entries2 = _get_entries(Model, fieldname, terms, "contains", limit=limit)
             if entries2 is not None:
-                eset = set(entries)
+                eset = set(entries or [])
                 for e in entries2:
                     if e not in eset and len(entries) < max_unique_items:
                         entries.append(e)
+
+        if not entries:
+            entries = []
 
         if ret_state is None:
             ret_state = "many" if len(entries) > 1 else "one" if len(entries) == 1 else "none"

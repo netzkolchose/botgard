@@ -79,8 +79,11 @@ class Configurable(object):
 configurable = Configurable.register
 
 class ForeignKeyFilter(admin.AllValuesFieldListFilter):
-    """Class to enable filter-queries of the form ?foreignkeyfield__field__icontains.
-    It's not meant for the filter-box but to allow a certain foreign field to be filtered."""
+    """
+    Class to enable filter-queries of the form ?foreignkeyfield__field__icontains.
+    It's not meant for the filter-box but to allow a certain foreign field to be filtered
+    in the changelist table headers.
+    """
     def __init__(self, field, request, params, model, model_admin, field_path):
         super(ForeignKeyFilter, self).__init__(
             field, request, params, model, model_admin, field_path)
