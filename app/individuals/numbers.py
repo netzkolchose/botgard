@@ -1,6 +1,6 @@
 import datetime
 import random
-from typing import Union, Type, List
+from typing import Union, Type, List, Optional
 
 from django.utils.translation import gettext_lazy as _
 from django.utils.encoding import force_str
@@ -71,6 +71,12 @@ config_app.register_key(
     validator=_number_generation_validator
 )
 
+config_app.register_key(
+    "accession_generation_specimen",
+    {"method": "random_range", "min": 7000000, "max": 7999999},
+    _("The method used for generating new accession numbers for herbarium specimens") + force_str(NUMBER_METHOD_HELP_TEXT),
+    validator=_number_generation_validator
+)
 
 def _lowest_gap_binary(l):
     """
@@ -222,6 +228,21 @@ def get_new_accession_number():
 
     method = config_app.get_value('accession_generation')
     num = _get_new_number([Individual, Entry], "accession_number", method)
+    if num is None:
+        raise RuntimeError(_('Could not find a free accession_number in time, sorry'))
+    return num
+
+
+def get_new_herbarium_specimen_accession_number(Model: Optional[Type[models.Model]] = None):
+    """
+    get an available accession_number for new herbarium specimen
+    """
+    if Model is None:
+        from herbaria.models import HerbariumSpecimen
+        Model = HerbariumSpecimen
+
+    method = config_app.get_value('accession_generation_specimen')
+    num = _get_new_number([Model], "accession_number", method)
     if num is None:
         raise RuntimeError(_('Could not find a free accession_number in time, sorry'))
     return num
