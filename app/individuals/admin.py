@@ -177,6 +177,7 @@ class IndividualAdmin(IndividualAdminMixin, ConfigurableTable):
     search_fields = search_fields_compatible((
         'accession_number',
         'ipen_generated',
+        '@came_as_species',
         '@species__species',
         '@species__subspecies',
         '@species__variety',

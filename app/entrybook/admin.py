@@ -41,8 +41,8 @@ class EntryAdmin(ConfigurableTable):
         'accession_number',
         'ipen_generated',
         '@species',
-        'source',
-        'came_in_as',
+        '@source',
+        '@came_as_species',
         'sowing_number',
         'order_number',
     ))

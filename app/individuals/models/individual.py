@@ -506,9 +506,10 @@ class IndividualForm(
     def __init__(self, *args, **kwargs):
         self._update_initial(kwargs)
         super(IndividualForm, self).__init__(*args, **kwargs)
-        for key in ("literature", "species_comment"):
-            if field := self.fields.get(key):
-                field.widget.attrs["style"] = "width: 40rem;"
+        if field := self.fields.get("literature"):
+            field.widget.attrs["style"] = "width: 40rem;"
+        if field := self.fields.get("species_comment"):
+            field.widget.attrs["style"] = "width: 100%;"
 
 
 class SeedInLatestCatalogFilter(FieldListFilter):
@@ -667,9 +668,10 @@ class SeedForm(
     def __init__(self, *args, **kwargs):
         self._update_initial(kwargs)
         super(SeedForm, self).__init__(*args, **kwargs)
-        for key in ("literature", "species_comment"):
-            if field := self.fields.get(key):
-                field.widget.attrs["style"] = "width: 40rem;"
+        if field := self.fields.get("literature"):
+            field.widget.attrs["style"] = "width: 40rem;"
+        if field := self.fields.get("species_comment"):
+            field.widget.attrs["style"] = "width: 100%;"
 
 
 
