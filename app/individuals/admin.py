@@ -139,6 +139,7 @@ class IndividualAdminMixin:
 
 
 class IndividualAdmin(IndividualAdminMixin, ConfigurableTable):
+    change_form_template = "individuals/change_form_individual.html"
     form = IndividualForm
     save_on_top = True
     list_display = (
