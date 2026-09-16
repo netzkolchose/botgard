@@ -365,4 +365,4 @@ class SpeciesForm(AutoCompleteForm(Species)):
             self.fields["nomenclature_checked"] = forms.NullBooleanField(disabled=True)
         for key in ("literature", "literature_distribution", "literature_german_name"):
             if key in self.fields:
-                self.fields[key].widget.attrs["style"] = "width: 30rem;"
+                self.fields[key].widget.attrs["style"] = "width: 40rem;"

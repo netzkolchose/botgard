@@ -119,7 +119,9 @@ class Literature(BotGardBaseModel(unique_name="literature", custom_properties=Tr
             else:
                 name = self.year
         if name:
-            name = f"{name}. "
+            if not name.endswith("."):
+                name += "."
+            name += " "
         name = '{}"{}"'.format(name, self.title or _("untitled"))
         if self.compilation:
             name = f"{name} {self.compilation}"
