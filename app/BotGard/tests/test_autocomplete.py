@@ -30,6 +30,10 @@ class TestAutocomplete(TestBase):
             )
             for i in range(11)
         ]
+        Family.objects.create(
+            family="Family-Unused",
+            genus="Genus-Unused",
+        )
         species_names = [
             "chinensis",
             "distichum",
@@ -74,7 +78,7 @@ class TestAutocomplete(TestBase):
         self.assertEqual(200, response.status_code)
         return json.loads(response.content.decode())
 
-    def test_autocomplete_individual(self):
+    def test_autocomplete_direct(self):
         self.login("User1")
 
         response = self.request_autocomplete({
@@ -109,7 +113,7 @@ class TestAutocomplete(TestBase):
             })
         )
 
-    def test_autocomplete_specimen(self):
+    def test_autocomplete_limit(self):
         """
         autocomplete for individuals iff they are referenced by HerbariumSpecimen.individual
         :return:
@@ -131,6 +135,50 @@ class TestAutocomplete(TestBase):
                     "0012 (Genus0 chinensis12)",
                     "0018 (Genus0 chinensis18)",
                     "0024 (Genus0 chinensis24)",
+                ]
+            },
+            response,
+        )
+
+    def test_autocomplete_limit_2(self):
+        self.login("User1")
+
+        response = self.request_autocomplete({
+            "id": "species-family-genus",
+            "term": "Genus",
+        })
+        #print(json.dumps(response, indent=4))
+        self.assertEqual(
+            {
+                "state": "many",
+                "items": [
+                    "Genus-Unused",
+                    "Genus0",
+                    "Genus1",
+                    "Genus10",
+                    "Genus2",
+                    "Genus3",
+                    "Genus4",
+                    "Genus5",
+                    "Genus6",
+                    "Genus7",
+                ]
+            },
+            response,
+        )
+
+        response = self.request_autocomplete({
+            "id": "species-family-genus",
+            "term": "Genus",
+            "limit": "individuals-individual-species__family",
+        })
+        #print(json.dumps(response, indent=4))
+        self.assertEqual(
+            {
+                "state": "many",
+                "items": [
+                    "Genus0",
+                    "Genus1",
                 ]
             },
             response,
