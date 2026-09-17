@@ -30,7 +30,6 @@ class Individual(IndividualBase(unique_name="individual")):
     class Meta:
         verbose_name = _("individual")
         verbose_name_plural = _("individuals")
-        unique_together = ("ipen_country", "ipen_transfer_restricted", "ipen_accession_number", "ipen_garden_code")
 
     _id_field = "id_name_generated"
 
