@@ -72,6 +72,8 @@ After that you can just run the development server with:
 ./manage.py runserver
 ```
 
+Read [config_app/README.md](app/config_app/README.md) for details about custom settings of individual deployments.
+
 #### Demo data
 
 To create some demo gardens, species and individuals in your database run

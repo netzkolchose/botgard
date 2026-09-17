@@ -8,10 +8,10 @@ from django import forms
 from django.db import transaction
 from django.urls import reverse
 
+from config_app.forms import CustomPropertyTabularInline
 from .models import *
 from plantimages.admin import PlantImageInline
 
-from tools import readOnlyAdmin
 from tools.search_fields import search_fields_compatible
 from config_tables.admin import ConfigurableTable, ForeignKeyFilter
 from ajax.autocomplete import AutoCompleteForm
@@ -38,7 +38,7 @@ INDIVIDUAL_SEARCH_FIELDS = search_fields_compatible((
 ))
 
 
-class DepartmentAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
+class DepartmentAdmin(ConfigurableTable):
 
     form = DepartmentForm
     list_display = ('change_link_decorator', 'territory', 'code', 'name', 'list_link_decorator',
@@ -46,8 +46,11 @@ class DepartmentAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable)
                     'delete_link_decorator',
                     )
     list_display_links = ()
-    list_filter = (('territory__name_generated', ForeignKeyFilter),
-                   )
+    list_filter = (
+        ('territory__name_generated', ForeignKeyFilter),
+        ("created_by__username", ForeignKeyFilter),
+        ("modified_by__username", ForeignKeyFilter),
+    )
     search_fields = search_fields_compatible(('code', 'name'))
     ordering = ("territory__code", 'code')
     admin_order_field = ("territory__code", "code")
@@ -69,7 +72,7 @@ class DepartmentAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable)
         css = {"screen": ('individuals/change_form_plant_stats.css',)}
 
 
-class TerritoryAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
+class TerritoryAdmin(ConfigurableTable):
     form = TerritoryForm
     list_display = ('change_link_decorator', 'code', 'name', 'list_link_decorator',
                     'num_individuals_alive', 'num_species_alive',
@@ -78,6 +81,10 @@ class TerritoryAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
     search_fields = search_fields_compatible(('code', 'name'))
     ordering = ('code',)
     blacklist = ("id", "name_generated", )
+    list_filter = (
+        ("created_by__username", ForeignKeyFilter),
+        ("modified_by__username", ForeignKeyFilter),
+    )
 
     change_form_template = "individuals/change_form_plant_stats.html"
     change_list_template = "individuals/change_list_edit_map.html"
@@ -86,14 +93,17 @@ class TerritoryAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
         css = {"screen": ('individuals/change_form_plant_stats.css',)}
 
 
-class OutplantingInline(readOnlyAdmin.ReadOnlyTabularInline):
+class OutplantingInline(admin.TabularInline):
     form = OutplantingForm
     model = Outplanting
+    fields = (
+        "department", "location", "seeded_date", "date", "plant_died", "comment",
+    )
     min_num = 0
     extra = 0
 
 
-class SeedAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
+class SeedAdmin(ConfigurableTable):
     form = SeedForm
     save_on_top = True
     actions_on_top = True
@@ -110,6 +120,8 @@ class SeedAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
         ('species__family__family', ForeignKeyFilter),
         ('species__family__genus', ForeignKeyFilter),
         (SeedInLatestCatalogFilter.QUERY_NAME, SeedInLatestCatalogFilter),
+        ("created_by__username", ForeignKeyFilter),
+        ("modified_by__username", ForeignKeyFilter),
     )
 
     blacklist = ('id', '__str__', 'ipen_transfer_restricted', 'ipen_garden_code', 'ipen_accession_number',
@@ -173,7 +185,7 @@ def get_seed_order_ids(s: str) -> List[str]:
     return re.findall(r"\d+", s)
 
 
-class HerbariumSpecimenInline(readOnlyAdmin.ReadOnlyTabularInline):
+class HerbariumSpecimenInline(admin.TabularInline):
     form = create_herbarium_specimen_form_class(
         # remove one of the defaults, otherwise user might click "add specimen"
         # and all defaults might be exactly the ones the user wants to enter
@@ -186,9 +198,10 @@ class HerbariumSpecimenInline(readOnlyAdmin.ReadOnlyTabularInline):
     model = HerbariumSpecimen
     min_num = 0
     extra = 0
+    fields = ("herbarium", "collector", "collection_date", "specimen_type", "comment")
 
 
-class IndividualAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
+class IndividualAdmin(ConfigurableTable):
     form = IndividualForm
     save_on_top = True
     list_display = (
@@ -210,8 +223,8 @@ class IndividualAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable)
         ('species__area_of_distribution_background', ForeignKeyFilter),
         ('species__family__family', ForeignKeyFilter),
         ('species__family__genus', ForeignKeyFilter),
-        # ('geo_location__geo_name', ForeignKeyFilter),
-        # ('osm_location__full_name', ForeignKeyFilter),
+        ("created_by__username", ForeignKeyFilter),
+        ("modified_by__username", ForeignKeyFilter),
     )
 
     blacklist = ('id', '__str__', 'ipen_transfer_restricted', 'ipen_garden_code', 'ipen_accession_number',
@@ -271,15 +284,11 @@ admin.site.register(Territory, TerritoryAdmin)
 # ------- below is for transfer from entrybook.Entry to inidividuals.Individual and Outplanting ------
 
 
-class OutplantingAlwaysChangedForm(forms.ModelForm):
+class OutplantingAlwaysChangedForm(OutplantingForm):
     """
     ModelForm for Outplanting inline to mark
     the initial data from entrybook.Entry as changed.
     """
-    class Meta:
-        model = Outplanting
-        fields = '__all__'
-
     def has_changed(self):
         return bool(self.initial.get("department"))
 
@@ -337,7 +346,6 @@ class IndividualFromEntryAdmin(IndividualAdmin):
 
         for form_set_class, inline_instance in super().get_formsets_with_inlines(request, obj):
             form_set_class: Type[BaseModelFormSet]
-
             if isinstance(inline_instance, OutplantingInline):
                 entry = self._entry
 
@@ -358,7 +366,7 @@ class IndividualFromEntryAdmin(IndividualAdmin):
             yield form_set_class, inline_instance
 
 
-class OutplantingAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
+class OutplantingAdmin(ConfigurableTable):
     form = OutplantingForm
     list_display = (
         'change_link_decorator',
@@ -372,6 +380,8 @@ class OutplantingAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable
         ('individual__ipen_generated', ForeignKeyFilter),
         ('individual__species__family__family', ForeignKeyFilter),
         ('individual__species__family__genus', ForeignKeyFilter),
+        ("created_by__username", ForeignKeyFilter),
+        ("modified_by__username", ForeignKeyFilter),
     )
     blacklist = ('id', 'individual', 'department', 'location')
 

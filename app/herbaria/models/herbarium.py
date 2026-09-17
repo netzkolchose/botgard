@@ -14,9 +14,10 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 
 from config_tables.admin import configurable, Configurable
+from BotGard import BotGardBaseModel
 
 
-class Herbarium(Configurable, models.Model):
+class Herbarium(BotGardBaseModel(unique_name="herbarium", custom_properties=True)):
 
     class Meta:
         verbose_name = _("Herbarium")

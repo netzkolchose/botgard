@@ -230,6 +230,14 @@ class TestAutocomplete(TestBase):
         self.assert_changelist_autocomplete_limits(
             "species", "species",
             {
+                "created_by": {
+                    "id": "auth-user-username",
+                    "limit": "species-species-created_by"
+                },
+                "modified_by": {
+                    "id": "auth-user-username",
+                    "limit": "species-species-modified_by"
+                },
                 "family": {
                     "id": "species-family-full_name_generated",
                     "limit": "species-species-family"
@@ -249,6 +257,14 @@ class TestAutocomplete(TestBase):
         self.assert_changelist_autocomplete_limits(
             "individuals", "individual",
             {
+                "created_by": {
+                    "id": "auth-user-username",
+                    "limit": "individuals-individual-created_by"
+                },
+                "modified_by": {
+                    "id": "auth-user-username",
+                    "limit": "individuals-individual-modified_by"
+                },
                 "user": {
                     "id": "auth-user-username",
                     "limit": "individuals-individual-user"
@@ -284,6 +300,14 @@ class TestAutocomplete(TestBase):
         self.assert_changelist_autocomplete_limits(
             "herbaria", "herbariumspecimen",
             {
+                "created_by": {
+                    "id": "auth-user-username",
+                    "limit": "herbaria-herbariumspecimen-created_by"
+                },
+                "modified_by": {
+                    "id": "auth-user-username",
+                    "limit": "herbaria-herbariumspecimen-modified_by"
+                },
                 "herbarium": {
                     "id": "herbaria-herbarium-name",
                     "limit": "herbaria-herbariumspecimen-herbarium"
@@ -303,6 +327,14 @@ class TestAutocomplete(TestBase):
         self.assert_changelist_autocomplete_limits(
             "individuals", "department",
             {
+                "created_by": {
+                    "id": "auth-user-username",
+                    "limit": "individuals-department-created_by"
+                },
+                "modified_by": {
+                    "id": "auth-user-username",
+                    "limit": "individuals-department-modified_by"
+                },
                 "territory": {
                     "id": "individuals-territory-name_generated",
                     "limit": "individuals-department-territory"
@@ -356,6 +388,15 @@ class TestAutocomplete(TestBase):
         self.assert_changelist_autocomplete_limits(
             "botman", "botanicgarden",
             {
+                "created_by": {
+                    "id": "auth-user-username",
+                    "limit": "botman-botanicgarden-created_by"
+                },
+                "modified_by": {
+                    "id": "auth-user-username",
+                    "limit": "botman-botanicgarden-modified_by"
+                },
+
             }
         )
 
@@ -363,6 +404,14 @@ class TestAutocomplete(TestBase):
         self.assert_changelist_autocomplete_limits(
             "entrybook", "entry",
             {
+                "created_by": {
+                    "id": "auth-user-username",
+                    "limit": "entrybook-entry-created_by"
+                },
+                "modified_by": {
+                    "id": "auth-user-username",
+                    "limit": "entrybook-entry-modified_by"
+                },
                 "user": {
                     "id": "auth-user-username",
                     "limit": "entrybook-entry-user"

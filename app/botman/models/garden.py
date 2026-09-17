@@ -11,10 +11,8 @@ from django import forms
 from config_tables.admin import Configurable, configurable
 from ajax.autocomplete import AutoCompleteForm
 from tools.urls import full_url
-
 import config_app
-
-# TODO: replace get_new_number, link methods still needed?, save still needed?
+from BotGard import BotGardBaseModel
 
 
 config_app.register_key(
@@ -36,7 +34,7 @@ def get_new_number():
     return new_number
 
 
-class BotanicGarden(Configurable, models.Model):
+class BotanicGarden(BotGardBaseModel(unique_name="garden", custom_properties=True)):
     class Meta:
         verbose_name = _('botanic garden')
         verbose_name_plural = _('botanic gardens')
