@@ -10,6 +10,7 @@ GARDENER_PERMISSIONS = {
     'botman.externalcatalogarchive': {'view'},
     'botman.outgoingorder': {'add', 'change', 'delete'},
     'entrybook.entry': {'add', 'change', 'delete'},
+    'entrybook.dispatch': {'add', 'change'},
     'individuals.department': {'add', 'change'},
     'individuals.individual': {'add', 'change'},
     'individuals.outplanting': {'add', 'change'},
@@ -31,6 +32,7 @@ GUEST_PERMISSIONS = {
     'botman.bgcigarden': {'view'},
     'botman.botanicgarden': {'view'},
     'entrybook.entry': {'view'},
+    'entrybook.dispatch': {'view'},
     'individuals.department': {'view'},
     'individuals.individual': {'view'},
     'individuals.outplanting': {'view'},
@@ -145,6 +147,7 @@ class TestPermissions(TestBase):
             'botman.externalcatalogarchive': {'add', 'change'},
             'botman.outgoingorder': {'add', 'change'},
             'entrybook.entry': {'add', 'change'},
+            'entrybook.dispatch': {'change', 'add'},
             'herbaria.herbarium': {'add', 'change'},
             'herbaria.herbariumspecimen': {'add', 'change'},
             'individuals.department': {'add', 'change'},
@@ -177,6 +180,7 @@ class TestPermissions(TestBase):
             'botman.externalcatalogarchive': {'change'},
             'botman.outgoingorder': {'add', 'change'},
             'entrybook.entry': {'add', 'change'},
+            'entrybook.dispatch': {'add', 'change'},
             'individuals.department': {'add', 'change'},
             'individuals.individual': {'add', 'change'},
             'individuals.outplanting': {'add', 'change'},
@@ -201,7 +205,7 @@ class TestPermissions(TestBase):
                 BGCIGarden, BotanicGarden, OutgoingOrder,
                 Literature, Project,
                 Species, Family,
-                Entry, Department, Territory, Individual, Seed, Outplanting,
+                Entry, Dispatch, Department, Territory, Individual, Seed, Outplanting,
                 BasicTicket, LaserGravurTicket, MyTicket
             ],
             can_view_models=[
@@ -217,7 +221,7 @@ class TestPermissions(TestBase):
             can_view_models=[
                 BGCIGarden, BotanicGarden, Literature, Project,
                 Species, Family,
-                Entry, Department, Territory, Individual, Seed, Outplanting,
+                Entry, Dispatch, Department, Territory, Individual, Seed, Outplanting,
                 SeedCatalog,
                 Herbarium, HerbariumSpecimen
             ]

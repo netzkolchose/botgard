@@ -84,6 +84,7 @@ INVISIBLE_MODELS = (
     "config_app.propertyvaluebool",
     "config_app.propertyvalueuser",
     "entrybook.entry_projects",
+    "entrybook.dispatch_projects",
     "individuals.individual_projects",
     "gis.postgisspatialrefsys",
     "gis.postgisgeometrycolumns",

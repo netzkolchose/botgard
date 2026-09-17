@@ -20,7 +20,6 @@ from .models import *
 
 class EntryAdmin(ConfigurableTable):
     form = EntryForm
-    save_on_top = True
 
     list_display = (
         'change_link_decorator',
@@ -173,3 +172,42 @@ class EntryAdmin(ConfigurableTable):
 
 
 admin.site.register(Entry, EntryAdmin)
+
+
+class DispatchAdmin(ConfigurableTable):
+    model = Dispatch
+    form = DispatchForm
+
+    list_display = (
+        'change_link_decorator',
+        'date',
+        'dispatch_number',
+        'destination',
+        'individual_link_decorator',
+        'transfer_type',
+        'amount',
+        'transfer_by',
+    )
+
+    blacklist = (
+        'pk', '__str__', 'individual', 'id_name_generated',
+    )
+
+    list_filter = (
+        ('created_by__username', ForeignKeyFilter),
+        ('modified_by__username', ForeignKeyFilter),
+        ('individual__id_name_generated', ForeignKeyFilter),
+        ('destination__full_name_generated', ForeignKeyFilter),
+    )
+
+    def get_form(self, request, obj=None, change=False, **kwargs):
+        """
+        Pre-fill `transfer_by` field
+        """
+        form = super().get_form(request, obj, change, **kwargs)
+        if "transfer_by" in form.base_fields:
+            form.base_fields["transfer_by"].initial = request.user.pk
+        return form
+
+
+admin.site.register(Dispatch, DispatchAdmin)

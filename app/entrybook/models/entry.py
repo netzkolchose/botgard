@@ -14,8 +14,8 @@ import config_app
 class Entry(IndividualBase(unique_name="entry")):
 
     class Meta:
-        verbose_name = _("Seed/individual entry")
-        verbose_name_plural = _("Seed/individual entries")
+        verbose_name = _("entry")
+        verbose_name_plural = _("entries")
 
     _id_field = "id_name_generated"
 

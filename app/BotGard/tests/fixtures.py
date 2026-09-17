@@ -24,6 +24,7 @@ CUSTOM_PROPERTIES = [
     {"model": "species.Species", "type": "bool", "name": "poisonous"},
     {"model": "species.Family", "type": "text", "name": "distinct", "choices": "No\nYes\nAlmost\n"},
     {"model": "entrybook.Entry", "type": "text", "name": "entry_comment"},
+    {"model": "entrybook.Dispatch", "type": "text", "name": "dispatch_comment"},
     {"model": "individuals.Territory", "type": "text", "name": "territory_comment"},
     {"model": "individuals.Department", "type": "text", "name": "department_comment"},
     {"model": "individuals.Individual", "type": "text", "name": "individual_comment"},
@@ -118,6 +119,11 @@ OUTPLANTINGS = [
     {"department": None, "individual": 1001, "date": "2000-01-01"},
 ]
 
+DISPATCHES = [
+    {"dispatch_number": 10, "individual": 1000, "destination": "Garden 1", "date": "2001-02-03", "transfer_by": "User1", "transfer_type": "plant", "amount": "one piece", "custom_property": {"name": "dispatch_comment", "value": "Send a whole tree"}},
+    {"dispatch_number": 11, "individual": 1001, "destination": "Garden 2", "date": "2002-03-04", "transfer_by": "User2", "transfer_type": "biomass", "amount": "two piles"},
+]
+
 LABELS = [
     {"id_name": "A1", "format": "svg", "display_name": "Address Label 1", "type": "garden", "markup": "label-garden.svg"},
     {"id_name": "A2", "format": "csv", "display_name": "Address Label 2", "type": "garden", "markup": "label-garden.csv"},
@@ -158,7 +164,7 @@ def log(*args, **kwargs):
 
 def create_test_fixtures():
     from botman.models import BGCIGarden, BotanicGarden, ExternalCatalog, ExternalCatalogArchive, OutgoingOrder
-    from entrybook.models import Entry
+    from entrybook.models import Entry, Dispatch
     from species.models import Family, Species
     from individuals.models import Department, Territory, Individual, Outplanting, Seed
     from herbaria.models import Herbarium, HerbariumSpecimen
@@ -356,6 +362,19 @@ def create_test_fixtures():
             plant_died=None,
         )
         _add_prop(model, data)
+
+    log("creating Dispatches")
+    for data in DISPATCHES:
+        data = data.copy()
+        custom_prop = data.pop("custom_property", None)
+        model = Dispatch.objects.create(**{
+            **data,
+            "individual": Individual.objects.get(accession_number=data["individual"]),
+            "destination": BotanicGarden.objects.get(name=data["destination"]),
+            "transfer_by": UserModel.objects.get(username=data["transfer_by"]),
+        })
+        if custom_prop:
+            _add_prop(model, {"custom_property": custom_prop})
 
     log("creating Herbarium & HerbariumSpecimen")
     for data in HERBARIA:

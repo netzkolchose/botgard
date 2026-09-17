@@ -72,9 +72,16 @@ config_app.register_key(
 )
 
 config_app.register_key(
-    "accession_generation_specimen",
+    "specimen_accession_generation",
     {"method": "random_range", "min": 7000000, "max": 7999999},
     _("The method used for generating new accession numbers for herbarium specimens") + force_str(NUMBER_METHOD_HELP_TEXT),
+    validator=_number_generation_validator
+)
+
+config_app.register_key(
+    "dispatch_number_generation",
+    {"method": "random_range", "min": 7000000, "max": 7999999},
+    _("The method used for generating new dispatch numbers for plant dispatches") + force_str(NUMBER_METHOD_HELP_TEXT),
     validator=_number_generation_validator
 )
 
@@ -229,7 +236,7 @@ def get_new_accession_number():
     method = config_app.get_value('accession_generation')
     num = _get_new_number([Individual, Entry], "accession_number", method)
     if num is None:
-        raise RuntimeError(_('Could not find a free accession_number in time, sorry'))
+        raise RuntimeError(_('Could not find a free %s') % _("accession number"))
     return num
 
 
@@ -241,10 +248,10 @@ def get_new_herbarium_specimen_accession_number(Model: Optional[Type[models.Mode
         from herbaria.models import HerbariumSpecimen
         Model = HerbariumSpecimen
 
-    method = config_app.get_value('accession_generation_specimen')
+    method = config_app.get_value('specimen_accession_generation')
     num = _get_new_number([Model], "accession_number", method)
     if num is None:
-        raise RuntimeError(_('Could not find a free accession_number in time, sorry'))
+        raise RuntimeError(_('Could not find a free %s') % _("accession number"))
     return num
 
 
@@ -258,7 +265,20 @@ def get_new_order_number():
     method = config_app.get_value('order_number_generation')
     num = _get_new_number([Individual, Entry], "order_number", method)
     if num is None:
-        raise RuntimeError(_('Could not find a free order_number in time, sorry'))
+        raise RuntimeError(_('Could not find a free %s') % _("order number"))
+    return num
+
+
+def get_new_dispatch_number():
+    """
+    get an available dispatch_number for new Dispatches
+    """
+    from entrybook.models import Dispatch
+
+    method = config_app.get_value('dispatch_number_generation')
+    num = _get_new_number([Dispatch], "dispatch_number", method)
+    if num is None:
+        raise RuntimeError(_('Could not find a free %s') % _("dispatch number"))
     return num
 
 
