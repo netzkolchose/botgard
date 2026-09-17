@@ -238,7 +238,7 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
             if "_delete" in request.POST:
                 try:
                     tablesettings.delete()
-                except AssertionError:  # in case, there is no settings yet
+                except (AssertionError, ValueError):  # in case, there is no settings yet
                     pass
                 return redirect(return_url)
             POST = request.POST.copy()
@@ -528,11 +528,16 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
         #   e.g. when searching through species__family__genus in individual changelist
         #   then limit search to Individual.species__family instances
         if not field or field.model != self.model:
+            limit_field_name = None
             if "__" in used_field_name:
+                limit_field_name = "__".join(used_field_name.split("__")[:-1])
+            elif field and foreign_field_name:
+                limit_field_name = used_field_name
+            if limit_field_name:
                 context["data-ac-limit"] = "{}-{}-{}".format(
                     self.model._meta.app_label,
                     self.model._meta.model_name,
-                    "__".join(used_field_name.split("__")[:-1]),
+                    limit_field_name,
                 )
 
         # avoid if there already is a widget with this query

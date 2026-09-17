@@ -527,6 +527,7 @@ class ChangeListForm:
         if not table:
             raise AssertionError(f"Expected table#result_list in changelist {self.url}")
 
+        self.headers.clear()
         trs = list(table.find("thead").find_all("tr"))
         for i, th in enumerate(trs[0].find_all("th")):
             name = None
