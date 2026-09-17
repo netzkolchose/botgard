@@ -1,3 +1,5 @@
+import datetime
+
 from django.utils.translation import gettext_lazy as _
 from django.utils.translation import ngettext_lazy as __
 from django.contrib.auth import get_user_model
@@ -45,8 +47,8 @@ class Dispatch(BotGardBaseModel(unique_name="dispatch", custom_properties=True))
 
     date = models.DateField(
         verbose_name=_("event date"),
-        auto_now_add=True,
         db_index=True,
+        default=datetime.date.today,
     )
 
     destination = models.ForeignKey(

@@ -182,11 +182,11 @@ class DispatchAdmin(ConfigurableTable):
         'change_link_decorator',
         'date',
         'dispatch_number',
-        'destination',
         'individual_link_decorator',
         'transfer_type',
         'amount',
         'transfer_by',
+        'destination',
     )
 
     blacklist = (
@@ -196,6 +196,7 @@ class DispatchAdmin(ConfigurableTable):
     list_filter = (
         ('created_by__username', ForeignKeyFilter),
         ('modified_by__username', ForeignKeyFilter),
+        ('transfer_by__username', ForeignKeyFilter),
         ('individual__id_name_generated', ForeignKeyFilter),
         ('destination__full_name_generated', ForeignKeyFilter),
     )

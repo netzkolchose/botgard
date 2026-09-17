@@ -4,4 +4,4 @@ from django.apps import AppConfig
 
 class EntryBookConfig(AppConfig):
     name = 'entrybook'
-    verbose_name = _("Seed / individual books")
+    verbose_name = _("entry/dispatch books")
