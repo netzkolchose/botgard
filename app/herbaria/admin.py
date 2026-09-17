@@ -8,7 +8,6 @@ from django.contrib.auth import get_user_model
 
 from .models import *
 
-from tools import readOnlyAdmin
 from tools.search_fields import search_fields_compatible
 from config_tables.admin import ConfigurableTable, ForeignKeyFilter
 from ajax.autocomplete import AutoCompleteForm
@@ -16,20 +15,24 @@ from labels.mass_action import add_label_mass_actions
 
 
 @register(Herbarium)
-class HerbariumAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
+class HerbariumAdmin(ConfigurableTable):
     form = AutoCompleteForm(Herbarium)
     list_display = (
         'change_link_decorator', 'date_created', 'name', 'comment',
     )
     blacklist = ('id', )
+    list_filter = (
+        ("created_by__username", ForeignKeyFilter),
+        ("modified_by__username", ForeignKeyFilter),
+    )
 
 
 @register(HerbariumSpecimen)
-class HerbariumSpecimenAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
+class HerbariumSpecimenAdmin(ConfigurableTable):
     form = create_herbarium_specimen_form_class()
     list_display = (
         'change_link_decorator',
-        'herbarium', 'individual_link_decorator', 'collector', 'collection_date', 'specimen_type',
+        'herbarium', 'individual_link_decorator', 'accession_number', 'collector', 'collection_date', 'specimen_type',
         'label_link_decorator',
     )
     list_filter = (
@@ -38,6 +41,8 @@ class HerbariumSpecimenAdmin(readOnlyAdmin.ReadPermissionModelAdmin, Configurabl
         ('collector__username', ForeignKeyFilter),
         ('herbarium__name', ForeignKeyFilter),
         ('individual__id_name_generated', ForeignKeyFilter),
+        ("created_by__username", ForeignKeyFilter),
+        ("modified_by__username", ForeignKeyFilter),
     )
     blacklist = ('id', '__str__', 'individual')
 

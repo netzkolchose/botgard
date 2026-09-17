@@ -6,6 +6,8 @@ from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from django.template import Context, loader
 from django.shortcuts import render
+from django.apps import apps
+from django.urls import reverse
 
 from tools.permissions import *
 from tools.admin_extensions import minimal_admin_context
@@ -98,14 +100,61 @@ def activity_view(request):
                   bin*7,
                   ) for bin in sorted(histogram)]
 
-    log_entries = LogEntry.objects.filter(action_time__gte=from_date,
-                                          action_time__lte=to_date).order_by("-action_time")
+    try:
+        from_date = timezone.make_aware(from_date)
+    except:
+        pass
+    try:
+        to_date = timezone.make_aware(to_date)
+    except:
+        pass
 
+    log_entries = list(
+        LogEntry.objects.filter(
+            action_time__gte=from_date,
+            action_time__lte=to_date,
+        ).order_by("-action_time", "object_repr")
+    )
+    existing_pks = {}
+    for log in log_entries:
+        key = log.content_type
+        if key not in existing_pks:
+            existing_pks[key] = [log.object_id]
+        else:
+            existing_pks[key].append(log.object_id)
+
+    for content_type in existing_pks.keys():
+        app_model = (content_type.app_label, content_type.model)
+        try:
+            existing_pks[content_type] = set(map(str,
+                apps.get_model(*app_model).objects
+                .filter(pk__in=existing_pks[content_type])
+                .values_list("pk", flat=True)
+            ))
+        except Exception as e:
+            print("X", type(e).__name__, e)
+            existing_pks[content_type] = []
+
+    log_entry_objects = []
+    for log in log_entries:
+        link = None
+        if log.object_id in existing_pks[log.content_type]:
+            link = reverse(
+                "admin:{}_{}_change".format(log.content_type.app_label, log.content_type.model),
+                args=(log.object_id, )
+            )
+        log_entry_objects.append({
+            "action_time": log.action_time,
+            "user": log.user,
+            "content_type": str(log.content_type),
+            "text": str(log),
+            "link": link,
+        })
     ctx = minimal_admin_context(request, LogEntry, _("user activity"))
     ctx.update({
         "from_date": from_date.date(),
         "to_date": to_date.date(),
-        "log_entries": log_entries,
+        "log_entries": log_entry_objects,
         "histogram": histogram,
     })
     return render(request, "botman/activity.html", ctx)

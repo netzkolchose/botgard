@@ -1,0 +1,8 @@
+<div class="custom-properties">
+    {% for prop in properties %}
+        <div class="custom-property" data-property-order="{{ prop.property.order }}">
+            <label for="{{ prop.id }}">{{ prop.property.name }}:</label>
+            {{ prop.widget|safe }}
+        </div>
+    {% endfor %}
+</div>

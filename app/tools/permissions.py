@@ -7,8 +7,6 @@ from django.http import HttpRequest
 def check_user_can_write(user):
     if not user.is_staff or not user.is_active:
         return False
-    if user.groups.filter(name='readOnly').exists():
-        return False
     # TODO: This checks for ANY add/delete permission
     for p in user.get_all_permissions():
         if "add_" in p or "delete_" in p:
