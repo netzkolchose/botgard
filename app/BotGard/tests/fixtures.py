@@ -185,8 +185,6 @@ def create_test_fixtures():
         else:
             UserModel.objects.create_user(**kwargs)
 
-        # print("U", UserModel.objects.get(username=data["username"]).is_superuser)
-
     log("creating CustomProperty")
     for prop in CUSTOM_PROPERTIES:
         CustomProperty.objects.create(**prop)
