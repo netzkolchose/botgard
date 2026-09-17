@@ -54,6 +54,13 @@ class ExternalCatalogBase(Configurable, models.Model):
     delete_link_decorator.short_description = _('delete')
     delete_link_decorator.exclude_csv = True
 
+
+class ExternalCatalog(ExternalCatalogBase):
+    class Meta:
+        verbose_name = _('external catalog')
+        verbose_name_plural = _('external catalogs')
+        ordering = ('date_uploaded',)
+
     @configurable
     def num_orders_decorator(self):
         if not self.garden:
@@ -78,13 +85,6 @@ class ExternalCatalogBase(Configurable, models.Model):
     garden_link_decorator.short_description = _('Botanic garden')
 
 
-class ExternalCatalog(ExternalCatalogBase):
-    class Meta:
-        verbose_name = _('external catalog')
-        verbose_name_plural = _('external catalogs')
-        ordering = ('date_uploaded',)
-
-
 class ExternalCatalogArchive(ExternalCatalogBase):
     class Meta:
         verbose_name = _('external catalog (archived)')
@@ -97,6 +97,29 @@ class ExternalCatalogArchive(ExternalCatalogBase):
         on_delete=models.CASCADE,
         related_name="catalogs_archived",
     )
+
+    @configurable
+    def num_orders_decorator(self):
+        if not self.garden:
+            return 0
+
+        # only show for newest catalog
+        qset = self.garden.catalogs.all().order_by("-date_uploaded").values_list("pk", flat=True)
+        if qset.exists() and self.pk != qset[0]:
+            return 0
+
+        return self.garden.num_orders_generated
+    num_orders_decorator.admin_order_field = "garden__num_orders_generated"
+    num_orders_decorator.short_description = _('number of orders')
+
+    @configurable
+    def garden_link_decorator(self):
+        if self.garden:
+            url = reverse("admin:botman_botanicgarden_change", args=(self.garden.pk,))
+            return mark_safe('<a href="%s" class="changelink">%s</a>' % (url, self.garden))
+        return "-"
+    garden_link_decorator.admin_order_field = "garden__full_name_generated"
+    garden_link_decorator.short_description = _('Botanic garden')
 
 
 class ExternalCatalogForm(AutoCompleteForm(ExternalCatalog)):

@@ -39,7 +39,7 @@ class HerbariumSpecimenAdmin(readOnlyAdmin.ReadPermissionModelAdmin, Configurabl
         ('herbarium__name', ForeignKeyFilter),
         ('individual__id_name_generated', ForeignKeyFilter),
     )
-    blacklist = ('id', '__str__')
+    blacklist = ('id', '__str__', 'individual')
 
     def get_actions(self, request):
         actions = super().get_actions(request)

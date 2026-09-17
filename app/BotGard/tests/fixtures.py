@@ -143,8 +143,6 @@ def create_test_fixtures():
         else:
             UserModel.objects.create_user(**kwargs)
 
-        # print("U", UserModel.objects.get(username=data["username"]).is_superuser)
-
     log("creating BGCIGarden")
     for i, data in enumerate(BGCI_GARDENS):
         BGCIGarden.objects.create(**data)
