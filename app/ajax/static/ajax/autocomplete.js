@@ -66,7 +66,11 @@ $(function () {
             if (modelid) {
                 $.getJSON(
                     $elem.attr('data-ac-json-url'),
-                    { term: request.term, id: modelid },
+                    {
+                        term: request.term,
+                        id: modelid,
+                        limit: $elem.attr('data-ac-limit'),
+                    },
                     function(data) {
                         updateAutocompleteWidgetState($elem, data);
                         if (data)

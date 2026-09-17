@@ -29,6 +29,7 @@ from django.contrib.auth.models import Permission, Group
 from django.contrib.auth import get_user_model
 from django.contrib.admin.models import LogEntry
 from django.http import HttpRequest, HttpResponse, QueryDict
+import django.contrib.admin
 
 import bs4
 import xlrd
@@ -260,85 +261,6 @@ class TestBase(TestCase):
 
         return response
 
-    def assert_changelist_columns(self, app_name: str, model_name: str, expected_columns: List[str]):
-        """
-        Assert that the changelist admin view has the expected columns (IDs)
-        """
-        # check changelist
-        response = self.client.get(
-            reverse(f"admin:{app_name}_{model_name}_changelist"),
-        )
-        soup = bs4.BeautifulSoup(response.content, features="html.parser")
-        table = soup.find("table", {"id": "result_list"})
-        columns = []
-        for th in table.find("thead").find("tr").find_all("th"):
-            if classes := list(filter(lambda c: c.startswith("column-"), th.attrs["class"])):
-                columns.append(classes[0][7:])
-
-        self.assertEqual(
-            expected_columns, columns,
-            f"\nExpected:{expected_columns}\n\nGot:\n{columns}"
-        )
-
-        # check configure-table view
-        response = self.client.get(
-            reverse(f"admin:{app_name}_{model_name}_configuretable")
-        )
-        soup = bs4.BeautifulSoup(response.content, features="html.parser")
-        columns = []
-        for li in soup.find("ul", {"data-testid": "draggable-column-items"}).find_all("li"):
-            columns.append(li.attrs["value"])
-        self.assertEqual(expected_columns, columns)
-
-        # check configure-table xhr endpoint
-        response = self.client.get(
-            reverse(f"admin:{app_name}_{model_name}_configuretable_tree")
-        )
-        soup = bs4.BeautifulSoup(response.content, features="html.parser")
-        columns = []
-        for inp in soup.find_all("input", {"type": "checkbox"}):
-            if inp.attrs.get("checked"):
-                columns.append(inp.attrs["id"])
-
-        self.assertEqual(set(expected_columns), set(columns))
-
-        return columns
-
-    def assert_change_changelist_columns(
-            self,
-            app_name: str,
-            model_name: str,
-            new_columns: List[str],
-            not_in_new_columns: Optional[List[str]] = None,
-    ):
-        """
-        Change the column settings and assert that the change is reflected in admin UI
-        """
-        response = self.client.get(
-            reverse(f"admin:{app_name}_{model_name}_configuretable"),
-        )
-        soup = bs4.BeautifulSoup(response.content, features="html.parser")
-        token = soup.find("input", {"name": "csrfmiddlewaretoken"}).attrs["value"]
-
-        response = self.client.post(
-            reverse(f"admin:{app_name}_{model_name}_configuretable"),
-            data={
-                "csrfmiddlewaretoken": token,
-                "settings": json.dumps([
-                    [c, c] for c in new_columns
-                ]),
-            },
-        )
-        self.assertEqual(302, response.status_code)  # redirects to changelist
-
-        if not not_in_new_columns:
-            self.assert_changelist_columns(app_name, model_name, new_columns)
-        else:
-            self.assert_changelist_columns(
-                app_name, model_name,
-                [c for c in new_columns if c not in not_in_new_columns]
-            )
-
     def create_custom_property(
             self,
             model: Union[models.Model, Type[models.Model]],
@@ -421,7 +343,7 @@ class ChangeListForm:
     class Header:
         name: str
         title: str
-        filter: Optional["FormField"] = None
+        filter: Optional["ChangeListForm.FormField"] = None
 
     def __init__(self, parent: TestBase, app_name: str, model_name: str):
         self.parent = parent
@@ -479,6 +401,7 @@ class ChangeListForm:
 
     def request(self):
         response = self.parent.client.get(self.url, query_params=self.query_params)
+        self.parent.assertEqual(200, response.status_code)
         self.parent.assert_no_warning(response)
         self.parse(response.content.decode())
 
@@ -560,6 +483,116 @@ class ChangeListForm:
         self.parent.assert_no_warning(response)
         self.parse(response.content.decode())
 
+    def model_class(self) -> Type[models.Model]:
+        return apps.get_model(self.app_name, self.model_name)
+
+    def model_admin(self) -> django.contrib.admin.ModelAdmin:
+        return django.contrib.admin.site.get_model_admin(self.model_class())
+
+    def is_configurable_table(self) -> bool:
+        return isinstance(self.model_admin(), ConfigurableTable)
+
+    def get_all_possible_columns(self) -> List[str]:
+        """Get all columns of the model that can be switched on"""
+        Model = self.model_class()
+        admin = self.model_admin()
+        if not isinstance(admin, ConfigurableTable):
+            raise ValueError(f"expected ConfigurableTable ModelAdmin for {Model}")
+        columns = admin.get_modelattributes_treepart(Model)
+        columns += admin.get_decorated_functions(Model)
+        columns = admin.apply_blacklist(columns)
+        columns = [c[1] for c in columns]
+        return columns
+
+    def assert_columns(self, expected_columns: List[str]):
+        """
+        Assert that the changelist admin view has the expected columns (IDs)
+        """
+        # check changelist
+        response = self.parent.client.get(
+            reverse(f"admin:{self.app_name}_{self.model_name}_changelist"),
+        )
+        soup = bs4.BeautifulSoup(response.content, features="html.parser")
+        table = soup.find("table", {"id": "result_list"})
+        columns = []
+        for th in table.find("thead").find("tr").find_all("th"):
+            if classes := list(filter(lambda c: c.startswith("column-"), th.attrs["class"])):
+                columns.append(classes[0][7:])
+
+        self.parent.assertEqual(
+            expected_columns, columns,
+            f"\nExpected:{expected_columns}\n\nGot:\n{columns}"
+        )
+
+        # check configure-table view
+        response = self.parent.client.get(
+            reverse(f"admin:{self.app_name}_{self.model_name}_configuretable")
+        )
+        soup = bs4.BeautifulSoup(response.content, features="html.parser")
+        columns = []
+        for li in soup.find("ul", {"data-testid": "draggable-column-items"}).find_all("li"):
+            columns.append(li.attrs["value"])
+        self.parent.assertEqual(expected_columns, columns)
+
+        # check configure-table xhr endpoint
+        response = self.parent.client.get(
+            reverse(f"admin:{self.app_name}_{self.model_name}_configuretable_tree")
+        )
+        soup = bs4.BeautifulSoup(response.content, features="html.parser")
+        columns = []
+        for inp in soup.find_all("input", {"type": "checkbox"}):
+            if inp.attrs.get("checked"):
+                columns.append(inp.attrs["id"])
+
+        self.parent.assertEqual(set(expected_columns), set(columns))
+
+        return columns
+
+    def set_columns(
+            self,
+            new_columns: List[str],
+            not_in_new_columns: Optional[List[str]] = None,
+    ):
+        """
+        Change the column settings and assert that the change is reflected in admin UI
+        """
+        response = self.parent.client.get(
+            reverse(f"admin:{self.app_name}_{self.model_name}_configuretable"),
+        )
+        soup = bs4.BeautifulSoup(response.content, features="html.parser")
+        token = soup.find("input", {"name": "csrfmiddlewaretoken"}).attrs["value"]
+
+        response = self.parent.client.post(
+            reverse(f"admin:{self.app_name}_{self.model_name}_configuretable"),
+            data={
+                "csrfmiddlewaretoken": token,
+                "settings": json.dumps([
+                    [c, c] for c in new_columns
+                ]),
+            },
+        )
+        self.parent.assertEqual(302, response.status_code)  # redirects to changelist
+
+        self.request()
+        if not not_in_new_columns:
+            self.assert_columns(new_columns)
+        else:
+            self.assert_columns(
+                [c for c in new_columns if c not in not_in_new_columns]
+            )
+
+    def get_header_autocomplete_settings(self) -> dict:
+        ret = {}
+        for h in self.headers:
+            if h.filter:
+                if ac_id := h.filter.element.attrs.get("data-ac-id"):
+                    ret[h.name] = {
+                        "id": ac_id,
+                    }
+                if ac_limit := h.filter.element.attrs.get("data-ac-limit"):
+                    ret[h.name]["limit"] = ac_limit
+        return ret
+
     def _parse_form(self):
         form = self.soup.find("form", {"id": "changelist-form"})
         if not form:
@@ -603,7 +636,10 @@ class ChangeListForm:
 
     def _parse_table(self):
         table = self.soup.find("table", {"id": "result_list"})
+        if not table:
+            raise AssertionError(f"Expected table#result_list in changelist {self.url}")
 
+        self.headers.clear()
         trs = list(table.find("thead").find_all("tr"))
         for i, th in enumerate(trs[0].find_all("th")):
             name = None
@@ -619,10 +655,11 @@ class ChangeListForm:
                 title=th.text.strip(),
             ))
 
-        # TODO: they are currently rendered as td, should be th
-        for i, th in enumerate(trs[1].find_all("td")):
-            if inp := th.find(None, {"class": "filter-form-element"}):
-                self.headers[i].filter = self.get_form_field(inp.attrs["name"])
+        if len(trs) > 1:
+            # TODO: they are currently rendered as td, should be th
+            for i, th in enumerate(trs[1].find_all("td")):
+                if inp := th.find(None, {"class": "filter-form-element"}):
+                    self.headers[i].filter = self.get_form_field(inp.attrs["name"])
 
         for tr in table.find("tbody").find_all("tr"):
             row = {}

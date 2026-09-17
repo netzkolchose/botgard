@@ -10,8 +10,8 @@
 {% endif %}
 
 {#% if results %#}
-    <div class="results">
-    <table id="result_list">
+    <div class="results"{% if html_table_height %} style="height: {{ html_table_height }};"{% endif %}>
+    <table id="result_list"{% if html_table_class %} class="{{ html_table_class }}"{% endif %}>
     <thead>
     <tr>
     {% for header in result_headers %}

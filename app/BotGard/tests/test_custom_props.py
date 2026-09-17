@@ -71,7 +71,8 @@ class TestCustomProps(TestBase):
         )
 
     def test_garden_changelist(self):
-        self.assert_change_changelist_columns("botman", "botanicgarden", [
+        cl = self.get_changelist("botman", "botanicgarden")
+        cl.set_columns([
             'name', 'code',
             f'custom_property_decorator_{self.CUSTOM_PROPS["g_type"].pk}',
             f'custom_property_decorator_{self.CUSTOM_PROPS["g_size"].pk}',
@@ -79,7 +80,6 @@ class TestCustomProps(TestBase):
             f'custom_property_decorator_{self.CUSTOM_PROPS["g_user"].pk}',
         ])
 
-        cl = self.get_changelist("botman", "botanicgarden")
         def assert_rows(codes: List[str]):
             cl.request()
             self.assertEqual(

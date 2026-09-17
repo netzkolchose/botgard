@@ -44,7 +44,7 @@ class HerbariumSpecimenAdmin(ConfigurableTable):
         ("created_by__username", ForeignKeyFilter),
         ("modified_by__username", ForeignKeyFilter),
     )
-    blacklist = ('id', '__str__')
+    blacklist = ('id', '__str__', 'individual')
 
     def get_actions(self, request):
         actions = super().get_actions(request)

@@ -25,6 +25,17 @@ from BotGard.basemodel import botgard_base_model_patch_fieldsets, CREATION_FIELD
 
 User = get_user_model()
 
+import config_app
+
+
+config_app.register_key(
+    "sticky_table_headers",
+    {"sticky": False, "height": "75vh"},
+    description="""Make table headers stick to the top, so they are always visible when scrolling.
+<br/>The attribute '<b>sticky</b>' must be set to 'true' to activate sticky headers.
+<br/>The attribute '<b>height</b>' defines the height of the table container (in CSS).""",
+)
+
 
 class Configurable(object):
     """
@@ -74,11 +85,15 @@ class Configurable(object):
 configurable = Configurable.register
 
 class ForeignKeyFilter(admin.AllValuesFieldListFilter):
-    """Class to enable filter-queries of the form ?foreignkeyfield__field__icontains.
-    It's not meant for the filter-box but to allow a certain foreign field to be filtered."""
+    """
+    Class to enable filter-queries of the form ?foreignkeyfield__field__icontains.
+    It's not meant for the filter-box but to allow a certain foreign field to be filtered
+    in the changelist table headers.
+    """
     def __init__(self, field, request, params, model, model_admin, field_path):
         super(ForeignKeyFilter, self).__init__(
-            field, request, params, model, model_admin, field_path)
+            field, request, params, model, model_admin, field_path,
+        )
 
     def expected_parameters(self):
         return [self.lookup_kwarg, self.lookup_kwarg_isnull]
@@ -331,7 +346,7 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
             if "_delete" in request.POST:
                 try:
                     tablesettings.delete()
-                except (ValueError, AssertionError):  # in case, there is no settings yet
+                except (AssertionError, ValueError):  # in case, there is no settings yet
                     pass
                 return redirect(return_url)
             POST = request.POST.copy()
@@ -572,9 +587,8 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
         query_string = "icontains" if not (is_choices or is_boolean) else "exact"
 
         # add foreign key redirection to query string
+        foreign_field_name = None  # the name of the field in related model
         if isinstance(field, models.ForeignKey):
-            # the name of the field in related model
-            foreign_field_name = None
             for i in self.list_filter:
                 try:
                     len(i)
@@ -593,8 +607,7 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
             if not foreign_field_name:
                 return None
             query_string = "%s__%s" % (foreign_field_name, query_string)
-            #ac_field_name = foreign_field_name
-            # TODO-3: Is that ok?
+
             field = field.related_model._meta.get_field(foreign_field_name)
 
         # markup replacement-strings
@@ -615,7 +628,7 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
             "inactive": "" if input_value else "inactive",
         })
 
-        # enrichment for jquery autocomplete
+        # enrichment for autocomplete
         if field:
             ac_model = "%s.%s" % (field.model._meta.app_label, field.model._meta.model_name)
             ac_field_name = field.name
@@ -623,6 +636,21 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
             "data-ac-json-url": reverse("ajax:model_json"),
             "data-ac-id": ("%s.%s" % (ac_model, ac_field_name)).replace(".", "-")
         })
+        # for related fields, limit autocomplete to actually used instances
+        #   e.g. when searching through species__family__genus in individual changelist
+        #   then limit search to Individual.species__family instances
+        if not field or field.model != self.model:
+            limit_field_name = None
+            if "__" in used_field_name:
+                limit_field_name = "__".join(used_field_name.split("__")[:-1])
+            elif field and foreign_field_name:
+                limit_field_name = used_field_name
+            if limit_field_name:
+                context["data-ac-limit"] = "{}-{}-{}".format(
+                    self.model._meta.app_label,
+                    self.model._meta.model_name,
+                    limit_field_name,
+                )
 
         # avoid if there already is a widget with this query
         if context.get("query") in dic:

@@ -149,6 +149,7 @@ class ExternalCatalogArchiveAdmin(ConfigurableTable):
     )
     list_filter = (
         ("garden__full_name_generated", ForeignKeyFilter),
+        ("garden__num_orders_generated", ForeignKeyFilter),
     )
     ordering = ("-date_uploaded", )
     blacklist = ("garden", )
