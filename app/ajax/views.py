@@ -48,7 +48,7 @@ def model_fieldvalues_json(request):
 
             if limit:
                 entries = entries.filter(
-                    pk__in=limit[0].objects.values_list(f"{limit[1]}_id", flat=True)
+                    pk__in=limit[0].objects.values_list(limit[1], flat=True).distinct()
                 ).distinct()
 
             if not entries.exists():

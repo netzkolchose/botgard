@@ -360,6 +360,7 @@ class Individual(IndividualBase(unique_name="individual")):
         ))
     projects_decorator.short_description = _("projects")
     projects_decorator.admin_order_field = "projects__full_name_generated"
+    projects_decorator.original_field = "projects"
 
     def save(self, *args, **kwargs):
         # -- update generated fields --

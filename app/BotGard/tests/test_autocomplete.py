@@ -204,8 +204,13 @@ class TestAutocomplete(TestBase):
         cl.set_columns(cl.get_all_possible_columns())
         msg = json.dumps(cl.get_header_autocomplete_settings(), indent=4)
         autocompletes = cl.get_header_autocomplete_settings()
+        # check for expected limits
         for key, value in expected_autocompletes.items():
+            if value.get("limit") and not value["limit"].endswith("__pk"):
+                value = copy.deepcopy(value)
+                value["limit"] = f"{value['limit']}_id"
             self.assertEqual(value, autocompletes.get(key), f"For field '{key}', got:\n{msg}")
+        # check for unexpected limits
         for key, value in autocompletes.items():
             if value.get("limit"):
                 if key not in expected_autocompletes:
@@ -222,11 +227,17 @@ class TestAutocomplete(TestBase):
                 else:
                     if not value["id"].startswith(f"{app_name}-{model_name}-"):
                         raise AssertionError(
-                            f"Unexpected start of id for field '{key}': {value['id']}, got:\n{msg}"
+                            f"Unexpected beginning of id for field '{key}': {value['id']}, got:\n{msg}"
                         )
                     self.assertNotIn("decorator", value["id"], f"For field '{key}', got:\n{msg}")
 
     def test_autocomplete_limit_in_changelist_species(self):
+        """
+        This and all following `test_autocomplete_limit_in_changelist_...` tests
+        make sure, that autocomplete for changelist table header filters only
+        completes for related objects that are referenced in the specific table.
+        By checking the "data-ac-limit" attribute in the autocomplete field.
+        """
         self.assert_changelist_autocomplete_limits(
             "species", "species",
             {
@@ -311,7 +322,7 @@ class TestAutocomplete(TestBase):
                 },
                 "projects_decorator": {
                     "id": "meta-project-full_name_generated",
-                    "limit": "individuals-individual-projects"
+                    "limit": "individuals-individual-projects__pk"
                 },
             }
         )
@@ -446,3 +457,48 @@ class TestAutocomplete(TestBase):
                 },
             }
         )
+
+    def test_autocomplete_individuals_projects(self):
+        pro1 = Project.objects.create(abbreviation="PRO1", title="Project One")
+        pro2 = Project.objects.create(abbreviation="PRO2", title="Project Two")
+        pro3 = Project.objects.create(abbreviation="", title="Number Three")
+
+        self.individuals[1].projects.set([pro1])
+        self.individuals[2].projects.set([pro1, pro2])
+        self.individuals[3].projects.set([pro3])
+
+        cl = self.get_changelist("individuals", "individual")
+        cl.set_columns(["accession_number", "projects_decorator"])
+
+        qset = Project.objects.filter(
+            full_name_generated__icontains="PRO",
+        )
+        Individual.objects.filter()
+
+        cl.assert_autocomplete_response(
+            "projects__full_name_generated__icontains",
+            "PRO",
+            {
+                "state": "many",
+                "items": ["(PRO1) Project One", "(PRO2) Project Two"]
+            }
+        )
+
+        # ---- also check the filters -----
+
+        cl.set_filters({"projects__full_name_generated__icontains": "PRO"})
+        cl.assert_rows([
+            {"accession_number": "0001", "projects_decorator": "PRO1"},
+            {"accession_number": "0002", "projects_decorator": "PRO1, PRO2"},
+        ])
+
+        cl.set_filters({"projects__full_name_generated__icontains": "Project"})
+        cl.assert_rows([
+            {"accession_number": "0001", "projects_decorator": "PRO1"},
+            {"accession_number": "0002", "projects_decorator": "PRO1, PRO2"},
+        ])
+
+        cl.set_filters({"projects__full_name_generated__icontains": "Three"})
+        cl.assert_rows([
+            {"accession_number": "0003", "projects_decorator": "Number Three"},
+        ])

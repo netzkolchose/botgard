@@ -598,6 +598,60 @@ class ChangeListForm:
                     ret[h.name]["limit"] = ac_limit
         return ret
 
+    def assert_rows(self, rows: List[dict]):
+        """
+        Assert that current display rows matches the list of `rows` provided.
+        Ignores extra columns in changelist
+        """
+        if len(rows) != len(self.rows):
+            raise AssertionError(
+                f"Expected {len(rows)} rows, got {len(self.rows)}:\n{pprint.pformat(self.rows)}"
+            )
+        for i, (expected_row, row) in enumerate(zip(rows, self.rows)):
+            for key, expected_value in expected_row.items():
+                if key not in row:
+                    raise AssertionError(
+                        f"Expected key '{key}' in row, got {row}"
+                    )
+                self.parent.assertEqual(
+                    expected_value,
+                    row[key],
+                    f"In {i}th row. Got:\n{pprint.pformat(self.rows)}"
+                )
+
+    def assert_autocomplete_response(
+            self,
+            input_name: str,  # e.g. field__foreignfield__icontains
+            query: str,
+            expected_response: dict,
+    ):
+        header = None
+        for h in self.headers:
+            if h.filter and h.filter.name == input_name:
+                header = h
+                break
+        if not header:
+            raise AssertionError(
+                f"Expected header filter '{input_name}' but not found, got:\n{pprint.pformat(self.headers)}"
+            )
+        params = {
+            "term": query,
+            "id": header.filter.element.attrs.get("data-ac-id"),
+        }
+        if not params["id"]:
+            raise AssertionError(f"Missing data-ac-id attribute in element {header.filter.element}")
+        if autocomplete_limit := header.filter.element.attrs.get("data-ac-limit"):
+            params["limit"] = autocomplete_limit
+
+        response = self.parent.client.get(
+            reverse("ajax:model_json") + "?" + urllib.parse.urlencode(params)
+        )
+        self.parent.assertEqual(
+            expected_response,
+            json.loads(response.content),
+            f"autocomplete params: {params}"
+        )
+
     def _parse_form(self):
         form = self.soup.find("form", {"id": "changelist-form"})
         if not form:

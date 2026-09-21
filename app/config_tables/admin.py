@@ -524,6 +524,7 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
 
         ac_model = "%s.%s" % (self.model._meta.app_label, self.model._meta.model_name)
         ac_field_name = field_name
+        original_field = None
 
         # see if a model field
         try:
@@ -531,6 +532,7 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
             if not isinstance(field, accepted_fields):
                 return None
             used_field_name = field_name
+            original_field = field
 
         # see if decorator function
         except django.core.exceptions.FieldDoesNotExist:
@@ -553,6 +555,13 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
             if not used_field_name:
                 return None
             ac_field_name = used_field_name
+
+            # try to get original model's field from decorator function
+            if original_field_name := func.__dict__.get("original_field", None):
+                try:
+                    original_field = self.model._meta.get_field(original_field_name)
+                except django.core.exceptions.FieldDoesNotExist:
+                    pass
 
             # try to get field from fieldname
             try:
@@ -649,6 +658,12 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
                 limit_field_name = "__".join(used_field_name.split("__")[:-1])
             elif field and foreign_field_name:
                 limit_field_name = used_field_name
+            if original_field and isinstance(original_field, models.ManyToManyField):
+                # limit by checking many2many related PKs
+                limit_field_name = f"{original_field.name}__pk"
+            else:
+                # limit by simple foreignkey related PKs
+                limit_field_name = f"{limit_field_name}_id"
             if limit_field_name:
                 context["data-ac-limit"] = "{}-{}-{}".format(
                     self.model._meta.app_label,
