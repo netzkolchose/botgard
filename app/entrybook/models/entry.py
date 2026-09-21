@@ -160,6 +160,14 @@ class Entry(IndividualBase(unique_name="entry")):
     department_decorator.short_description = _("department")
     department_decorator.admin_order_field = "department__code"
 
+    @configurable
+    def projects_decorator(self) -> str:
+        from individuals.models.individual_base import projects_decorator
+        return projects_decorator(self)
+    projects_decorator.short_description = _("projects")
+    projects_decorator.admin_order_field = "projects__full_name_generated"
+    projects_decorator.original_field = "projects"
+
     def get_ipen_garden_code(self) -> Optional[str]:
         garden_code = self.ipen_garden_code
         if garden_code:

@@ -144,6 +144,14 @@ class Dispatch(BotGardBaseModel(unique_name="dispatch", custom_properties=True))
     individual_link_decorator.short_description = _("individual")
     individual_link_decorator.admin_order_field = "individual__id_name_generated"
 
+    @configurable
+    def projects_decorator(self) -> str:
+        from individuals.models.individual_base import projects_decorator
+        return projects_decorator(self)
+    projects_decorator.short_description = _("projects")
+    projects_decorator.admin_order_field = "projects__full_name_generated"
+    projects_decorator.original_field = "projects"
+
     def save(self, *args, **kwargs):
         self.id_name_generated = f"{self.dispatch_number} ({self.individual})"
         super().save(*args, **kwargs)

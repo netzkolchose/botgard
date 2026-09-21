@@ -196,3 +196,14 @@ def IndividualBase(unique_name: str) -> Type[models.Model]:
             return _('unknown')
 
     return IndividualBase
+
+
+def projects_decorator(self: models.Model):
+    projects = list(self.projects.all().values("abbreviation", "title"))
+    if not projects:
+        return "-"
+    return mark_safe(", ".join(
+        format_html("""<span title="{title}">{abbrv}</span>""", title=p["title"], abbrv=p["abbreviation"])
+        if p["abbreviation"] else format_html("{title}", title=p["title"])
+        for p in projects
+    ))

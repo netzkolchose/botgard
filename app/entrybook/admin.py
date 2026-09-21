@@ -199,6 +199,7 @@ class DispatchAdmin(ConfigurableTable):
         ('transfer_by__username', ForeignKeyFilter),
         ('individual__id_name_generated', ForeignKeyFilter),
         ('destination__full_name_generated', ForeignKeyFilter),
+        ('projects__full_name_generated', ForeignKeyFilter),
     )
 
     def get_form(self, request, obj=None, change=False, **kwargs):

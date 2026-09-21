@@ -350,14 +350,8 @@ class Individual(IndividualBase(unique_name="individual")):
 
     @configurable
     def projects_decorator(self) -> str:
-        projects = list(self.projects.all().values("abbreviation", "title"))
-        if not projects:
-            return "-"
-        return mark_safe(", ".join(
-            format_html("""<span title="{title}">{abbrv}</span>""", title=p["title"], abbrv=p["abbreviation"])
-            if p["abbreviation"] else format_html("{title}", title=p["title"])
-            for p in projects
-        ))
+        from .individual_base import projects_decorator
+        return projects_decorator(self)
     projects_decorator.short_description = _("projects")
     projects_decorator.admin_order_field = "projects__full_name_generated"
     projects_decorator.original_field = "projects"

@@ -455,6 +455,41 @@ class TestAutocomplete(TestBase):
                     "id": "literature-literature-full_name_generated",
                     "limit": "entrybook-entry-literature"
                 },
+                "projects_decorator": {
+                    "id": "meta-project-full_name_generated",
+                    "limit": "entrybook-entry-projects__pk"
+                },
+            }
+        )
+
+    def test_autocomplete_limit_in_changelist_dispatch(self):
+        self.assert_changelist_autocomplete_limits(
+            "entrybook", "dispatch",
+            {
+                "created_by": {
+                    "id": "auth-user-username",
+                    "limit": "entrybook-dispatch-created_by"
+                },
+                "modified_by": {
+                    "id": "auth-user-username",
+                    "limit": "entrybook-dispatch-modified_by"
+                },
+                "destination": {
+                    "id": "botman-botanicgarden-full_name_generated",
+                    "limit": "entrybook-dispatch-destination"
+                },
+                "transfer_by": {
+                    "id": "auth-user-username",
+                    "limit": "entrybook-dispatch-transfer_by"
+                },
+                "individual_link_decorator": {
+                    "id": "individuals-individual-id_name_generated",
+                    "limit": "entrybook-dispatch-individual"
+                },
+                "projects_decorator": {
+                    "id": "meta-project-full_name_generated",
+                    "limit": "entrybook-dispatch-projects__pk"
+                }
             }
         )
 
