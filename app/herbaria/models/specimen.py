@@ -10,6 +10,7 @@ from django.templatetags.static import static
 from django.utils import timezone
 from django.utils.html import format_html, escape
 from django.utils.safestring import mark_safe
+from django.utils.text import format_lazy
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from django.conf import settings
@@ -24,26 +25,26 @@ from BotGard import BotGardBaseModel
 
 
 HERBARIUM_SPECIMEN_TYPES = (
-    ("plant_generative", "{} / {}".format(_("Plant (generative)"), _("pressed"))),
-    ("plant_vegetative", "{} / {}".format(_("Plant (vegetative)"), _("pressed"))),
-    ("blossoms", "{} / {}".format(_("Blossoms"), _("pressed"))),
-    ("leaves", "{} / {}".format(_("Leaves"), _("pressed"))),
-    ("fruits", "{} / {}".format(_("Fruits"), _("pressed"))),
-    ("seeds", "{} / {}".format(_("Seeds"), _("pressed"))),
+    ("plant_generative", format_lazy("{} / {}", _("Plant (generative)"), _("pressed"))),
+    ("plant_vegetative", format_lazy("{} / {}", _("Plant (vegetative)"), _("pressed"))),
+    ("blossoms", format_lazy("{} / {}", _("Blossoms"), _("pressed"))),
+    ("leaves", format_lazy("{} / {}", _("Leaves"), _("pressed"))),
+    ("fruits", format_lazy("{} / {}", _("Fruits"), _("pressed"))),
+    ("seeds", format_lazy("{} / {}", _("Seeds"), _("pressed"))),
 
-    ("plant_generative_liquid", "{} / {}".format(_("Plant (generative)"), _("liquid"))),
-    ("plant_vegetative_liquid", "{} / {}".format(_("Plant (vegetative)"), _("liquid"))),
-    ("blossoms_liquid", "{} / {}".format(_("Blossoms"), _("liquid"))),
-    ("leaves_liquid", "{} / {}".format(_("Leaves"), _("liquid"))),
-    ("fruits_liquid", "{} / {}".format(_("Fruits"), _("liquid"))),
-    ("seeds_liquid", "{} / {}".format(_("Seeds"), _("liquid"))),
+    ("plant_generative_liquid", format_lazy("{} / {}", _("Plant (generative)"), _("liquid"))),
+    ("plant_vegetative_liquid", format_lazy("{} / {}", _("Plant (vegetative)"), _("liquid"))),
+    ("blossoms_liquid", format_lazy("{} / {}", _("Blossoms"), _("liquid"))),
+    ("leaves_liquid", format_lazy("{} / {}", _("Leaves"), _("liquid"))),
+    ("fruits_liquid", format_lazy("{} / {}", _("Fruits"), _("liquid"))),
+    ("seeds_liquid", format_lazy("{} / {}", _("Seeds"), _("liquid"))),
 
-    ("plant_generative_3d", "{} / {}".format(_("Plant (generative)"), _("3D dried"))),
-    ("plant_vegetative_3d", "{} / {}".format(_("Plant (vegetative)"), _("3D dried"))),
-    ("blossoms_3d", "{} / {}".format(_("Blossoms"), _("3D dried"))),
-    ("leaves_3d", "{} / {}".format(_("Leaves"), _("3D dried"))),
-    ("fruits_3d", "{} / {}".format(_("Fruits"), _("3D dried"))),
-    ("seeds_3d", "{} / {}".format(_("Seeds"), _("3D dried"))),
+    ("plant_generative_3d", format_lazy("{} / {}", _("Plant (generative)"), _("3D dried"))),
+    ("plant_vegetative_3d", format_lazy("{} / {}", _("Plant (vegetative)"), _("3D dried"))),
+    ("blossoms_3d", format_lazy("{} / {}", _("Blossoms"), _("3D dried"))),
+    ("leaves_3d", format_lazy("{} / {}", _("Leaves"), _("3D dried"))),
+    ("fruits_3d", format_lazy("{} / {}", _("Fruits"), _("3D dried"))),
+    ("seeds_3d", format_lazy("{} / {}", _("Seeds"), _("3D dried"))),
 )
 
 def get_default_herbarium():
@@ -77,6 +78,7 @@ class HerbariumSpecimen(BotGardBaseModel(unique_name="herbariumspecimen", custom
     )
 
     individual = models.ForeignKey(
+        verbose_name=_("individual"),
         to="individuals.Individual",
         on_delete=models.CASCADE,
         db_index=True,
