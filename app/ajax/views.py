@@ -1,6 +1,7 @@
 import traceback
 from typing import Optional, Type, Tuple
 
+import django.core.exceptions
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.apps import apps
@@ -11,6 +12,7 @@ from django.db import models
 
 from config_app.models import CustomProperty
 from tools.permissions import login_required
+from tools.search_fields import make_filter_term_compatible_with_natural_sort
 
 
 @login_required
@@ -138,16 +140,26 @@ def model_fieldvalues_json(request):
         else:
             app, modelname, fieldname = request.GET.get("id").split("-")
 
-        terms = request.GET.get("term")
-        Model = apps.get_model(app, modelname)
-
         limit = request.GET.get("limit")
         if limit:
             limit = limit.split("-")
             limit = (apps.get_model(*limit[:2]), limit[2])
 
+        terms = request.GET.get("term")
+
         if not terms:
             return JsonResponse({"state": "none", "items": []})
+
+        Model = apps.get_model(app, modelname)
+
+        try:
+            field = Model._meta.get_field(fieldname)
+        except django.core.exceptions.FieldDoesNotExist:
+            return JsonResponse({"state": "none", "items": []})
+
+        if getattr(field, "db_collation", None) == "natural_sort":
+            # fix postgres' UPPER conversion from "ß" to "SS"
+            terms = make_filter_term_compatible_with_natural_sort(terms)
 
         ret_state = None
 

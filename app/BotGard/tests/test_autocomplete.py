@@ -23,6 +23,11 @@ class TestAutocomplete(TestBase):
             code="T1",
             name="Territory 1",
         )
+        cls.department = Department.objects.create(
+            code="D1",
+            name="Department 1",
+            territory=cls.territory,
+        )
         cls.families = [
             Family.objects.create(
                 family=f"Family{i}",
@@ -59,6 +64,13 @@ class TestAutocomplete(TestBase):
                 seed_in_stock=False,
             )
             for i in range(len(cls.species))
+        ]
+        cls.outplantings = [
+            Outplanting.objects.create(
+                individual=cls.individuals[i],
+                department=cls.department,
+            )
+            for i in range(10)
         ]
         cls.herbarium = Herbarium.objects.create(
             name="Herb1",
@@ -505,13 +517,8 @@ class TestAutocomplete(TestBase):
         cl = self.get_changelist("individuals", "individual")
         cl.set_columns(["accession_number", "projects_decorator"])
 
-        qset = Project.objects.filter(
-            full_name_generated__icontains="PRO",
-        )
-        Individual.objects.filter()
-
         cl.assert_autocomplete_response(
-            "projects__full_name_generated__icontains",
+            "projects__full_name_generated",
             "PRO",
             {
                 "state": "many",
@@ -537,3 +544,132 @@ class TestAutocomplete(TestBase):
         cl.assert_rows([
             {"accession_number": "0003", "projects_decorator": "Number Three"},
         ])
+
+    def create_search_targets(self, targets: List[str]):
+        for target in targets:
+            Project.objects.create(abbreviation="", title=target)
+
+    def assert_search_targets(self, query: str, targets: List[str]):
+        cl = self.get_changelist("meta", "project")
+        response = cl.get_autocomplete_response("title", query)
+        response = json.loads(response.content)
+        self.assertEqual(
+            targets,
+            response["items"],
+            f"Got:\n{json.dumps(response, indent=2)}"
+        )
+
+    def test_autocomplete_multi_word(self):
+        self.create_search_targets([
+            "Hello World",
+            "Straße des 3. Oktobers",
+            "Straße des 23. Oktobers",
+            "Even\nwith\nlinebreaks",
+        ])
+        self.assert_search_targets(
+            "hello world",
+            ["Hello World"],
+        )
+        self.assert_search_targets(
+            "Straße des 23. Oktobers",
+            ["Straße des 23. Oktobers"],
+        )
+        self.assert_search_targets(
+            "Straße des Oktobers",
+            ["Straße des 23. Oktobers", "Straße des 3. Oktobers"],
+        )
+        self.assert_search_targets(
+            "linebreak",
+            ["Even\nwith\nlinebreaks"],
+        )
+
+    @skip_if_no_postgres
+    def test_autocomplete_natural_sort(self):
+        """
+        Test searching/filtering for `natural_sort` collation fields
+        """
+        instances = [
+            Dispatch.objects.create(
+                destination=self.garden,
+                individual=self.individuals[0],
+                amount=amount,
+                transfer_type="plant",
+                transfer_by=self.user,
+            )
+            for amount in [
+                "1 großes Stück",
+                "2 große Stücke",
+                "3 grosse STÜCKE",
+            ]
+        ]
+
+        cl = self.get_changelist("entrybook", "dispatch")
+        for query in ("groß", "gross", "stück"):
+            cl.assert_autocomplete_response(
+                "amount",
+                query,
+                {
+                    "state": "many",
+                    "items": ["1 großes Stück", "2 große Stücke", "3 grosse STÜCKE"],
+                }
+            )
+
+        # --- also check changelist filters ---
+
+        for query in ("groß", "gross", "stück"):
+            cl.set_filters({"amount__icontains": query})
+            cl.assert_rows([
+                {"amount": "1 großes Stück"},
+                {"amount": "2 große Stücke"},
+                {"amount": "3 grosse STÜCKE"},
+            ])
+
+    @skip_if_no_postgres
+    def test_autocomplete_related_natural_sort(self):
+        """
+        Test searching/filtering for related model fields with `natural_sort` collation
+        """
+        self.assertEqual("natural_sort", getattr(Individual.id_name_generated.field, "db_collation", None))
+
+        for i, term in enumerate([
+            "1 großes Stück",
+            "2 große Stücke",
+            "3 grosse STÜCKE",
+        ]):
+            indi = self.individuals[i]
+            indi.accession_number = term
+            indi.save()  # overwrites id_name_generated
+
+        HerbariumSpecimen.objects.all().delete()
+        for i, indi in enumerate(self.individuals):
+            HerbariumSpecimen.objects.create(
+                herbarium=self.herbarium,
+                individual=indi,
+                collector=self.user,
+                specimen_type=HERBARIUM_SPECIMEN_TYPES[i % len(HERBARIUM_SPECIMEN_TYPES)][0],
+            )
+
+        cl = self.get_changelist("herbaria", "herbariumspecimen")
+        for query in ("groß", "gross", "stück"):
+            cl.assert_autocomplete_response(
+                "individual__id_name_generated",
+                query,
+                {
+                    "state": "many",
+                    "items": [
+                        self.individuals[0].id_name_generated,
+                        self.individuals[1].id_name_generated,
+                        self.individuals[2].id_name_generated,
+                    ],
+                }
+            )
+
+        # --- also check changelist filters ---
+
+        for query in ("groß", "gross", "stück"):
+            cl.set_filters({"individual__id_name_generated__icontains": query})
+            cl.assert_rows([
+                {"individual_link_decorator": self.individuals[2].id_name_generated},
+                {"individual_link_decorator": self.individuals[1].id_name_generated},
+                {"individual_link_decorator": self.individuals[0].id_name_generated},
+            ])

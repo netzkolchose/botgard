@@ -19,6 +19,7 @@ from django.contrib.auth import get_user_model
 
 from .forms import TableSettingsForm
 from .models import TableSettings
+from .changelist import ConfigurableChangeList
 from tools.csv_response import csv_response
 from config_app.models import CUSTOM_PROPERTY_TYPE_CHOICES, CustomProperty, CUSTOM_PROPERTY_MODEL_TYPES
 from BotGard.basemodel import botgard_base_model_patch_fieldsets, CREATION_FIELDS
@@ -827,6 +828,9 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
         })
         res = super(ConfigurableTable, self).changelist_view(request, extra_context=extra_context)
         return res
+
+    def get_changelist(self, request, **kwargs):
+        return ConfigurableChangeList
 
     def _get_change_list(self, request):
         """

@@ -5,6 +5,7 @@ import io
 import csv
 import json
 import pprint
+import unittest
 import zipfile
 import urllib.parse
 import secrets
@@ -56,9 +57,14 @@ UserModel = get_user_model()
 
 
 """
-decorator to turn on logging of requests
+Decorator to turn on logging of requests
 """
 log_requests = override_settings(MIDDLEWARE=settings.MIDDLEWARE + ["tools.log_middleware.LogRequestMiddleware"])
+
+"""
+Decorator to skip tests if not using postgres backend
+"""
+skip_if_no_postgres = unittest.skipIf(not settings.IS_POSTGRES, "Skipping postgres related test")
 
 
 # models that are not represented in the admin views
@@ -598,33 +604,39 @@ class ChangeListForm:
                     ret[h.name]["limit"] = ac_limit
         return ret
 
-    def assert_rows(self, rows: List[dict]):
+    def assert_rows(self, rows: List[dict], msg: Optional[str] = None):
         """
         Assert that current display rows matches the list of `rows` provided.
         Ignores extra columns in changelist
         """
+        if msg:
+            msg = f"\n{msg}"
+        else:
+            msg = ""
         if len(rows) != len(self.rows):
             raise AssertionError(
-                f"Expected {len(rows)} rows, got {len(self.rows)}:\n{pprint.pformat(self.rows)}"
+                f"Expected {len(rows)} rows, got {len(self.rows)}:\n{pprint.pformat(self.rows)}{msg}"
             )
         for i, (expected_row, row) in enumerate(zip(rows, self.rows)):
             for key, expected_value in expected_row.items():
                 if key not in row:
                     raise AssertionError(
-                        f"Expected key '{key}' in row, got {row}"
+                        f"Expected key '{key}' in row, got:\n{pprint.pformat(row)}{msg}"
                     )
                 self.parent.assertEqual(
                     expected_value,
                     row[key],
-                    f"In {i}th row. Got:\n{pprint.pformat(self.rows)}"
+                    f"In {i}th row. Got:\n{pprint.pformat(self.rows)}{msg}"
                 )
 
-    def assert_autocomplete_response(
+    def get_autocomplete_response(
             self,
-            input_name: str,  # e.g. field__foreignfield__icontains
+            input_name: str,  # e.g. field__foreignfield
             query: str,
-            expected_response: dict,
-    ):
+    ) -> HttpResponse:
+        # add the default lookup for autocomplete header inputs
+        input_name = f"{input_name}__icontains"
+
         header = None
         for h in self.headers:
             if h.filter and h.filter.name == input_name:
@@ -643,13 +655,23 @@ class ChangeListForm:
         if autocomplete_limit := header.filter.element.attrs.get("data-ac-limit"):
             params["limit"] = autocomplete_limit
 
-        response = self.parent.client.get(
+        return self.parent.client.get(
             reverse("ajax:model_json") + "?" + urllib.parse.urlencode(params)
         )
+
+    def assert_autocomplete_response(
+            self,
+            input_name: str,  # e.g. field__foreignfield
+            query: str,
+            expected_response: dict,
+    ):
+        response = self.get_autocomplete_response(input_name, query)
+        response = json.loads(response.content)
         self.parent.assertEqual(
             expected_response,
-            json.loads(response.content),
-            f"autocomplete params: {params}"
+            response,
+            f"\nExpected:\n{json.dumps(expected_response, indent=2, ensure_ascii=False)}"
+            f"\nGot:\n{json.dumps(response, indent=2, ensure_ascii=False)}"
         )
 
     def _parse_form(self):

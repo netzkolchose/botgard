@@ -80,7 +80,7 @@ config_app.register_key(
 
 config_app.register_key(
     "dispatch_number_generation",
-    {"method": "random_range", "min": 7000000, "max": 7999999},
+    {"method": "incremental", "min": 1},
     _("The method used for generating new dispatch numbers for plant dispatches") + force_str(NUMBER_METHOD_HELP_TEXT),
     validator=_number_generation_validator
 )
