@@ -81,8 +81,13 @@ class TestSeed(TestBase):
                and not "herbarium_specimens" in f.name
                and not "outplanting_set" in f.name
                and not "plantimage_set" in f.name
+               and f.name not in (
+                    "found_coordinates",
+                    "geo_lon_id_found_coordinates", "geo_lat_id_found_coordinates",
+               )
         }
         # pprint.pprint(expected_values)
+        # make sure the custom property is included
         self.assertIn(f"custom-property-{self.prop1.pk}", expected_values)
 
         cf2 = self.get_changeform("individuals", "seed", self.indi.pk)

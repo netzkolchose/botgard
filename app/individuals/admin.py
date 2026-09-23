@@ -268,7 +268,7 @@ class SeedAdmin(IndividualAdminMixin, ConfigurableTable):
     )
     ordering = IndividualAdmin.ordering
     list_editable = ('seed_available', 'seed_in_stock')
-    fieldsets = IndividualAdmin.fieldsets
+    fieldsets = remove_from_fieldsets(IndividualAdmin.fieldsets, "found_coordinates")
     raw_id_fields = IndividualAdmin.raw_id_fields
 
     class Media:

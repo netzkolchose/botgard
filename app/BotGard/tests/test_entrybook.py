@@ -57,6 +57,9 @@ class TestEntryBook(TestBase):
             'external_order_number': "8765",
             'found_country': "AD (Andorra, Principality of)",
             'found_text': "below a brick",
+            #'geo_lon_id_found_coordinates': "23.45",
+            #'geo_lat_id_found_coordinates': "67.89",
+            'found_coordinates': '{ "type": "Point", "coordinates": [ 12.0, 33.999999999398767 ] }',
             'gender': "W",
             'import_reference': "987",
             'ipen_accession_number': "98765",
@@ -81,15 +84,22 @@ class TestEntryBook(TestBase):
         cf = self.get_changeform("entrybook", "entry")
 
         # first make sure we did not forget a new field
+        # the `found_coordinates` field is special:
+        #   it's hidden and it's visible representation (geo_lat/lon_id_found_coordinates) is only for editing
         field_names = sorted([
             f.name for f in cf.fields
-            if not f.hidden
-                and not f.name.startswith("_")
+            if f.name == "found_coordinates" or (
+                not f.hidden and not f.name.startswith("_")
+            )
         ])
-        self.assertEqual(set(expected_values.keys()), set(field_names))
+        self.assertEqual(
+            set(expected_values.keys()),
+            set(field_names) - {"geo_lat_id_found_coordinates", "geo_lon_id_found_coordinates"}
+        )
 
         # save Entry
         cf.save(expected_values)
+        #pprint.pprint(cf.get_data())
         # see that everything was saved and reload to Entry changeform
         cf.assert_data(expected_values)
 
@@ -106,8 +116,8 @@ class TestEntryBook(TestBase):
             if key in ("department", "bed_out_date", "seeded_date"):
                 continue
             self.assertEqual(expected_value, values[key])
-        # also check that value have been put into OutplantingInline
 
+        # also check that values have been put into OutplantingInline
         self.assertEqual(expected_values["department"], values["outplanting_set-0-department"])
         self.assertEqual(expected_values["bed_out_date"], values["outplanting_set-0-date"])
         self.assertEqual(expected_values["seeded_date"], values["outplanting_set-0-seeded_date"])
