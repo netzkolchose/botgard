@@ -11,6 +11,8 @@ from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.template.response import TemplateResponse
 
+from tools.fieldsets import remove_from_fieldsets
+from tools.permissions import check_user_has_permissions
 from tools.search_fields import search_fields_compatible
 from config_tables.admin import ConfigurableTable, ForeignKeyFilter
 from labels.mass_action import add_label_mass_actions
@@ -32,7 +34,7 @@ class EntryAdmin(ConfigurableTable):
     blacklist = (
         'id', '__str__',
         'ipen_transfer_restricted', 'ipen_garden_code', 'ipen_accession_number', 'ipen_country',
-        'department',
+        'department', 'found_coordinates',
     )
 
     list_display_links = ()
@@ -75,7 +77,11 @@ class EntryAdmin(ConfigurableTable):
             'fields': (('ipen_country', 'ipen_transfer_restricted', 'ipen_garden_code', 'ipen_accession_number'),)
         }),
         (_('habitat'), {
-            'fields': (('found_country',), 'found_text', ('collector_name', 'collector_number', 'collector_date'),)
+            'fields': (
+                'found_country',
+                ('found_text', 'found_coordinates'),
+                ('collector_name', 'collector_number', 'collector_date'),
+            )
         }),
         (_('miscellaneous'), {
             'classes': 'collapse',
@@ -114,6 +120,17 @@ class EntryAdmin(ConfigurableTable):
         if "user" in form.base_fields:
             form.base_fields["user"].initial = request.user.pk
         return form
+
+    def get_fieldsets(self, request, obj=None):
+        """
+        Override to remove found_coordinates if no permission
+        """
+        fieldsets = super().get_fieldsets(request, obj)
+
+        if not check_user_has_permissions(request.user, "individuals.can_see_found_coordinates"):
+            fieldsets = remove_from_fieldsets(fieldsets, "found_coordinates")
+
+        return fieldsets
 
     def get_urls(self):
         """

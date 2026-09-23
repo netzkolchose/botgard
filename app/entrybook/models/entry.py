@@ -4,7 +4,10 @@ from django.utils.translation import gettext_lazy as _
 from django.utils.translation import ngettext_lazy as __
 from django.contrib.auth import get_user_model
 from django.utils import timezone
+import django.contrib.gis.forms as gis_forms
 
+from geo.widgets import BotGardOpenLayersWidget
+from geo.util import geo_coord_to_html
 from species.models import Species
 from botman.models import BotanicGarden
 from individuals.models.individual_base import *
@@ -161,6 +164,15 @@ class Entry(IndividualBase(unique_name="entry")):
     department_decorator.admin_order_field = "department__code"
 
     @configurable
+    def found_coordinates_decorator(self):
+        if not self.found_coordinates:
+            return ""
+        return mark_safe(geo_coord_to_html(self.found_coordinates))
+    found_coordinates_decorator.short_description = _("collecting coordinates")
+    found_coordinates_decorator.admin_order_field = "found_coordinates"
+    found_coordinates_decorator.permission = "individuals.can_see_found_coordinates"
+
+    @configurable
     def projects_decorator(self) -> str:
         from individuals.models.individual_base import projects_decorator
         return projects_decorator(self)
@@ -207,6 +219,18 @@ class EntryForm(
     )
 ):
     exclude_autocomplete = ("department", "projects")
+    found_coordinates = gis_forms.PointField(
+        srid=Entry.found_coordinates.field.srid,
+        widget=BotGardOpenLayersWidget(
+            with_input_fields=True,
+            red_dots=True,
+            side_by_side=True,
+            map_size=[200, 200],
+            default_zoom=5.,
+            auto_fit_zoom=False,
+        ),
+        required=False,
+    )
 
     def __init__(self, *args, **kwargs):
         if not kwargs.get("instance"):
