@@ -1,15 +1,20 @@
 {% load i18n l10n %}
 
 <div id="{{ id }}_div_map" class="dj_map_wrapper">
-    {% if with_input_fields %}
+    {% if side_by_side %}<div style="display: flex">{% endif %}
+    {% if with_input_fields %}<div>
         <input type="number" name="geo_lon_{{ id }}" title="{% trans 'longitude' %}" placeholder="{% trans 'longitude' %}"><br/>
         <input type="number" name="geo_lat_{{ id }}" title="{% trans 'latitude' %}" placeholder="{% trans 'latitude' %}">
-    {% endif %}
-    <div id="{{ id }}_map" class="dj_map" {% if map_size %}style="width: {{ map_size.0 }}px; height: {{ map_size.1 }}px"{% endif %}></div>
-    {% if not disabled and not read_only %}<span class="clear_features"><a href="">{% translate "Delete all Features" %}</a></span>{% endif %}
+    </div>{% endif %}
+    <div>
+        <div id="{{ id }}_map" class="dj_map" {% if map_size %}style="width: {{ map_size.0 }}px; height: {{ map_size.1 }}px"{% endif %}></div>
+        {% if not disabled and not read_only and not no_clear_features %}<span class="clear_features"><a href="">
+            {% if with_input_fields %}{% translate "Delete coordinates" %}{% else %}{% translate "Delete all Features" %}{% endif %}
+        </a></span>{% endif %}
+    </div>
     {% if display_raw %}<p>{% translate "Debugging window (serialized value)" %}</p>{% endif %}
-    <textarea id="{{ id }}" class="vSerializedField required" cols="150" rows="10" name="{{ name }}"
-              {% if not display_raw %} hidden{% endif %}>{{ serialized }}</textarea>
+    <textarea id="{{ id }}" class="vSerializedField required" cols="150" rows="10" name="{{ name }}"{% if not display_raw %} hidden{% endif %}>{{ serialized }}</textarea>
+    {% if side_by_side %}</div>{% endif %}
 
     {% if with_garden_map %}
         <select id="current_territory" class="hidden" hidden="hidden">
@@ -54,9 +59,10 @@
             map_srid: {{ map_srid|unlocalize }},
             name: '{{ name }}',
             {% if red_dots %}red_dots: true,{% endif %}
+            {% if auto_fit_zoom %}auto_fit_zoom: true,{% endif %}
             default_lat: {{ default_location.1|unlocalize }},
             default_lon: {{ default_location.0|unlocalize }},
-            default_zoom: 16.7,
+            default_zoom: {{ default_zoom|unlocalize }},
             {% if outplantings %}outplantings: {{ outplantings|safe }},{% endif %}
             {% if with_input_fields %}with_input_fields: true,{% endif %}
             {% if with_garden_map %}garden_map: create_garden_map_interface(false, "{{ form_element_name }}"),{% endif %}

@@ -14,6 +14,7 @@ from django.utils.safestring import mark_safe
 #from django.dispatch import receiver
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.gis.db.models import PointField
 
 from picklefield.fields import PickledObjectField
 
@@ -140,6 +141,13 @@ def IndividualBase(unique_name: str) -> Type[models.Model]:
             db_collation="natural_sort" if settings.IS_POSTGRES else None,
         )
         collector_date = models.DateField(verbose_name=_("collection date"), blank=True, null=True)
+
+        found_coordinates = PointField(
+            verbose_name=_("collecting coordinates"),
+            srid=4326,
+            geography=True,
+            null=True, blank=True,
+        )
 
         gender = models.CharField(max_length=1, choices=GENDER_CHOICES, verbose_name=_("gender"), blank=True)
         comment = models.TextField(max_length=10000, verbose_name=_("comment"), blank=True)

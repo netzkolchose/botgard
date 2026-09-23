@@ -362,7 +362,11 @@ class BotGardMapWidget {
                 ol.extent.extend(extent, feature.getGeometry().getExtent());
             }, this);
             // Center/zoom the map
-            this.map.getView().fit(extent, {minResolution: 1});
+            if (this.options.auto_fit_zoom) {
+                this.map.getView().fit(extent, {minResolution: 1});
+            } else {
+                this.map.getView().fit(extent, {maxZoom: this.options.default_zoom});
+            }
         } else {
             this.map.getView().setCenter(this.defaultCenter());
         }
@@ -372,7 +376,7 @@ class BotGardMapWidget {
             this.disableDrawing();
         }
         const clearNode = document.getElementById(this.map.getTarget()).nextElementSibling;
-        if (clearNode.classList.contains('clear_features')) {
+        if (clearNode && clearNode.classList.contains('clear_features')) {
             clearNode.querySelector('a').addEventListener('click', (ev) => {
                 ev.preventDefault();
                 self.clearFeatures();

@@ -11,12 +11,15 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.html import mark_safe
 from django.contrib.auth import get_user_model
 from django.utils import timezone
+import django.contrib.gis.db.models as gis_models
+import django.contrib.gis.forms as gis_forms
 
 from config_tables.admin import CustomSelectHeaderFilter
 from geo.util import geo_coord_to_html
 from species.models import Species
 from tools.admin_extensions import minimal_admin_context
 from tools.global_request import get_current_user
+from geo.widgets import BotGardOpenLayersWidget
 from .individual_base import *
 from individuals.numbers import generate_individual_ipen
 from individuals.widgets import SpeciesAuditWidget
@@ -30,6 +33,9 @@ class Individual(IndividualBase(unique_name="individual")):
     class Meta:
         verbose_name = _("individual")
         verbose_name_plural = _("individuals")
+        permissions = (
+            ("can_see_found_coordinates", _("Can see collecting coordinates")),
+        )
 
     _id_field = "id_name_generated"
 
@@ -349,6 +355,15 @@ class Individual(IndividualBase(unique_name="individual")):
     map_decorator.exclude_csv = True
 
     @configurable
+    def found_coordinates_decorator(self):
+        if not self.found_coordinates:
+            return ""
+        return mark_safe(geo_coord_to_html(self.found_coordinates))
+    found_coordinates_decorator.short_description = _("collecting coordinates")
+    found_coordinates_decorator.admin_order_field = "found_coordinates"
+    found_coordinates_decorator.permission = "individuals.can_see_found_coordinates"
+
+    @configurable
     def projects_decorator(self) -> str:
         from .individual_base import projects_decorator
         return projects_decorator(self)
@@ -497,6 +512,19 @@ class IndividualForm(
     )
 ):
     exclude_autocomplete = ("projects", )
+
+    found_coordinates = gis_forms.PointField(
+        srid=Individual.found_coordinates.field.srid,
+        widget=BotGardOpenLayersWidget(
+            with_input_fields=True,
+            red_dots=True,
+            side_by_side=True,
+            map_size=[200, 200],
+            default_zoom=5.,
+            auto_fit_zoom=False,
+        ),
+        required=False,
+    )
     def __init__(self, *args, **kwargs):
         self._update_initial(kwargs)
         super(IndividualForm, self).__init__(*args, **kwargs)

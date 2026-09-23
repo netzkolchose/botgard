@@ -261,9 +261,30 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
 
     def get_list_display(self, request):
         names = self._get_actual_tablesettings_object(request).settings
-        # fix old configurations that require fields that are gone
-        names = [n for n in names if hasattr(self.model, n) or hasattr(self, n)]
-        return names
+
+        _user_permissions = None
+        _blacklist = (
+            set(getattr(self, "blacklist", None) or ())
+            | set(getattr(self.model, "blacklist", None) or ())
+        )
+        def _include_field(name: str) -> bool:
+            nonlocal _user_permissions
+            # remove by blacklist, even if previously could be added to table-configuration
+            if name in _blacklist:
+                return False
+            field = getattr(self.model, name, None) or getattr(self, name, None)
+            # fix old configurations that require fields that are gone
+            if not field:
+                return False
+            # remove decorators with unfulfilled permission
+            if perm := getattr(field, "permission", None):
+                if _user_permissions is None:
+                    _user_permissions = set(request.user.get_all_permissions())
+                if perm not in _user_permissions:
+                    return False
+            return True
+
+        return [n for n in names if _include_field(n)]
 
     def get_list_display_csv(self, request):
         l = list(self.get_list_display(request))
@@ -493,6 +514,20 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
         attributes += self.get_decorated_functions(model, path, settings)
 
         attributes = self.apply_blacklist(attributes)
+
+        # remove decorators with unfulfilled permission
+        _user_permissions = None
+        def _include_field(attr: tuple) -> bool:
+            nonlocal _user_permissions
+            field = getattr(self.model, attr[1], None) or getattr(self, attr[1], None)
+            if field and (perm := getattr(field, "permission", None)):
+                if _user_permissions is None:
+                    _user_permissions = set(request.user.get_all_permissions())
+                if perm not in _user_permissions:
+                    return False
+            return True
+        attributes = [a for a in attributes if _include_field(a)]
+
         # alphabetic sorting
         attributes.sort(key=lambda a: a[0].lower())
 

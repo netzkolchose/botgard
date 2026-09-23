@@ -10,6 +10,8 @@ from django.db import transaction
 from django.urls import reverse
 
 from config_app.forms import CustomPropertyTabularInline
+from tools.fieldsets import remove_from_fieldsets
+from tools.permissions import check_user_has_permissions
 from .models import *
 from plantimages.admin import PlantImageInline
 
@@ -122,19 +124,21 @@ class IndividualAdminMixin:
 
     def get_fieldsets(self, request, obj=None):
         """
-        Override to remove the display of `species_audit` if nothing is there
+        Override to
+        - remove the display of `species_audit` if nothing is there
+        - remove found_coordinates if no permission
         """
         fieldsets = super().get_fieldsets(request, obj)
+        remove_fields = []
+
         if not obj or not obj.species_audit:
-            fieldsets = list(fieldsets)
-            fieldsets[0] = (fieldsets[0][0], {
-                **fieldsets[0][1],
-                "fields": [
-                    f for f in fieldsets[0][1]["fields"]
-                    if f != "species_audit"
-                ]
-            })
-            fieldsets = tuple(fieldsets)
+            remove_fields.append("species_audit")
+        if not check_user_has_permissions(request.user, "individuals.can_see_found_coordinates"):
+            remove_fields.append("found_coordinates")
+
+        if remove_fields:
+            fieldsets = remove_from_fieldsets(fieldsets, *remove_fields)
+
         return fieldsets
 
 
@@ -151,8 +155,6 @@ class IndividualAdmin(IndividualAdminMixin, ConfigurableTable):
         'departments_decorator', 'is_alive', 'source', 'etikett_link_decorator',
     )
     list_filter = (
-        #'seed_available', 'seed_in_stock',
-        #'species__nomenclature_checked',
         # add all foreignkey fields that should be filterable
         ('user__username', ForeignKeyFilter),
         ('source__full_name_generated', ForeignKeyFilter),
@@ -172,7 +174,7 @@ class IndividualAdmin(IndividualAdminMixin, ConfigurableTable):
     blacklist = ('id', '__str__', 'ipen_transfer_restricted', 'ipen_garden_code', 'ipen_accession_number',
                  'ipen_country', 'departments_generated', 'territories_generated', 'species',
                  'outplantings_generated', 'alive_outplantings_generated', 'is_alive_generated',
-                 'species_audit',)
+                 'species_audit', 'found_coordinates')
 
     list_display_links = ()
     search_fields = search_fields_compatible((
@@ -205,13 +207,16 @@ class IndividualAdmin(IndividualAdminMixin, ConfigurableTable):
             'fields': (('ipen_country', 'ipen_transfer_restricted', 'ipen_garden_code', 'ipen_accession_number'),)
         }),
         (_('habitat'), {
-            'fields': (('found_country',), 'found_text', ('collector_name', 'collector_number', 'collector_date'),)
+            'fields': (
+                'found_country',
+                ('found_text', 'found_coordinates'),
+                ('collector_name', 'collector_number', 'collector_date'),
+            )
         }),
         (_('source'), {
             'fields': (('source', 'source_date', 'came_in_as', 'external_order_number'),)
         }),
         (_('miscellaneous'), {
-            'classes': 'collapse',
             'fields': (
                 'gender', 'comment',
                 'projects',

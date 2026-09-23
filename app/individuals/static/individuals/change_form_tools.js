@@ -64,7 +64,7 @@ $(function() {
                     const match = elem.getAttribute("id").match(/id_outplanting_set-(\d+)/);
                     if (match) {
                         const inline_index = match[1];
-                        const source_elem = elem.parentElement.querySelector(".script-content");
+                        const source_elem = elem.parentElement.parentElement.querySelector(".script-content");
                         const patched_code = source_elem.innerText.replaceAll(
                             "__prefix__",
                             inline_index,
