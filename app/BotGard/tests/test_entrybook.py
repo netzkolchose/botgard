@@ -6,7 +6,7 @@ class TestEntryBook(TestBase):
 
     @classmethod
     def setUpTestData(cls):
-        User.objects.create_superuser("User1", password="the-secret")
+        User.objects.create_superuser("User1", password=cls.DEFAULT_PASSWORD)
         Project.objects.create(title="Project 1")
         Project.objects.create(title="Project 2")
         Project.objects.create(title="Project 3")

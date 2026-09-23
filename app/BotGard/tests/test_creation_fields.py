@@ -7,11 +7,11 @@ class TestCreationFields(TestBase):
     def setUpTestData(cls):
         cls.user1 = UserModel.objects.create_superuser(
             username="User1",
-            password="the-secret",
+            password=cls.DEFAULT_PASSWORD,
         )
         cls.user2 = UserModel.objects.create_superuser(
             username="User2",
-            password="the-secret",
+            password=cls.DEFAULT_PASSWORD,
         )
 
     def test_creation_fields(self):

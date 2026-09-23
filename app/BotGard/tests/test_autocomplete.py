@@ -13,7 +13,7 @@ class TestAutocomplete(TestBase):
     def setUpTestData(cls):
         cls.user = UserModel.objects.create_superuser(
             username="User1",
-            password="the-secret",
+            password=cls.DEFAULT_PASSWORD,
         )
         cls.garden = BotanicGarden.objects.create(
             code="GARD1",

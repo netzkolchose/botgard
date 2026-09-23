@@ -99,6 +99,8 @@ INVISIBLE_MODELS = (
 
 class TestBase(TestCase):
 
+    DEFAULT_PASSWORD = fixtures.DEFAULT_PASSWORD
+
     def get_visible_models(self) -> List[Type[models.Model]]:
         return [
             model for model in django.apps.apps.get_models()
@@ -112,9 +114,9 @@ class TestBase(TestCase):
         admins.sort(key=lambda t: t[0]._meta.label_lower)
         return admins
 
-    def login(self, username: str, password: str = "the-secret"):
+    def login(self, username: str, password: Optional[str] = None):
         self.assertTrue(
-            self.client.login(username=username, password=password),
+            self.client.login(username=username, password=password or self.DEFAULT_PASSWORD),
             f"failed to log in {username}"
         )
 

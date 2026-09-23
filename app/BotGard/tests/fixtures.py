@@ -11,11 +11,12 @@ from config_app.models import CUSTOM_PROPERTY_MODEL_CHOICES
 
 DATA_PATH = pathlib.Path(__file__).resolve().parent.joinpath("data")
 
+DEFAULT_PASSWORD = "the-secret"
 
 USERS = [
-    {"username": "User1", "password": "the-secret", "superuser": True},
-    {"username": "User2", "password": "the-secret"},
-    {"username": "User3", "password": "the-secret", "superuser": True},
+    {"username": "User1", "password": DEFAULT_PASSWORD, "superuser": True},
+    {"username": "User2", "password": DEFAULT_PASSWORD},
+    {"username": "User3", "password": DEFAULT_PASSWORD, "superuser": True},
 ]
 
 CUSTOM_PROPERTIES = [

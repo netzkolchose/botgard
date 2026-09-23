@@ -21,12 +21,12 @@ class TestCustomProps(TestBase):
         UserModel.objects.create_superuser(
             username="User1",
             email="user1@example.com",
-            password="the-secret",
+            password=cls.DEFAULT_PASSWORD,
         )
         UserModel.objects.create_user(
             username="User2",
             email="user2@example.com",
-            password="the-secret",
+            password=cls.DEFAULT_PASSWORD,
         )
 
         cls.CUSTOM_PROPS = {
@@ -65,10 +65,7 @@ class TestCustomProps(TestBase):
             _add_props(model, data)
 
     def setUp(self):
-        self.assertTrue(
-            self.client.login(username="User1", password="the-secret"),
-            "failed to log in"
-        )
+        self.login(username="User1")
 
     def test_garden_changelist(self):
         cl = self.get_changelist("botman", "botanicgarden")

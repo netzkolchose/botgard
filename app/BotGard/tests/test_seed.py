@@ -6,7 +6,7 @@ class TestSeed(TestBase):
 
     @classmethod
     def setUpTestData(cls):
-        User.objects.create_superuser("User1", password="the-secret")
+        User.objects.create_superuser("User1", password=cls.DEFAULT_PASSWORD)
         project = Project.objects.create(title="Project 1")
         department = Department.objects.create(
             territory=Territory.objects.create(code="T1", name="Territory 1"),

@@ -13,10 +13,7 @@ class TestConfigApp(TestBase):
         create_test_fixtures()
 
     def setUp(self):
-        self.assertTrue(
-            self.client.login(username="User1", password="the-secret"),
-            "failed to log in"
-        )
+        self.login(username="User1")
 
     def test_individual_ipen_generated(self):
         self.assertEqual("AU-0-GARD1-1000", Individual.objects.get(accession_number="1000").ipen_generated)

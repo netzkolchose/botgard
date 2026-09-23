@@ -40,10 +40,7 @@ class TestAllViews(TestBase):
         """
         Call each model's admin:change page
         """
-        self.assertTrue(
-            self.client.login(username="User1", password="the-secret"),
-            "failed to log in"
-        )
+        self.login(username="User1")
 
         for Model in [
             BotanicGarden, Family, Species,
@@ -66,10 +63,7 @@ class TestAllViews(TestBase):
         """
         HTTP GET on all URLs that do not require url-parameters
         """
-        self.assertTrue(
-            self.client.login(username="User1", password="the-secret"),
-            "failed to log in"
-        )
+        self.login(username="User1")
 
         for url_name, url_params in self.get_all_urls():
             if url_params:
@@ -131,10 +125,7 @@ class TestAllViews(TestBase):
             1. entry: List of query-sets for each url-parameter
             2. entry: optional list of query parameter strings
         """
-        self.assertTrue(
-            self.client.login(username="User1", password="the-secret"),
-            "failed to log in"
-        )
+        self.login(username="User1")
 
         PARAM_MAPPING = {
             "individuals:checklist_territory": (

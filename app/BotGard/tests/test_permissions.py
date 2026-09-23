@@ -50,7 +50,6 @@ GUEST_PERMISSIONS = {
 
 
 class TestPermissions(TestBase):
-    PW = "the-secret"
 
     @classmethod
     def setUpTestData(cls):
@@ -69,12 +68,12 @@ class TestPermissions(TestBase):
         get_user_model().objects.create_superuser(
             username="admin",
             email="admin@example.com",
-            password=cls.PW,
+            password=cls.DEFAULT_PASSWORD,
         )
         user = get_user_model().objects.create_user(
             username="gardener",
             email="gardener@example.com",
-            password=cls.PW,
+            password=cls.DEFAULT_PASSWORD,
             is_staff=True,
         )
         gardeners_group = create_permission_group(
@@ -91,7 +90,7 @@ class TestPermissions(TestBase):
         user = get_user_model().objects.create_user(
             username="kustos",
             email="kustos@example.com",
-            password=cls.PW,
+            password=cls.DEFAULT_PASSWORD,
             is_staff=True,
         )
         user.groups.add(gardeners_group)
@@ -104,7 +103,7 @@ class TestPermissions(TestBase):
         user = get_user_model().objects.create_user(
             username="guest",
             email="guest@example.com",
-            password=cls.PW,
+            password=cls.DEFAULT_PASSWORD,
             is_staff=True,
         )
         guest_group = create_permission_group(
@@ -120,7 +119,7 @@ class TestPermissions(TestBase):
         user = get_user_model().objects.create_user(
             username="noaccess",
             email="noaccess@example.com",
-            password=cls.PW,
+            password=cls.DEFAULT_PASSWORD,
             is_staff=True,  # staff user without any permissions
         )
 
@@ -130,10 +129,7 @@ class TestPermissions(TestBase):
         #    print(perm.codename, perm.content_type.app_label, perm.content_type.model)
 
     def login(self, username: str):
-        self.assertTrue(
-            self.client.login(username=username, password=self.PW),
-            "failed to log in"
-        )
+        super().login(username)
         self.current_user = username
 
     def test_permissions_admin(self):
