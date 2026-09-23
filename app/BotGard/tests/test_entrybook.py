@@ -57,9 +57,9 @@ class TestEntryBook(TestBase):
             'external_order_number': "8765",
             'found_country': "AD (Andorra, Principality of)",
             'found_text': "below a brick",
-            #'geo_lon_id_found_coordinates': "23.45",
-            #'geo_lat_id_found_coordinates': "67.89",
-            'found_coordinates': '{ "type": "Point", "coordinates": [ 12.0, 33.999999999398767 ] }',
+            # use coordinates 0.0 because they get returned with float rounding errors
+            #   which might be different per platform / dockerimage / db-backend
+            'found_coordinates': '{ "type": "Point", "coordinates": [ 0.0, 0.0 ] }',
             'gender': "W",
             'import_reference': "987",
             'ipen_accession_number': "98765",
