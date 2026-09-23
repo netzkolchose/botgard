@@ -7,6 +7,7 @@
                 <th>{% trans 'plant categorized by' %}</th>
                 <th>{% trans 'categorized at' %}</th>
                 <th>{% trans 'literature' %}</th>
+                <th>{% trans 'comment' %}</th>
             </tr>
         </thead>
         <tbody>
@@ -20,6 +21,7 @@
                             class="autocomplete-modelfield autocomplete-verify"
                             data-ac-json-url="/de/ajax/model/model.json"
                             data-ac-id="species-species-full_name_generated"
+                            title="{{ row.species }}"
                         >
                     </td>
                     <td>
@@ -42,7 +44,11 @@
                             type="text"
                             style="width: 20rem;"
                             value="{{ row.literature }}"
+                            {% if row.literature != '-' %}title="{{ row.literature }}"{% endif %}
                         >
+                    </td>
+                    <td>
+                        <span style="display: inline-block; width: 20rem; white-space: pre-wrap;">{{ row.comment }}</span>
                     </td>
                 </tr>
             {% endfor %}

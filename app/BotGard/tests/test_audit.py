@@ -13,6 +13,7 @@ class TestAudit(TestBase):
     def test_individual_species_audit(self):
         self.login("User1")
 
+        Individual.objects.filter(accession_number=1000).update(species_comment="It's definitely Species 1")
         indi = Individual.objects.get(accession_number=1000)
         cf = self.get_changeform("individuals", "individual", indi.pk)
         # make sure, the audit widget is not displayed
@@ -23,7 +24,9 @@ class TestAudit(TestBase):
         self.assertIsNone(indi.species_audit)
 
         # -- User1 changes species --
-        cf.save({"species": Species.objects.get(species="Species 2").full_name_generated})
+        cf.save({
+            "species": Species.objects.get(species="Species 2").full_name_generated,
+        })
         self.assertIsNotNone(cf.soup.find("div", {"class": "species-audit-widget"}))
 
         indi.refresh_from_db()
@@ -39,6 +42,7 @@ class TestAudit(TestBase):
                     'user_pk': None,
                     'literature': None,
                     'literature_pk': None,
+                    'comment': "It's definitely Species 1",
                 },
                 {
                     'date': today,
@@ -48,6 +52,7 @@ class TestAudit(TestBase):
                     'user_pk': User.objects.get(username="User1").pk,
                     'literature': None,
                     'literature_pk': None,
+                    'comment': None,  # comment was not changed so it's not logged
                 }
             ],
             indi.species_audit
@@ -59,6 +64,7 @@ class TestAudit(TestBase):
         cf.save({
             "species": Species.objects.get(species="Species 1").full_name_generated,
             "literature": Literature.objects.get(title="Title 1").full_name_generated,
+            "species_comment": "I'm sure it's Species 1",
         })
 
         indi.refresh_from_db()
@@ -72,6 +78,7 @@ class TestAudit(TestBase):
                     'user_pk': None,
                     'literature': None,
                     'literature_pk': None,
+                    'comment': "It's definitely Species 1",
                 },
                 {
                     'date': today,
@@ -81,6 +88,7 @@ class TestAudit(TestBase):
                     'user_pk': User.objects.get(username="User1").pk,
                     'literature': None,
                     'literature_pk': None,
+                    'comment': None,
                 },
                 {
                     'date': today,
@@ -90,6 +98,7 @@ class TestAudit(TestBase):
                     'user_pk': User.objects.get(username="User3").pk,
                     'literature': "1984. \"Title 1\"",
                     'literature_pk': Literature.objects.get(title="Title 1").pk,
+                    'comment': 'I\'m sure it\'s Species 1',
                 },
             ],
             indi.species_audit
@@ -103,6 +112,7 @@ class TestAudit(TestBase):
             "species_checked_by": "Bob Dobbs",
             "species_checked_date": "2030-01-01",
             "literature": Literature.objects.get(title="Title 2").full_name_generated,
+            "species_comment": "No, it's Species 3!",
         })
 
         expected_species_audit = [
@@ -114,6 +124,7 @@ class TestAudit(TestBase):
                 'user_pk': None,
                 'literature': None,
                 'literature_pk': None,
+                'comment': "It's definitely Species 1",
             },
             {
                 'date': today,
@@ -123,6 +134,7 @@ class TestAudit(TestBase):
                 'user_pk': User.objects.get(username="User1").pk,
                 'literature': None,
                 'literature_pk': None,
+                'comment': None,
             },
             {
                 'date': today,
@@ -132,6 +144,7 @@ class TestAudit(TestBase):
                 'user_pk': User.objects.get(username="User3").pk,
                 'literature': "1984. \"Title 1\"",
                 'literature_pk': Literature.objects.get(title="Title 1").pk,
+                'comment': 'I\'m sure it\'s Species 1',
             },
             {
                 'date': "2030-01-01",
@@ -141,6 +154,7 @@ class TestAudit(TestBase):
                 'user_pk': None,
                 'literature': '"Title 2" Plants of the Moon, vol. 23',
                 'literature_pk': Literature.objects.get(title="Title 2").pk,
+                'comment': 'No, it\'s Species 3!',
             }
         ]
         indi.refresh_from_db()
@@ -161,20 +175,21 @@ class TestAudit(TestBase):
         # -- also check widget rendering --
         cf = self.get_changeform("individuals", "individual", indi.pk)
         div = cf.soup.find("div", {"class": "species-audit-widget"})
-        self.assertIsNotNone(div, "Missing SpeciesAuditWidget in chnageform")
+        self.assertIsNotNone(div, "Missing SpeciesAuditWidget in changeform")
         rows = []
         for row in div.find("tbody").find_all("tr"):
             rows.append([
-                td.find("input").attrs["value"]
+                td.find("input").attrs["value"] if td.find("input") else td.find("span").text
                 for td in row.find_all("td")
             ])
         #pprint.pprint(rows)
         self.assertEqual(
             [
-                ['Genus 1 Species 1 Baill.', '-', today, '-'],
-                ['Genus 1 Species 2 A. Cunn.', 'User1', today, '-'],
-                ['Genus 1 Species 1 Baill.', 'User3', today, '1984. "Title 1"'],
-                ['Genus 2 Species 3 C. Morren', 'Bob Dobbs', '2030-01-01', '"Title 2" Plants of the Moon, vol. 23'],
+                ['Genus 1 Species 1 Baill.', '-', today, '-', "It's definitely Species 1"],
+                ['Genus 1 Species 2 A. Cunn.', 'User1', today, '-', '-'],
+                ['Genus 1 Species 1 Baill.', 'User3', today, '1984. "Title 1"', "I'm sure it's Species 1"],
+                ['Genus 2 Species 3 C. Morren', 'Bob Dobbs', '2030-01-01',
+                 '"Title 2" Plants of the Moon, vol. 23', "No, it's Species 3!"],
             ],
             rows
         )

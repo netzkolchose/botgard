@@ -9,9 +9,10 @@ class SpeciesAuditWidget(widgets.Input):
             value = [
                 {
                     **row,
-                    "user": row["user"] or "-",
-                    "date": row["date"] or "-",
-                    "literature": row["literature"] or "-",
+                    "user": row.get("user") or "-",
+                    "date": row.get("date") or "-",
+                    "literature": row.get("literature") or "-",
+                    "comment": row.get("comment") or "-",
                 }
                 for row in value
             ]

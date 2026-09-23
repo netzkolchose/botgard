@@ -65,9 +65,12 @@ class Individual(IndividualBase(unique_name="individual")):
     # {
     #    "date": "YYYY-MM-DD"|None,
     #    "user": "username", "user_pk": int|None,
-    #    "species": "full_name_generated", "species_pk": int,
+    #    "species": "full_name_generated",
+    #    "species_pk": int,
     #    "species_comment": str|None,
-    #    "literature": "full_name_generated"|None, "literature_pk": int|None,
+    #    "literature": "full_name_generated"|None,
+    #    "literature_pk": int|None,
+    #    "comment": str|None
     # }
     species_audit = models.JSONField(
         verbose_name=_("Determination audit"),
@@ -395,6 +398,7 @@ class Individual(IndividualBase(unique_name="individual")):
                 and original_instance.species_checked_by == self.species_checked_by
                 and original_instance.species_checked_date == self.species_checked_date
                 and original_instance.literature == self.literature
+                and original_instance.species_comment == self.species_comment
         ):
             self.species_audit = original_instance.species_audit
             return
@@ -421,6 +425,7 @@ class Individual(IndividualBase(unique_name="individual")):
                     if original_instance.literature else None,
                 "literature_pk": original_instance.literature.pk
                     if original_instance.literature else None,
+                "comment": original_instance.species_comment or None,
             }]
 
         user = self.species_checked_by
@@ -441,6 +446,9 @@ class Individual(IndividualBase(unique_name="individual")):
             "species_pk": self.species.pk,
             "literature": self.literature.full_name_generated if self.literature else None,
             "literature_pk": self.literature.pk if self.literature else None,
+            # add comment only if it changed
+            "comment": (self.species_comment or None)
+                if self.species_comment != original_instance.species_comment else None,
         })
 
         for row in audit:
