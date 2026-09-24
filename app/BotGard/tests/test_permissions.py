@@ -81,6 +81,11 @@ class TestPermissions(TestBase):
             GARDENER_PERMISSIONS,
         )
         user.groups.add(gardeners_group)
+        user.user_permissions.add(Permission.objects.get(
+            content_type__app_label="labels",
+            content_type__model="labeldefinition",
+            codename="change_labeldefinition",
+        ))
 
         BasicTicket.objects.create(
             created_by=User.objects.get(username="User1"),
@@ -103,6 +108,11 @@ class TestPermissions(TestBase):
             content_type__app_label="individuals",
             content_type__model="individual",
             codename="can_see_found_coordinates",
+        ))
+        user.user_permissions.add(Permission.objects.get(
+            content_type__app_label="labels",
+            content_type__model="labeldefinition",
+            codename="change_labeldefinition",
         ))
 
         user = get_user_model().objects.create_user(

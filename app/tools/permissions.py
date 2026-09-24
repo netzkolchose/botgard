@@ -186,3 +186,10 @@ class SaveModelWrapper:
             value = SaveModelWrapper(value, self.__user_permissions)
 
         return value
+
+    def __repr__(self):
+        return repr(self.__instance)
+
+    def __str__(self):
+        return str(self.__instance)
+

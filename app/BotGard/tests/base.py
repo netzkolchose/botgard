@@ -318,6 +318,7 @@ class TestBase(TestCase):
         response = self.client.get(
             reverse("labels:doc_template") + "?" + urllib.parse.urlencode(params)
         )
+        self.assert_response(response, status=200)
         soup = self.get_soup(response.content)
         fields = {}
         for tr in soup.find("table", {"class": "label-doc-table"}).find("tbody").find_all("tr"):
