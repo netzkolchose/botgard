@@ -8,9 +8,10 @@ from django.contrib.auth import get_user_model
 from config_tables.admin import Configurable, configurable
 from ajax.autocomplete import AutoCompleteForm
 from tools.countries import ISO_COUNTRY_CHOICES
+from BotGard import BotGardBaseModel
 
 
-class BGCIGarden(Configurable, models.Model):
+class BGCIGarden(BotGardBaseModel(unique_name="bgcigarden", custom_properties=True)):
     class Meta:
         verbose_name = _('BGCI garden')
         verbose_name_plural = _('BGCI gardens')
@@ -27,7 +28,7 @@ class BGCIGarden(Configurable, models.Model):
     email = models.EmailField(verbose_name=_('email'), blank=True, null=True)
 
     country = models.CharField(verbose_name=_('country'), max_length=2, choices=ISO_COUNTRY_CHOICES, null=True, blank=True)
-    state_or_province = models.CharField(verbose_name=_('city'), max_length=64, null=True, blank=True)
+    state_or_province = models.CharField(verbose_name=_('state/province'), max_length=64, null=True, blank=True)
     city = models.CharField(verbose_name=_('city'), max_length=64, null=True, blank=True)
     postal_code = models.CharField(verbose_name=_('postal code'), max_length=64, null=True, blank=True)
     address = models.TextField(verbose_name=_('address'), max_length=256, null=True, blank=True)

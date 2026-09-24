@@ -1,6 +1,6 @@
 import datetime
 import random
-from typing import Union, Type, List
+from typing import Union, Type, List, Optional
 
 from django.utils.translation import gettext_lazy as _
 from django.utils.encoding import force_str
@@ -10,7 +10,8 @@ import config_app
 
 
 VALID_NUMBER_METHODS = (
-    'random_range', 'incremental', 'incremental_tight', 'empty'
+    'random_range', 'incremental', 'incremental_tight', 'empty',
+    'year_id',
 )
 
 NUMBER_METHOD_HELP_TEXT = (
@@ -20,6 +21,7 @@ NUMBER_METHOD_HELP_TEXT = (
     "<li><b>random_range</b>: A random number between attributes 'min' and 'max'</li>\n"
     "<li><b>incremental</b>: Increasing numbers starting at 'min' (skips existing number gaps)</li>\n"
     "<li><b>incremental_tight</b>: Increasing numbers starting at 'min' (will also pick free numbers in existing gaps)</li>\n"
+    "<li><b>year_id</b>: Make the accession number from current year and an increasing number-per-year starting at 'min'. Optionally, the number-per-year can be zero-padded to the length 'zero_pad'</li>\n"
     "</ul>"
 )
 
@@ -28,16 +30,19 @@ def _number_generation_validator(val):
 
     if "method" not in val:
         raise ValidationError(_('Method must be defined'))
+
     if val['method'] not in VALID_NUMBER_METHODS:
         raise ValidationError(_('Unknown method "%s". Supported values are %s.') % (
             val['method'],
             ", ".join(f'"{m}"' for m in VALID_NUMBER_METHODS)
         ))
+
     if val['method'] not in ("empty",):
         if 'min' not in val:
             raise ValidationError(_('Property "min" must be specified.'))
         if not isinstance(val['min'], int):
             raise ValidationError(_('Property "min" must be of type int or long.'))
+
     if val['method'] in ('random_range', ):
         if 'max' not in val or 'min' not in val:
             raise ValidationError(_('Method specified requires "min" and "max" properties.'))
@@ -45,6 +50,11 @@ def _number_generation_validator(val):
             raise ValidationError(_('Property "max" must be of type int or long.'))
         if (val['max'] - val['min']) < 100000:
             raise ValidationError(_('Property "max" must be much larger than "min". :)'))
+
+    if val['method'] == 'year_id':
+        if pad := val.get('zero_pad'):
+            if not isinstance(pad, int):
+                raise ValidationError('Property "zero_pad" must be of type int')
 
 
 config_app.register_key(
@@ -61,6 +71,19 @@ config_app.register_key(
     validator=_number_generation_validator
 )
 
+config_app.register_key(
+    "specimen_accession_generation",
+    {"method": "random_range", "min": 7000000, "max": 7999999},
+    _("The method used for generating new accession numbers for herbarium specimens") + force_str(NUMBER_METHOD_HELP_TEXT),
+    validator=_number_generation_validator
+)
+
+config_app.register_key(
+    "dispatch_number_generation",
+    {"method": "incremental", "min": 1},
+    _("The method used for generating new dispatch numbers for plant dispatches") + force_str(NUMBER_METHOD_HELP_TEXT),
+    validator=_number_generation_validator
+)
 
 def _lowest_gap_binary(l):
     """
@@ -172,6 +195,34 @@ def _get_new_number(
     elif method["method"] == "empty":
         return ""
 
+    elif method["method"] == "year_id":
+
+        is_empty = True
+        for Model in model_classes:
+            qset = Model.objects.all()
+            if qset.exists():
+                is_empty = False
+                break
+
+        year = datetime.date.today().year
+        max_num = method["min"]
+
+        if not is_empty:
+            for Model in model_classes:
+                qset = Model.objects.filter(**{f"{fieldname}__regex": f"^{year}-\\d+$"}).order_by(f"-{fieldname}")
+                if qset.exists():
+                    value = qset.values_list(fieldname, flat=True).first()
+                    try:
+                        value = int(value.split("-")[1].lstrip("0") or 0)
+                        max_num = max(max_num, value + 1)
+                    except ValueError:
+                        pass
+
+        if pad := method.get("zero_pad"):
+            return f"{year}-{max_num:0{pad}}"
+        else:
+            return f"{year}-{max_num}"
+
     raise ValueError("Unknown number generation method '%s'" % method["method"])
 
 
@@ -185,7 +236,22 @@ def get_new_accession_number():
     method = config_app.get_value('accession_generation')
     num = _get_new_number([Individual, Entry], "accession_number", method)
     if num is None:
-        raise RuntimeError(_('Could not find a free accession_number in time, sorry'))
+        raise RuntimeError(_('Could not find a free %s') % _("accession number"))
+    return num
+
+
+def get_new_herbarium_specimen_accession_number(Model: Optional[Type[models.Model]] = None):
+    """
+    get an available accession_number for new herbarium specimen
+    """
+    if Model is None:
+        from herbaria.models import HerbariumSpecimen
+        Model = HerbariumSpecimen
+
+    method = config_app.get_value('specimen_accession_generation')
+    num = _get_new_number([Model], "accession_number", method)
+    if num is None:
+        raise RuntimeError(_('Could not find a free %s') % _("accession number"))
     return num
 
 
@@ -199,7 +265,20 @@ def get_new_order_number():
     method = config_app.get_value('order_number_generation')
     num = _get_new_number([Individual, Entry], "order_number", method)
     if num is None:
-        raise RuntimeError(_('Could not find a free order_number in time, sorry'))
+        raise RuntimeError(_('Could not find a free %s') % _("order number"))
+    return num
+
+
+def get_new_dispatch_number():
+    """
+    get an available dispatch_number for new Dispatches
+    """
+    from entrybook.models import Dispatch
+
+    method = config_app.get_value('dispatch_number_generation')
+    num = _get_new_number([Dispatch], "dispatch_number", method)
+    if num is None:
+        raise RuntimeError(_('Could not find a free %s') % _("dispatch number"))
     return num
 
 

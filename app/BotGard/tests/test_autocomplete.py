@@ -13,7 +13,7 @@ class TestAutocomplete(TestBase):
     def setUpTestData(cls):
         cls.user = UserModel.objects.create_superuser(
             username="User1",
-            password="the-secret",
+            password=cls.DEFAULT_PASSWORD,
         )
         cls.garden = BotanicGarden.objects.create(
             code="GARD1",
@@ -22,6 +22,11 @@ class TestAutocomplete(TestBase):
         cls.territory = Territory.objects.create(
             code="T1",
             name="Territory 1",
+        )
+        cls.department = Department.objects.create(
+            code="D1",
+            name="Department 1",
+            territory=cls.territory,
         )
         cls.families = [
             Family.objects.create(
@@ -59,6 +64,13 @@ class TestAutocomplete(TestBase):
                 seed_in_stock=False,
             )
             for i in range(len(cls.species))
+        ]
+        cls.outplantings = [
+            Outplanting.objects.create(
+                individual=cls.individuals[i],
+                department=cls.department,
+            )
+            for i in range(10)
         ]
         cls.herbarium = Herbarium.objects.create(
             name="Herb1",
@@ -204,8 +216,13 @@ class TestAutocomplete(TestBase):
         cl.set_columns(cl.get_all_possible_columns())
         msg = json.dumps(cl.get_header_autocomplete_settings(), indent=4)
         autocompletes = cl.get_header_autocomplete_settings()
+        # check for expected limits
         for key, value in expected_autocompletes.items():
+            if value.get("limit") and not value["limit"].endswith("__pk"):
+                value = copy.deepcopy(value)
+                value["limit"] = f"{value['limit']}_id"
             self.assertEqual(value, autocompletes.get(key), f"For field '{key}', got:\n{msg}")
+        # check for unexpected limits
         for key, value in autocompletes.items():
             if value.get("limit"):
                 if key not in expected_autocompletes:
@@ -222,14 +239,28 @@ class TestAutocomplete(TestBase):
                 else:
                     if not value["id"].startswith(f"{app_name}-{model_name}-"):
                         raise AssertionError(
-                            f"Unexpected start of id for field '{key}': {value['id']}, got:\n{msg}"
+                            f"Unexpected beginning of id for field '{key}': {value['id']}, got:\n{msg}"
                         )
                     self.assertNotIn("decorator", value["id"], f"For field '{key}', got:\n{msg}")
 
     def test_autocomplete_limit_in_changelist_species(self):
+        """
+        This and all following `test_autocomplete_limit_in_changelist_...` tests
+        make sure, that autocomplete for changelist table header filters only
+        completes for related objects that are referenced in the specific table.
+        By checking the "data-ac-limit" attribute in the autocomplete field.
+        """
         self.assert_changelist_autocomplete_limits(
             "species", "species",
             {
+                "created_by": {
+                    "id": "auth-user-username",
+                    "limit": "species-species-created_by"
+                },
+                "modified_by": {
+                    "id": "auth-user-username",
+                    "limit": "species-species-modified_by"
+                },
                 "family": {
                     "id": "species-family-full_name_generated",
                     "limit": "species-species-family"
@@ -241,7 +272,19 @@ class TestAutocomplete(TestBase):
                 "genus_single": {
                     "id": "species-family-genus",
                     "limit": "species-species-family"
-                }
+                },
+                "literature": {
+                    "id": "literature-literature-full_name_generated",
+                    "limit": "species-species-literature"
+                },
+                "literature_distribution": {
+                    "id": "literature-literature-full_name_generated",
+                    "limit": "species-species-literature_distribution"
+                },
+                "literature_german_name": {
+                    "id": "literature-literature-full_name_generated",
+                    "limit": "species-species-literature_german_name"
+                },
             }
         )
 
@@ -249,6 +292,14 @@ class TestAutocomplete(TestBase):
         self.assert_changelist_autocomplete_limits(
             "individuals", "individual",
             {
+                "created_by": {
+                    "id": "auth-user-username",
+                    "limit": "individuals-individual-created_by"
+                },
+                "modified_by": {
+                    "id": "auth-user-username",
+                    "limit": "individuals-individual-modified_by"
+                },
                 "user": {
                     "id": "auth-user-username",
                     "limit": "individuals-individual-user"
@@ -276,7 +327,15 @@ class TestAutocomplete(TestBase):
                 "etikett_text_decorator": {
                     "id": "species-species-area_of_distribution_etikettxt",
                     "limit": "individuals-individual-species"
-                }
+                },
+                "literature": {
+                    "id": "literature-literature-full_name_generated",
+                    "limit": "individuals-individual-literature"
+                },
+                "projects_decorator": {
+                    "id": "meta-project-full_name_generated",
+                    "limit": "individuals-individual-projects__pk"
+                },
             }
         )
 
@@ -284,6 +343,14 @@ class TestAutocomplete(TestBase):
         self.assert_changelist_autocomplete_limits(
             "herbaria", "herbariumspecimen",
             {
+                "created_by": {
+                    "id": "auth-user-username",
+                    "limit": "herbaria-herbariumspecimen-created_by"
+                },
+                "modified_by": {
+                    "id": "auth-user-username",
+                    "limit": "herbaria-herbariumspecimen-modified_by"
+                },
                 "herbarium": {
                     "id": "herbaria-herbarium-name",
                     "limit": "herbaria-herbariumspecimen-herbarium"
@@ -303,6 +370,14 @@ class TestAutocomplete(TestBase):
         self.assert_changelist_autocomplete_limits(
             "individuals", "department",
             {
+                "created_by": {
+                    "id": "auth-user-username",
+                    "limit": "individuals-department-created_by"
+                },
+                "modified_by": {
+                    "id": "auth-user-username",
+                    "limit": "individuals-department-modified_by"
+                },
                 "territory": {
                     "id": "individuals-territory-name_generated",
                     "limit": "individuals-department-territory"
@@ -356,6 +431,15 @@ class TestAutocomplete(TestBase):
         self.assert_changelist_autocomplete_limits(
             "botman", "botanicgarden",
             {
+                "created_by": {
+                    "id": "auth-user-username",
+                    "limit": "botman-botanicgarden-created_by"
+                },
+                "modified_by": {
+                    "id": "auth-user-username",
+                    "limit": "botman-botanicgarden-modified_by"
+                },
+
             }
         )
 
@@ -363,6 +447,14 @@ class TestAutocomplete(TestBase):
         self.assert_changelist_autocomplete_limits(
             "entrybook", "entry",
             {
+                "created_by": {
+                    "id": "auth-user-username",
+                    "limit": "entrybook-entry-created_by"
+                },
+                "modified_by": {
+                    "id": "auth-user-username",
+                    "limit": "entrybook-entry-modified_by"
+                },
                 "user": {
                     "id": "auth-user-username",
                     "limit": "entrybook-entry-user"
@@ -370,6 +462,214 @@ class TestAutocomplete(TestBase):
                 "department_decorator": {
                     "id": "individuals-department-code",
                     "limit": "entrybook-entry-department"
+                },
+                "literature": {
+                    "id": "literature-literature-full_name_generated",
+                    "limit": "entrybook-entry-literature"
+                },
+                "projects_decorator": {
+                    "id": "meta-project-full_name_generated",
+                    "limit": "entrybook-entry-projects__pk"
+                },
+            }
+        )
+
+    def test_autocomplete_limit_in_changelist_dispatch(self):
+        self.assert_changelist_autocomplete_limits(
+            "entrybook", "dispatch",
+            {
+                "created_by": {
+                    "id": "auth-user-username",
+                    "limit": "entrybook-dispatch-created_by"
+                },
+                "modified_by": {
+                    "id": "auth-user-username",
+                    "limit": "entrybook-dispatch-modified_by"
+                },
+                "destination": {
+                    "id": "botman-botanicgarden-full_name_generated",
+                    "limit": "entrybook-dispatch-destination"
+                },
+                "transfer_by": {
+                    "id": "auth-user-username",
+                    "limit": "entrybook-dispatch-transfer_by"
+                },
+                "individual_link_decorator": {
+                    "id": "individuals-individual-id_name_generated",
+                    "limit": "entrybook-dispatch-individual"
+                },
+                "projects_decorator": {
+                    "id": "meta-project-full_name_generated",
+                    "limit": "entrybook-dispatch-projects__pk"
                 }
             }
         )
+
+    def test_autocomplete_individuals_projects(self):
+        pro1 = Project.objects.create(abbreviation="PRO1", title="Project One")
+        pro2 = Project.objects.create(abbreviation="PRO2", title="Project Two")
+        pro3 = Project.objects.create(abbreviation="", title="Number Three")
+
+        self.individuals[1].projects.set([pro1])
+        self.individuals[2].projects.set([pro1, pro2])
+        self.individuals[3].projects.set([pro3])
+
+        cl = self.get_changelist("individuals", "individual")
+        cl.set_columns(["accession_number", "projects_decorator"])
+
+        cl.assert_autocomplete_response(
+            "projects__full_name_generated",
+            "PRO",
+            {
+                "state": "many",
+                "items": ["(PRO1) Project One", "(PRO2) Project Two"]
+            }
+        )
+
+        # ---- also check the filters -----
+
+        cl.set_filters({"projects__full_name_generated__icontains": "PRO"})
+        cl.assert_rows([
+            {"accession_number": "0001", "projects_decorator": "PRO1"},
+            {"accession_number": "0002", "projects_decorator": "PRO1, PRO2"},
+        ])
+
+        cl.set_filters({"projects__full_name_generated__icontains": "Project"})
+        cl.assert_rows([
+            {"accession_number": "0001", "projects_decorator": "PRO1"},
+            {"accession_number": "0002", "projects_decorator": "PRO1, PRO2"},
+        ])
+
+        cl.set_filters({"projects__full_name_generated__icontains": "Three"})
+        cl.assert_rows([
+            {"accession_number": "0003", "projects_decorator": "Number Three"},
+        ])
+
+    def create_search_targets(self, targets: List[str]):
+        for target in targets:
+            Project.objects.create(abbreviation="", title=target)
+
+    def assert_search_targets(self, query: str, targets: List[str]):
+        cl = self.get_changelist("meta", "project")
+        response = cl.get_autocomplete_response("title", query)
+        response = json.loads(response.content)
+        self.assertEqual(
+            targets,
+            response["items"],
+            f"Got:\n{json.dumps(response, indent=2)}"
+        )
+
+    def test_autocomplete_multi_word(self):
+        self.create_search_targets([
+            "Hello World",
+            "Straße des 3. Oktobers",
+            "Straße des 23. Oktobers",
+            "Even\nwith\nlinebreaks",
+        ])
+        self.assert_search_targets(
+            "hello world",
+            ["Hello World"],
+        )
+        self.assert_search_targets(
+            "Straße des 23. Oktobers",
+            ["Straße des 23. Oktobers"],
+        )
+        self.assert_search_targets(
+            "Straße des Oktobers",
+            ["Straße des 23. Oktobers", "Straße des 3. Oktobers"],
+        )
+        self.assert_search_targets(
+            "linebreak",
+            ["Even\nwith\nlinebreaks"],
+        )
+
+    @skip_if_no_postgres
+    def test_autocomplete_natural_sort(self):
+        """
+        Test searching/filtering for `natural_sort` collation fields
+        """
+        instances = [
+            Dispatch.objects.create(
+                destination=self.garden,
+                individual=self.individuals[0],
+                amount=amount,
+                transfer_type="plant",
+                transfer_by=self.user,
+            )
+            for amount in [
+                "1 großes Stück",
+                "2 große Stücke",
+                "3 grosse STÜCKE",
+            ]
+        ]
+
+        cl = self.get_changelist("entrybook", "dispatch")
+        for query in ("groß", "gross", "stück"):
+            cl.assert_autocomplete_response(
+                "amount",
+                query,
+                {
+                    "state": "many",
+                    "items": ["1 großes Stück", "2 große Stücke", "3 grosse STÜCKE"],
+                }
+            )
+
+        # --- also check changelist filters ---
+
+        for query in ("groß", "gross", "stück"):
+            cl.set_filters({"amount__icontains": query})
+            cl.assert_rows([
+                {"amount": "1 großes Stück"},
+                {"amount": "2 große Stücke"},
+                {"amount": "3 grosse STÜCKE"},
+            ])
+
+    @skip_if_no_postgres
+    def test_autocomplete_related_natural_sort(self):
+        """
+        Test searching/filtering for related model fields with `natural_sort` collation
+        """
+        self.assertEqual("natural_sort", getattr(Individual.id_name_generated.field, "db_collation", None))
+
+        for i, term in enumerate([
+            "1 großes Stück",
+            "2 große Stücke",
+            "3 grosse STÜCKE",
+        ]):
+            indi = self.individuals[i]
+            indi.accession_number = term
+            indi.save()  # overwrites id_name_generated
+
+        HerbariumSpecimen.objects.all().delete()
+        for i, indi in enumerate(self.individuals):
+            HerbariumSpecimen.objects.create(
+                herbarium=self.herbarium,
+                individual=indi,
+                collector=self.user,
+                specimen_type=HERBARIUM_SPECIMEN_TYPES[i % len(HERBARIUM_SPECIMEN_TYPES)][0],
+            )
+
+        cl = self.get_changelist("herbaria", "herbariumspecimen")
+        for query in ("groß", "gross", "stück"):
+            cl.assert_autocomplete_response(
+                "individual__id_name_generated",
+                query,
+                {
+                    "state": "many",
+                    "items": [
+                        self.individuals[0].id_name_generated,
+                        self.individuals[1].id_name_generated,
+                        self.individuals[2].id_name_generated,
+                    ],
+                }
+            )
+
+        # --- also check changelist filters ---
+
+        for query in ("groß", "gross", "stück"):
+            cl.set_filters({"individual__id_name_generated__icontains": query})
+            cl.assert_rows([
+                {"individual_link_decorator": self.individuals[2].id_name_generated},
+                {"individual_link_decorator": self.individuals[1].id_name_generated},
+                {"individual_link_decorator": self.individuals[0].id_name_generated},
+            ])

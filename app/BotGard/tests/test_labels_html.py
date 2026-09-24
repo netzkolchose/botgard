@@ -9,10 +9,7 @@ class TestLabelsHTML(TestBase):
         create_test_fixtures()
 
     def test_html_label_single(self):
-        self.assertTrue(
-            self.client.login(username="User1", password="the-secret"),
-            "failed to log in"
-        )
+        self.login(username="User1")
 
         label_model = LabelDefinition.objects.get(id_name="I2")
 

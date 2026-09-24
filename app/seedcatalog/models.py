@@ -20,7 +20,7 @@ class SeedCatalogManager(models.Manager):
     def latest_editable_catalog(self) -> Optional["SeedCatalog"]:
         """Return the instance of the newest SeedCatalog, iff it is not finalized"""
         cat = SeedCatalog.objects.order_by("-pk").first()
-        if cat.is_finalized:
+        if not cat or cat.is_finalized:
             return None
         return cat
 

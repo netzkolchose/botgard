@@ -13,10 +13,7 @@ class TestConfigApp(TestBase):
         create_test_fixtures()
 
     def setUp(self):
-        self.assertTrue(
-            self.client.login(username="User1", password="the-secret"),
-            "failed to log in"
-        )
+        self.login(username="User1")
 
     def test_individual_ipen_generated(self):
         self.assertEqual("AU-0-GARD1-1000", Individual.objects.get(accession_number="1000").ipen_generated)
@@ -45,6 +42,30 @@ class TestConfigApp(TestBase):
             model = Individual.objects.get(accession_number=accession_number)
             model.save()
             self.assertEqual(expected_ipen, model.ipen_generated)
+
+            # test the live ipen REST endpoint
+            response = self.client.get(reverse("individuals:individual_ipen") + f"?pk={model.pk}")
+            self.assertEqual(200, response.status_code)
+            self.assertEqual(expected_ipen, response.content.decode())
+
+            # override a property
+            response = self.client.get(
+                reverse("individuals:individual_ipen")
+                + f"?pk={model.pk}&ipen_transfer_restricted=5"
+            )
+            self.assertEqual(200, response.status_code)
+            self.assertEqual(expected_ipen.replace("-0-", "-5-"), response.content.decode())
+
+        # also check IPEN endpoint without pk
+        for expected_ipen, params in (
+                ("XX-X-XXX-x", ""),
+                ("AB-X-XXX-x", "?ipen_country=AB"),
+                ("XX-X-ABC-x", "?ipen_garden_code=ABC"),
+                ("XY-1-JENA-123", "?ipen_country=XY&ipen_transfer_restricted=1&ipen_garden_code=JENA&ipen_accession_number=123"),
+        ):
+            response = self.client.get(reverse("individuals:individual_ipen") + params)
+            self.assertEqual(200, response.status_code)
+            self.assertEqual(expected_ipen, response.content.decode())
 
     def test_entry_ipen_generated(self):
         model = Entry.objects.get(accession_number="10")

@@ -2,9 +2,8 @@ import datetime
 import random
 import csv as csv_lib
 from io import StringIO
-from typing import Union, List, Tuple
+from typing import Union, List, Tuple, Optional
 
-from asgiref.typing import HTTPResponseBodyEvent
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.template import Template, Context
@@ -12,6 +11,12 @@ from django.http import HttpResponse
 from django.core.validators import RegexValidator
 from django.utils.safestring import mark_safe
 from django.utils.html import format_html
+from django.contrib.auth import get_user_model
+
+from tools.permissions import SaveModelWrapper
+
+
+User = get_user_model()
 
 
 LABEL_TYPE_CHOICES = (
@@ -255,7 +260,7 @@ class LabelDefinition(models.Model):
         else:
             indi = Individual.objects.get(pk=individual_or_pk)
         context = _get_default_context()
-        context["obj"] = indi
+        context["obj"] = SaveModelWrapper(indi)
         return context
 
     @classmethod
@@ -266,7 +271,7 @@ class LabelDefinition(models.Model):
         else:
             garden = BotanicGarden.objects.get(pk=garden_or_pk)
         context = _get_default_context()
-        context["obj"] = garden
+        context["obj"] = SaveModelWrapper(garden)
         return context
 
     @classmethod
@@ -277,7 +282,7 @@ class LabelDefinition(models.Model):
         else:
             indi = Entry.objects.get(pk=entry_or_pk)
         context = _get_default_context()
-        context["obj"] = indi
+        context["obj"] = SaveModelWrapper(indi)
         return context
 
     @classmethod
@@ -288,7 +293,7 @@ class LabelDefinition(models.Model):
         else:
             model = HerbariumSpecimen.objects.get(pk=specimen_or_pk)
         context = _get_default_context()
-        context["obj"] = model
+        context["obj"] = SaveModelWrapper(model)
         return context
 
 
@@ -296,4 +301,3 @@ def _get_default_context():
     return {
         "today": datetime.date.today(),
     }
-

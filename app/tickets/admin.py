@@ -55,7 +55,8 @@ class Etikett_IndividualForm(AutoCompleteForm(Etikett_Individual)):
         super(Etikett_IndividualForm, self).__init__(*args, **kwargs)
         from labels import get_label_choices
         choices = [(None, "----")] + list(get_label_choices("individual"))
-        self.fields['etikett_type'].widget = forms.Select(choices=choices)
+        if field := self.fields.get('etikett_type'):
+            field.widget = forms.Select(choices=choices)
 
 
 class Etikett_IndividualInline(admin.TabularInline):

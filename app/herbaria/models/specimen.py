@@ -10,6 +10,7 @@ from django.templatetags.static import static
 from django.utils import timezone
 from django.utils.html import format_html, escape
 from django.utils.safestring import mark_safe
+from django.utils.text import format_lazy
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from django.conf import settings
@@ -18,15 +19,32 @@ from django.contrib.auth import get_user_model
 from config_tables.admin import configurable, Configurable
 from ajax.autocomplete import AutoCompleteForm
 from individuals.models import Individual
+from individuals.numbers import get_new_herbarium_specimen_accession_number
 from tools.global_request import get_current_user
+from BotGard import BotGardBaseModel
 
 
 HERBARIUM_SPECIMEN_TYPES = (
-    ("plant_generative", _("Plant (generative)")),
-    ("plant_vegetative", _("Plant (vegetative)")),
-    ("blossoms", _("Blossoms")),
-    ("leaves", _("Leaves")),
-    ("fruits", _("Fruits")),
+    ("plant_generative", format_lazy("{} / {}", _("Plant (generative)"), _("pressed"))),
+    ("plant_vegetative", format_lazy("{} / {}", _("Plant (vegetative)"), _("pressed"))),
+    ("blossoms", format_lazy("{} / {}", _("Blossoms"), _("pressed"))),
+    ("leaves", format_lazy("{} / {}", _("Leaves"), _("pressed"))),
+    ("fruits", format_lazy("{} / {}", _("Fruits"), _("pressed"))),
+    ("seeds", format_lazy("{} / {}", _("Seeds"), _("pressed"))),
+
+    ("plant_generative_liquid", format_lazy("{} / {}", _("Plant (generative)"), _("liquid"))),
+    ("plant_vegetative_liquid", format_lazy("{} / {}", _("Plant (vegetative)"), _("liquid"))),
+    ("blossoms_liquid", format_lazy("{} / {}", _("Blossoms"), _("liquid"))),
+    ("leaves_liquid", format_lazy("{} / {}", _("Leaves"), _("liquid"))),
+    ("fruits_liquid", format_lazy("{} / {}", _("Fruits"), _("liquid"))),
+    ("seeds_liquid", format_lazy("{} / {}", _("Seeds"), _("liquid"))),
+
+    ("plant_generative_3d", format_lazy("{} / {}", _("Plant (generative)"), _("3D dried"))),
+    ("plant_vegetative_3d", format_lazy("{} / {}", _("Plant (vegetative)"), _("3D dried"))),
+    ("blossoms_3d", format_lazy("{} / {}", _("Blossoms"), _("3D dried"))),
+    ("leaves_3d", format_lazy("{} / {}", _("Leaves"), _("3D dried"))),
+    ("fruits_3d", format_lazy("{} / {}", _("Fruits"), _("3D dried"))),
+    ("seeds_3d", format_lazy("{} / {}", _("Seeds"), _("3D dried"))),
 )
 
 def get_default_herbarium():
@@ -45,7 +63,7 @@ def get_default_herbarium():
     return Herbarium.objects.all().order_by("pk").first()
 
 
-class HerbariumSpecimen(Configurable, models.Model):
+class HerbariumSpecimen(BotGardBaseModel(unique_name="herbariumspecimen", custom_properties=True)):
 
     class Meta:
         verbose_name = _("Specimen")
@@ -60,10 +78,19 @@ class HerbariumSpecimen(Configurable, models.Model):
     )
 
     individual = models.ForeignKey(
+        verbose_name=_("individual"),
         to="individuals.Individual",
         on_delete=models.CASCADE,
         db_index=True,
         related_name="herbarium_specimens",
+    )
+
+    accession_number = models.CharField(
+        verbose_name=_("accession #"),
+        blank=False, unique=True, db_index=True,
+        max_length=30,
+        default=get_new_herbarium_specimen_accession_number,
+        db_collation="natural_sort" if settings.IS_POSTGRES else None,
     )
 
     collector = models.ForeignKey(
@@ -150,7 +177,7 @@ class HerbariumSpecimen(Configurable, models.Model):
 
         if not self.individual.has_specimen_generated:
             self.individual.has_specimen_generated = True
-            self.individual.save()
+            self.individual.save(_no_creation_fields=True)
 
 
 def create_herbarium_specimen_form_class(
@@ -166,16 +193,18 @@ def create_herbarium_specimen_form_class(
         )
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
-            self.fields["collector"].queryset = (
-                get_user_model()
-                .objects.filter(is_active=True, is_staff=True)
-                .order_by("username")
-            )
-            if no_default_specimen_type:
-                self.fields["specimen_type"].choices = (
-                    [("", _("Please select..."))] + list(self.fields["specimen_type"].choices)
+            if field := self.fields.get("collector"):
+                field.queryset = (
+                    get_user_model()
+                    .objects.filter(is_active=True, is_staff=True)
+                    .order_by("username")
                 )
-                self.fields["specimen_type"].initial = ""
+            if no_default_specimen_type:
+                if field := self.fields.get("specimen_type"):
+                    field.choices = (
+                        [("", _("Please select..."))] + list(self.fields["specimen_type"].choices)
+                    )
+                    field.initial = ""
 
     return HerbariumSpecimenForm
 
@@ -186,4 +215,4 @@ def on_herbarium_deleted(sender, instance: HerbariumSpecimen, **kwargs):
         has_specimen = instance.individual.herbarium_specimens.exists()
         if has_specimen != instance.individual.has_specimen_generated:
             instance.individual.has_specimen_generated = has_specimen
-            instance.individual.save()
+            instance.individual.save(_no_creation_fields=True)

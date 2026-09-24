@@ -7,10 +7,7 @@ class TestLabelsSVG(TestBase):
         create_test_fixtures()
 
     def test_svg_label_single(self):
-        self.assertTrue(
-            self.client.login(username="User1", password="the-secret"),
-            "failed to log in"
-        )
+        self.login(username="User1")
 
         response = self.get_label_response(
             LabelDefinition.objects.get(id_name="A1"),

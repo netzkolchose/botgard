@@ -1,15 +1,19 @@
 import traceback
+from gettext import translation
 from typing import Optional, Type, Tuple
 
+import django.core.exceptions
 from django.shortcuts import render
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpRequest
 from django.apps import apps
 from django.core.exceptions import FieldError, ValidationError
-from django.db import OperationalError, ProgrammingError
+from django.db import OperationalError, ProgrammingError, InternalError, transaction
 from django.db.models import Func
 from django.db import models
 
+from config_app.models import CustomProperty
 from tools.permissions import login_required
+from tools.search_fields import make_filter_term_compatible_with_natural_sort
 
 
 @login_required
@@ -38,25 +42,27 @@ def model_fieldvalues_json(request):
             limit: Optional[Tuple[Type[models.Model], str]] = None,
     ):
         try:
-            try:
-                entries = Model.objects.filter(**filters[0]).distinct()
-            except ValidationError:
-                return None
-            for i in filters[1:]:
-                entries = entries.filter(**i).distinct()
+            with transaction.atomic():
+                try:
+                    entries = Model.objects.filter(**filters[0]).distinct()
+                    for i in filters[1:]:
+                        entries = entries.filter(**i).distinct()
 
-            if limit:
-                entries = entries.filter(
-                    pk__in=limit[0].objects.values_list(f"{limit[1]}_id", flat=True)
-                ).distinct()
+                    if limit:
+                        entries = entries.filter(
+                            pk__in=limit[0].objects.values_list(limit[1], flat=True).distinct()
+                        ).distinct()
 
-            if not entries.exists():
-                return []
-            entries = _order_qset(entries, order_field)
-            # force eval
-            dummy = entries[0]
-            return entries
-        except FieldError:
+                except ValidationError:
+                    return None
+
+                if not entries.exists():
+                    return []
+                entries = _order_qset(entries, order_field)
+                # force eval
+                dummy = entries[0]
+                return entries
+        except (FieldError, InternalError):
             return None
 
     def _get_filters(fieldname, terms, filter_mode):
@@ -93,10 +99,14 @@ def model_fieldvalues_json(request):
     def _get_entries(
             Model: Type[models.Model],
             fieldname, terms, filter_mode: str,
-            limit: Optional[Tuple[Type[models.Model], str]] = None):
+            limit: Optional[Tuple[Type[models.Model], str]] = None,
+            custom_prop: Optional[CustomProperty] = None
+    ):
         Model, fieldname = _reduce(Model, fieldname)
         # find entries that start with first term
         filters = _get_filters(fieldname, terms, filter_mode)
+        if custom_prop:
+            filters.append({"property": custom_prop})
         entries = _filter(Model, filters, fieldname, limit=limit)
         if entries is None:
             if filter_mode == "startswith":
@@ -122,30 +132,54 @@ def model_fieldvalues_json(request):
                         break
         return short
 
-    def _get_list(request):
-        terms = request.GET.get("term")
-        app, modelname, fieldname = request.GET["id"].split("-")
-        Model = apps.get_model(app, modelname)
+    def _get_list(request: HttpRequest):
+        custom_prop: Optional[CustomProperty] = None
+        if (request.GET.get("id") or "").startswith("custom_property_"):
+            app, modelname, fieldname = "config_app", "propertyvaluetext", "value"
+            try:
+                custom_prop = CustomProperty.objects.get(pk=request.GET["id"][16:])
+            except CustomProperty.DoesNotExist:
+                pass
+        else:
+            app, modelname, fieldname = request.GET.get("id").split("-")
 
         limit = request.GET.get("limit")
         if limit:
             limit = limit.split("-")
             limit = (apps.get_model(*limit[:2]), limit[2])
 
+        terms = request.GET.get("term")
+
         if not terms:
             return JsonResponse({"state": "none", "items": []})
 
+        Model = apps.get_model(app, modelname)
+
+        if field_permissions := getattr(Model, "field_permissions", None):
+            if perm := field_permissions.get(fieldname):
+                if not request.user.has_perms([perm]):
+                    return JsonResponse({"state": "none", "items": []})
+
+        try:
+            field = Model._meta.get_field(fieldname)
+        except django.core.exceptions.FieldDoesNotExist:
+            return JsonResponse({"state": "none", "items": []})
+
+        if getattr(field, "db_collation", None) == "natural_sort":
+            # fix postgres' UPPER conversion from "ß" to "SS"
+            terms = make_filter_term_compatible_with_natural_sort(terms)
+
         ret_state = None
 
-        entries = _get_entries(Model, fieldname, terms, "exact", limit=limit)
+        entries = _get_entries(Model, fieldname, terms, "exact", limit=limit, custom_prop=custom_prop)
         if entries and len(entries) == 1:
             ret_state = "one"
 
         if not entries:
-            entries = _get_entries(Model, fieldname, terms, "startswith", limit=limit)
+            entries = _get_entries(Model, fieldname, terms, "startswith", limit=limit, custom_prop=custom_prop)
 
         if not entries or len(entries) < max_unique_items:
-            entries2 = _get_entries(Model, fieldname, terms, "contains", limit=limit)
+            entries2 = _get_entries(Model, fieldname, terms, "contains", limit=limit, custom_prop=custom_prop)
             if entries2 is not None:
                 eset = set(entries or [])
                 for e in entries2:

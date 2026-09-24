@@ -147,7 +147,7 @@ class TestSeedCatalog(TestBase):
         self.assertEqual(3, cl.num_pages)
 
         # filter changelist
-        cl.update_filters({
+        cl.set_filters({
             "seed_available__exact": "1",   # every second
             "seed_in_stock__exact": "1",    # every third
         })
@@ -166,11 +166,11 @@ class TestSeedCatalog(TestBase):
         # -- check is-in-latest-catalog filter --
 
         cl = self.get_changelist("individuals", "seed")
-        cl.update_filters({"seedcatalog": "yes"})
+        cl.set_filters({"seedcatalog": "yes"})
         self.assertEqual(50, len(cl.rows))
 
         # combine filters
-        cl.update_filters({"seedcatalog": "yes", "accession_number__icontains": "100"})
+        cl.set_filters({"seedcatalog": "yes", "accession_number__icontains": "100"})
         self.assertEqual(["1000", "1006"], [row["accession_number"] for row in cl.rows])
 
         cl.run_action(
@@ -179,7 +179,7 @@ class TestSeedCatalog(TestBase):
         )
         self.assertEqual(0, len(cl.rows))
 
-        cl.update_filters({"seedcatalog": "yes"})
+        cl.set_filters({"seedcatalog": "yes"})
         self.assertEqual(48, len(cl.rows))
 
     def test_seed_catalog_changelist_finalized(self):

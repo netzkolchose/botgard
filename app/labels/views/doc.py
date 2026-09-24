@@ -1,7 +1,7 @@
 import inspect
 from typing import List, Type
 
-from django.http import HttpResponse
+from django.http import HttpRequest, HttpResponse
 from django.utils.translation import gettext_lazy as _
 from django.urls import reverse
 from django.shortcuts import render
@@ -17,11 +17,12 @@ from individuals.models import Individual
 from botman.models import BotanicGarden
 from entrybook.models import Entry
 from herbaria.models import HerbariumSpecimen
-from tools.permissions import login_required
+from tools.permissions import permission_required
+from config_app.models import CustomProperty
 
 
 
-@login_required
+@permission_required("labels.change_labeldefinition")
 def label_template_doc(request):
     """
     View to render documentation for label template variables
@@ -69,7 +70,7 @@ def get_template_doc_context(request) -> dict:
         instance_id = ""
 
     return {
-        "docs": get_template_doc_from_model(model, instance),
+        "docs": get_template_doc_from_model(request, model, instance),
         "has_example": instance is not None,
         "instance_id": instance_id,
         "instance_field": {
@@ -80,15 +81,17 @@ def get_template_doc_context(request) -> dict:
 
 
 def get_template_doc_from_model(
+        request: HttpRequest,
         model: Type[models.Model],
         instance: models.Model = None,
 ) -> List[dict]:
-    docs = _get_template_doc_from_model(model, instance)
+    docs = _get_template_doc_from_model(request, model, instance)
     docs = sorted(docs, key=lambda e: e["name"])
     docs = sorted(docs, key=lambda e: 0 if e["name"].count(".") == 0 else 1)
     return docs
 
 def _get_template_doc_from_model(
+        request: HttpRequest,
         model: Type[models.Model],
         instance: models.Model = None,
         models_parsed: set = None,
@@ -103,6 +106,7 @@ def _get_template_doc_from_model(
             related_model: Type[models.Model] = field.related_model
             if related_model not in models_parsed or issubclass(related_model, get_user_model()):
                 sub_docs = _get_template_doc_from_model(
+                    request=request,
                     model=related_model,
                     instance=getattr(instance, field.name) if instance is not None else None,
                     models_parsed=models_parsed,
@@ -123,6 +127,7 @@ def _get_template_doc_from_model(
                 desc["example"] = getattr(instance, field.name)
             docs.append(desc)
 
+    # fetch named callables
     for attr_name in dir(model):
         if attr_name.endswith("_decorator"):
             continue
@@ -145,6 +150,26 @@ def _get_template_doc_from_model(
                 if instance:
                     desc["example"] = getattr(instance, attr_name)()
                 docs.append(desc)
+
+    for prop in CustomProperty.get_properties_for_model(model):
+        virtual_field_name = f"custom_property_{prop.pk}"
+        desc = {
+            "name": virtual_field_name,
+            "verbose_name": prop.name,
+        }
+        if instance:
+            desc["example"] = getattr(instance, virtual_field_name, None)
+        docs.append(desc)
+
+    if field_permissions := getattr(model, "field_permissions", None):
+        user_permissions = request.user.get_all_permissions()
+        filtered_docs = []
+        for entry in docs:
+            if perm := field_permissions.get(entry["name"]):
+                if perm not in user_permissions:
+                    continue
+            filtered_docs.append(entry)
+        docs = filtered_docs
 
     return docs
 

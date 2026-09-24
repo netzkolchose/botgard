@@ -5,16 +5,19 @@ import io
 import csv
 import json
 import pprint
+import unittest
 import zipfile
 import urllib.parse
 import secrets
 import webbrowser
 import itertools
 import subprocess
+import importlib
 from pathlib import Path
 import tempfile
-from typing import Dict, Set, Optional, Type, Callable, Any
+from typing import Dict, Set, Optional, Type, Callable, Any, Literal
 
+import django.contrib.admin.sites
 from django.test import TestCase, Client, override_settings
 from django.test.utils import override_settings
 from django.urls import reverse
@@ -25,8 +28,10 @@ from django.apps import apps
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import Permission, Group
 from django.contrib.auth import get_user_model
+from django.contrib.admin.models import LogEntry
 from django.http import HttpRequest, HttpResponse, QueryDict
 import django.contrib.admin
+from django.contrib.gis import geos
 
 import bs4
 import xlrd
@@ -39,26 +44,82 @@ from labels.models import *
 from tickets.models import *
 from seedcatalog.models import *
 from herbaria.models import *
+from literature.models import *
+from meta.models import *
 
+from . import fixtures
 from .fixtures import create_permission_group, create_test_fixtures
 from config_app.management.commands.botgard_update_config import update_config_in_database
-from config_app.models import KeyValue
+from config_app.models import *
+from config_tables.models import *
 from config_tables.admin import ConfigurableTable
+from tools.permissions import SaveModelWrapper
+
 
 UserModel = get_user_model()
 
 
 """
-decorator to turn on logging of requests
+Decorator to turn on logging of requests
 """
 log_requests = override_settings(MIDDLEWARE=settings.MIDDLEWARE + ["tools.log_middleware.LogRequestMiddleware"])
+
+"""
+Decorator to skip tests if not using postgres backend
+"""
+skip_if_no_postgres = unittest.skipIf(not settings.IS_POSTGRES, "Skipping postgres related test")
+
+
+# models that are not represented in the admin views
+INVISIBLE_MODELS = (
+    "admin.logentry",
+    "sessions.session",
+    "auth.permission",
+    "auth.user_groups",
+    "auth.user_user_permissions",
+    "auth.group_permissions",
+    "contenttypes.contenttype",
+    "easy_thumbnails.source",
+    "easy_thumbnails.thumbnail",
+    "easy_thumbnails.thumbnaildimensions",
+    "config_tables.tablesettings",
+    "sidebar.bookmark",
+    "sidebar.note",
+    "tickets.etikett_individual",
+    "seedcatalog.seedcatalog_seed",
+    "plantimages.plantimage",
+    "BotGard.passwordresetcode",
+    "config_app.propertyvaluetext",
+    "config_app.propertyvaluebool",
+    "config_app.propertyvalueuser",
+    "entrybook.entry_projects",
+    "entrybook.dispatch_projects",
+    "individuals.individual_projects",
+    "gis.postgisspatialrefsys",
+    "gis.postgisgeometrycolumns",
+)
 
 
 class TestBase(TestCase):
 
-    def login(self, username: str, password: str = "the-secret"):
+    DEFAULT_PASSWORD = fixtures.DEFAULT_PASSWORD
+
+    def get_visible_models(self) -> List[Type[models.Model]]:
+        return [
+            model for model in django.apps.apps.get_models()
+            if model._meta.label_lower not in INVISIBLE_MODELS
+        ]
+
+    def get_model_admins(self) -> List[Tuple[Type[models.Model], admin.ModelAdmin]]:
+        admins = []
+        for klass, admin in django.contrib.admin.site._registry.items():
+            admins.append((klass, admin))
+        admins.sort(key=lambda t: t[0]._meta.label_lower)
+        return admins
+
+    def login(self, username: str, password: Optional[str] = None):
         self.assertTrue(
-            self.client.login(username=username, password=password),
+            self.client.login(username=username, password=password or self.DEFAULT_PASSWORD),
             f"failed to log in {username}"
         )
 
@@ -82,7 +143,7 @@ class TestBase(TestCase):
                 data[key].append(value)
 
         for inp in form.find_all("input"):
-            if "value" in inp.attrs and inp.attrs["type"] != "submit":
+            if "value" in inp.attrs and inp.attrs.get("name") and inp.attrs.get("type") != "submit":
                 _add_data(inp.attrs["name"], inp.attrs["value"])
 
         for inp in form.find_all("textarea"):
@@ -157,7 +218,7 @@ class TestBase(TestCase):
             object_model: Union[models.Model, List[models.Model]],
             format: str,
             expect_unchecked_nomenclature: bool = False,
-    ):
+    ) -> HttpResponse:
         if isinstance(object_model, list):
             if object_type == "garden":
                 url = reverse("admin:botman_botanicgarden_changelist")
@@ -165,6 +226,8 @@ class TestBase(TestCase):
                 url = reverse("admin:herbaria_herbariumspecimen_changelist")
             elif object_type == "individual":
                 url = reverse("admin:individuals_individual_changelist")
+            elif object_type == "entry":
+                url = reverse("admin:entrybook_entry_changelist")
             else:
                 raise NotImplementedError(f"object_type '{object_type}' not implemented")
 
@@ -216,9 +279,141 @@ class TestBase(TestCase):
 
         return response
 
+
+    def get_label_documentation(
+            self,
+            label_type: Optional[Literal["garden", "individual", "entry", "herbarium_specimen"]] = None,
+            instance: Optional[models.Model] = None,
+    ) -> Dict[str, Dict[str, str]]:
+        """
+        Return the available field names from label documentation page
+
+        :return: Something like
+            {
+                "field": {"description": str, "example": "23"},
+                "foreign_field.field": {"description": str, "example": "text"},
+            }
+        """
+        if not label_type and not instance:
+            raise ValueError(f"Must provide `label_type` or `instance`")
+
+        if not label_type:
+            if isinstance(instance, BotanicGarden):
+                label_type = "garden"
+            elif isinstance(instance, Individual):
+                label_type = "individual"
+            elif isinstance(instance, Entry):
+                label_type = "entry"
+            elif isinstance(instance, HerbariumSpecimen):
+                label_type = "herbarium_specimen"
+            else:
+                ValueError(f"No label implemented for {instance}")
+
+        params = {
+            "label_type": label_type,
+        }
+        if instance:
+            params["instance_id"] = getattr(instance, instance._id_field)
+
+        response = self.client.get(
+            reverse("labels:doc_template") + "?" + urllib.parse.urlencode(params)
+        )
+        self.assert_response(response, status=200)
+        soup = self.get_soup(response.content)
+        fields = {}
+        for tr in soup.find("table", {"class": "label-doc-table"}).find("tbody").find_all("tr"):
+            row = [td.text for td in tr.find_all("td")]
+            field = row[0][6:-2]  # strip {{obj. }}
+            fields[field] = {
+                "description": row[1],
+                "example": row[2] if len(row) > 2 else None,
+            }
+        return fields
+
+    def get_autocomplete_response(
+            self,
+            app_name: str,
+            model_name: str,
+            field_name: str,
+            query: str,
+            limit: Optional[str] = None,
+    ) -> dict:
+        params = {
+            "term": query,
+            "id": f"{app_name}-{model_name}-{field_name}",
+        }
+        if limit:
+            params["limit"] = limit
+
+        response = self.client.get(
+            reverse("ajax:model_json") + "?" + urllib.parse.urlencode(params)
+        )
+        try:
+            return json.loads(response.content.decode())
+        except json.JSONDecodeError:
+            raise AssertionError(f"Bad response: status={response.status_code} {response.content}")
+
+    def create_custom_property(
+            self,
+            model: Union[models.Model, Type[models.Model]],
+            name: str,
+            type: str = "text",
+            choices: Optional[List[str]] = None,
+    ):
+        return CustomProperty.objects.create_for_model(
+            model=model,
+            type=type,
+            name=name,
+            choices="\n".join(choices) if choices else "",
+        )
+
+    def get_property_value(
+            self, property_name: str, instance: models.Model
+    ) -> Union[None, PropertyValueBool, PropertyValueText]:
+        return PropertyValueText.objects.filter(**{
+            "property__name": property_name,
+            f"{instance._meta.model_name}_values_text": instance.pk,
+        }).first() or PropertyValueBool.objects.filter(**{
+            "property__name": property_name,
+            f"{instance._meta.model_name}_values_bool": instance.pk,
+        }).first()
+
+    def get_log_entries(self, username: Optional[str] = None) -> List[dict]:
+        qset = LogEntry.objects.all()
+        if username:
+            qset = qset.filter(user=UserModel.objects.get(username=username))
+
+        return list(qset.order_by("action_time").values(
+            "action_time",
+            "user",
+            "content_type",
+            "object_id",
+            "object_repr",
+            "action_flag",
+            "change_message",
+        ))
+
+    def assert_admin_form_errors(self, response: HttpResponse):
+        if not response.context:
+            raise AssertionError("response has not context to check")
+
+        if adminform := response.context.get("adminform"):
+            if adminform.form.errors:
+                return
+
+        raise AssertionError(f"No expected form validation errors")
+
+    def assert_no_admin_form_errors(self, response: HttpResponse):
+        if response.context:
+            if adminform := response.context.get("adminform"):
+                if adminform.form.errors:
+                    raise AssertionError(f"Form validation errors:\n{adminform.form.errors}")
+
     def get_changelist(self, app_name: str, model_name: str) -> "ChangeListForm":
         return ChangeListForm(self, app_name, model_name)
 
+    def get_changeform(self, app_name: str, model_name: str, pk: Union[None, str, int] = None) -> "ChangeForm":
+        return ChangeForm(self, app_name, model_name, pk)
 
 class ChangeListForm:
     """
@@ -254,7 +449,7 @@ class ChangeListForm:
         self.num_pages = 0
         self.request()
 
-    def update_filters(self, params: dict):
+    def set_filters(self, params: dict):
         for key, value in params.items():
             field = self.get_form_field(key)
             if field.options:
@@ -395,16 +590,22 @@ class ChangeListForm:
         admin = self.model_admin()
         if not isinstance(admin, ConfigurableTable):
             raise ValueError(f"expected ConfigurableTable ModelAdmin for {Model}")
-        columns = admin.get_modelattributes_treepart(Model)
-        columns += admin.get_decorated_functions(Model)
-        columns = admin.apply_blacklist(columns)
-        columns = [c[1] for c in columns]
-        return columns
 
-    def assert_columns(self, expected_columns: List[str]):
+        response = self.parent.client.get(
+            reverse(f"admin:{self.app_name}_{self.model_name}_configuretable_tree")
+        )
+        soup = self.parent.get_soup(response.content)
+
+        return [
+            li.find("input").attrs["id"]
+            for li in soup.find_all("li")
+        ]
+
+    def assert_columns(self, expected_columns: List[str], msg: Optional[str] = None):
         """
         Assert that the changelist admin view has the expected columns (IDs)
         """
+        msg = f"\n{msg}" if msg else ""
         # check changelist
         response = self.parent.client.get(
             reverse(f"admin:{self.app_name}_{self.model_name}_changelist"),
@@ -418,34 +619,38 @@ class ChangeListForm:
 
         self.parent.assertEqual(
             expected_columns, columns,
-            f"\nExpected:{expected_columns}\n\nGot:\n{columns}"
+            f"\nExpected:{expected_columns}\n\nGot:\n{columns}{msg}"
         )
 
         # check configure-table view
         response = self.parent.client.get(
             reverse(f"admin:{self.app_name}_{self.model_name}_configuretable")
         )
-        soup = bs4.BeautifulSoup(response.content, features="html.parser")
+        soup = self.parent.get_soup(response.content)
         columns = []
         for li in soup.find("ul", {"data-testid": "draggable-column-items"}).find_all("li"):
             columns.append(li.attrs["value"])
-        self.parent.assertEqual(expected_columns, columns)
+        self.parent.assertEqual(expected_columns, columns, msg)
 
         # check configure-table xhr endpoint
         response = self.parent.client.get(
             reverse(f"admin:{self.app_name}_{self.model_name}_configuretable_tree")
         )
-        soup = bs4.BeautifulSoup(response.content, features="html.parser")
+        soup = self.parent.get_soup(response.content)
         columns = []
         for inp in soup.find_all("input", {"type": "checkbox"}):
             if inp.attrs.get("checked"):
                 columns.append(inp.attrs["id"])
 
-        self.parent.assertEqual(set(expected_columns), set(columns))
+        self.parent.assertEqual(set(expected_columns), set(columns), msg)
 
         return columns
 
-    def set_columns(self, new_columns: List[str]):
+    def set_columns(
+            self,
+            new_columns: List[str],
+            not_in_new_columns: Optional[List[str]] = None,
+    ):
         """
         Change the column settings and assert that the change is reflected in admin UI
         """
@@ -467,7 +672,12 @@ class ChangeListForm:
         self.parent.assertEqual(302, response.status_code)  # redirects to changelist
 
         self.request()
-        return self.assert_columns(new_columns)
+        if not not_in_new_columns:
+            self.assert_columns(new_columns)
+        else:
+            self.assert_columns(
+                [c for c in new_columns if c not in not_in_new_columns]
+            )
 
     def get_header_autocomplete_settings(self) -> dict:
         ret = {}
@@ -481,10 +691,84 @@ class ChangeListForm:
                     ret[h.name]["limit"] = ac_limit
         return ret
 
+    def assert_rows(self, rows: List[dict], msg: Optional[str] = None):
+        """
+        Assert that current display rows matches the list of `rows` provided.
+        Ignores extra columns in changelist
+        """
+        if msg:
+            msg = f"\n{msg}"
+        else:
+            msg = ""
+        if len(rows) != len(self.rows):
+            raise AssertionError(
+                f"Expected {len(rows)} rows, got {len(self.rows)}:\n{pprint.pformat(self.rows)}{msg}"
+            )
+        for i, (expected_row, row) in enumerate(zip(rows, self.rows)):
+            for key, expected_value in expected_row.items():
+                if key not in row:
+                    raise AssertionError(
+                        f"Expected key '{key}' in row, got:\n{pprint.pformat(row)}{msg}"
+                    )
+                self.parent.assertEqual(
+                    expected_value,
+                    row[key],
+                    f"In {i}th row. Got:\n{pprint.pformat(self.rows)}{msg}"
+                )
+
+    def get_autocomplete_response(
+            self,
+            input_name: str,  # e.g. field__foreignfield
+            query: str,
+    ) -> HttpResponse:
+        # add the default lookup for autocomplete header inputs
+        input_name = f"{input_name}__icontains"
+
+        header = None
+        for h in self.headers:
+            if h.filter and h.filter.name == input_name:
+                header = h
+                break
+        if not header:
+            raise AssertionError(
+                f"Expected header filter '{input_name}' but not found, got:\n{pprint.pformat(self.headers)}"
+            )
+        params = {
+            "term": query,
+            "id": header.filter.element.attrs.get("data-ac-id"),
+        }
+        if not params["id"]:
+            raise AssertionError(f"Missing data-ac-id attribute in element {header.filter.element}")
+        if autocomplete_limit := header.filter.element.attrs.get("data-ac-limit"):
+            params["limit"] = autocomplete_limit
+
+        return self.parent.client.get(
+            reverse("ajax:model_json") + "?" + urllib.parse.urlencode(params)
+        )
+
+    def assert_autocomplete_response(
+            self,
+            input_name: str,  # e.g. field__foreignfield
+            query: str,
+            expected_response: dict,
+    ):
+        response = self.get_autocomplete_response(input_name, query)
+        response = json.loads(response.content)
+        self.parent.assertEqual(
+            expected_response,
+            response,
+            f"\nExpected:\n{json.dumps(expected_response, indent=2, ensure_ascii=False)}"
+            f"\nGot:\n{json.dumps(response, indent=2, ensure_ascii=False)}"
+        )
+
     def _parse_form(self):
         form = self.soup.find("form", {"id": "changelist-form"})
         if not form:
-            raise AssertionError(f"No changelist-form found in {self.url}")
+            form_ids = list(filter(bool, [
+                form.attrs.get("id")
+                for form in self.soup.find_all("form")
+            ]))
+            raise AssertionError(f"No changelist-form found in {self.url}, found ids: {form_ids}")
 
         def _add_field(inp: bs4.PageElement, value):
             self.fields.append(self.FormField(
@@ -572,3 +856,261 @@ class ChangeListForm:
         self.num_pages = len(list(p.find_all("a")))
         if p.find("span", {"class": "this-page"}):
             self.num_pages += 1
+
+
+class ChangeForm:
+    """
+    Interface to the django changeform admin interface through html parsing
+    """
+
+    @dataclasses.dataclass
+    class FormField:
+        element: bs4.PageElement
+        name: str
+        value: str
+        hidden: bool
+        type: Optional[str] = None
+        options: Optional[List[str]] = None
+        disabled: bool = False
+
+        @property
+        def is_prefix(self) -> bool:
+            return "__prefix__" in self.name
+
+        @property
+        def is_multiselect(self) -> bool:
+            return self.type == "select" and "multiple" in self.element.attrs
+
+    def __init__(self, parent: TestBase, app_name: str, model_name: str, pk: Union[None, int, str]):
+        self.pk = pk
+        self.parent = parent
+        self.app_name = app_name
+        self.model_name = model_name
+        self.query_params = {}
+        self.fields: List[ChangeForm.FormField] = []
+        self.request()
+
+    def __str__(self):
+        return f"ChangeForm('{self.app_name}.{self.model_name}', pk={self.pk})"
+
+    @property
+    def url(self) -> str:
+        if self.pk is not None:
+            return reverse(f"admin:{self.app_name}_{self.model_name}_change", args=(self.pk, ))
+        else:
+            return reverse(f"admin:{self.app_name}_{self.model_name}_add")
+
+    def request(self):
+        response = self.parent.client.get(self.url, query_params=self.query_params)
+        self.parent.assert_no_warning(response)
+        self.parse(response)
+
+    def get_data(self) -> dict:
+        def _skip_field(f: ChangeForm.FormField) -> bool:
+            return (
+                    f.name.startswith("initial-")
+                or f.name.startswith("_")
+                or "__prefix__" in f.name
+                or "_FORMS" in f.name
+            )
+        return {
+            f.name: f.value
+            for f in self.fields
+            if not _skip_field(f)
+        }
+
+    def assert_data(self, expected_fields: dict):
+        data = self.get_data()
+        errors = {}
+        for key, expected_value in expected_fields.items():
+            if key not in data:
+                errors[key] = "* key missing *"
+            value = data[key]
+            if expected_value is None or expected_value == "":
+                if value in ("", "\n"):
+                    is_same = True
+                else:
+                    is_same = not value
+            else:
+                is_same = value == expected_value
+                if isinstance(expected_value, str) and isinstance(value, str):
+                    is_same = value.strip() == expected_value.strip()
+
+            if not is_same:
+                errors[key] = f"expected {repr(expected_value)} got {repr(value)}"
+
+        if errors:
+            raise AssertionError(f"data not as expected: {self}\n{pprint.pformat(errors)}")
+
+    def save(
+            self,
+            override_values: Union[None, Dict, QueryDict] = None,
+            expect_validation_errors: bool = False,
+            action_name: str = "_continue",
+    ):
+        response = self._save(
+            override_values=override_values,
+            expect_validation_errors=expect_validation_errors,
+            action_name=action_name
+        )
+        self.parse(response)
+
+    def save_as_individual(self):
+        """
+        Special case for saved Entry -> "Save as individual"
+        """
+        response = self._save(
+            action_name="_saveasindividual",
+        )
+        self.pk = None
+        self.app_name = "individuals"
+        self.model_name = "individual"
+        self.parse(response)
+        self.parent.assertEqual(
+            "Add individual",
+            self.soup.find("div", {"id": "content"}).find("h1").text,
+        )
+
+    def _save(
+            self,
+            override_values: Union[None, Dict, QueryDict] = None,
+            expect_validation_errors: bool = False,
+            action_name: str = "_continue",
+    ) -> HttpResponse:
+        if override_values is None:
+            values = QueryDict(mutable=True)
+        elif isinstance(override_values, QueryDict):
+            values = copy.deepcopy(override_values)
+            values._mutable = True
+        elif isinstance(override_values, dict):
+            values = QueryDict(mutable=True)
+            for k, v in override_values.items():
+                values.appendlist(k, v)
+        else:
+            raise TypeError(f"Expected dict or QueryDict, got {type(override_values).__name__}")
+
+        for field in self.fields:
+            if not field.disabled:
+                if not override_values or field.name not in override_values:
+                    if not field.name.startswith("_"):
+                        values.appendlist(field.name, field.value)
+
+        actual_values = QueryDict(mutable=True)
+        for key in values.keys():
+            field = self.get_form_field(key)
+            for value in values.getlist(key):
+                if field.type == "checkbox":
+                    if isinstance(value, bool):
+                        if not value:
+                            continue
+                        value = "on"
+                elif value is None:
+                    if field.is_multiselect:
+                        continue
+                    value = ""
+                actual_values.appendlist(key, value)
+
+        url = self.url
+        if self.query_params:
+            url = f"{url}?{urllib.parse.urlencode(self.query_params)}"
+
+        actual_values[action_name] = ""
+
+        # don't put a QueryDict into client.post(), it only yields the LAST entry of a list value
+        actual_values = dict(actual_values)
+
+        if self.pk is None:
+            response = self.parent.client.post(url, actual_values)
+            if expect_validation_errors:
+                self.parent.assert_admin_form_errors(response)
+                self.parse(response)
+                return response
+            self.parent.assert_no_admin_form_errors(response)
+
+            # in case of admin/app/model/add, catch the redirect and extract pk
+            self.parent.assert_response(response, status=302)
+            url = response.headers["location"]
+            self.pk = int(re.match(r".*/(\d+)/change/?$", url).groups()[0])
+            response = self.parent.client.get(self.url)
+        else:
+            response = self.parent.client.post(url, actual_values, follow=True)
+            # print("RESPONSE", response.status_code, response.headers)
+
+            if expect_validation_errors:
+                self.parent.assert_admin_form_errors(response)
+                self.parse(response)
+                return response
+
+        try:
+            self.parent.assert_no_admin_form_errors(response)
+
+            self.parent.assert_response(response, status=200)
+            self.parent.assert_no_warning(response)
+        except AssertionError as e:
+            raise AssertionError(f"{e}\nIn changeform {self.url}")
+        return response
+
+    def get_form_field(
+            self,
+            name_or_element: Union[str, bs4.PageElement],
+            do_assert: bool = True,
+    ) -> Optional[FormField]:
+        for field in self.fields:
+            if field.name == name_or_element or field.element == name_or_element:
+                return field
+        if do_assert:
+            sorted_names = sorted(f.name for f in self.fields)
+            raise AssertionError(f"Form field '{name_or_element}' not found, got only {sorted_names}")
+
+    def parse(self, response):
+        self.soup = bs4.BeautifulSoup(response.content.decode(), features="html.parser")
+        self.fields = []
+        self._parse_form()
+
+    def _parse_form(self):
+        form = self.soup.find("form", {"id": f"{self.model_name}_form"})
+        if not form:
+            form_ids = list(filter(bool, [
+                form.attrs.get("id")
+                for form in self.soup.find_all("form")
+            ]))
+            raise AssertionError(
+                f"No changeform with id='{self.model_name}_form' found in {self.url}. Found ids: {form_ids}"
+            )
+
+        def _add_field(inp: bs4.PageElement, value, type: Optional[str] = None):
+            try:
+                self.fields.append(self.FormField(
+                    element=inp,
+                    name=inp.attrs["name"],
+                    value=value,
+                    type=type or inp.attrs.get("type"),
+                    hidden="hidden" in inp.attrs or inp.attrs.get("type") == "hidden",
+                    disabled="disabled" in inp.attrs,
+                ))
+            except:
+                print(inp)
+                raise
+
+        for inp in form.find_all("input"):
+            if "name" in inp.attrs:
+                if inp.attrs.get("type") == "checkbox":
+                    value = "checked" in inp.attrs
+                else:
+                    value = inp.attrs.get("value")
+                _add_field(inp, value)
+
+        for inp in form.find_all("textarea"):
+            _add_field(inp, inp.text.lstrip("\n") if inp.text else inp.text, type="textarea")
+
+        for inp in form.find_all("select"):
+            if inp.attrs.get("name"):
+                value = None
+                options = []
+                for opt in inp.find_all("option"):
+                    val = opt.attrs.get("value", "")
+                    options.append(val)
+                    if "selected" in opt.attrs and value is None:
+                        value = val
+
+                _add_field(inp, value, type="select")
