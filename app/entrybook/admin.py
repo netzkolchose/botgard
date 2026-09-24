@@ -121,17 +121,6 @@ class EntryAdmin(ConfigurableTable):
             form.base_fields["user"].initial = request.user.pk
         return form
 
-    def get_fieldsets(self, request, obj=None):
-        """
-        Override to remove found_coordinates if no permission
-        """
-        fieldsets = super().get_fieldsets(request, obj)
-
-        if not check_user_has_permissions(request.user, "individuals.can_see_found_coordinates"):
-            fieldsets = remove_from_fieldsets(fieldsets, "found_coordinates")
-
-        return fieldsets
-
     def get_urls(self):
         """
         Add the save-as-individual url

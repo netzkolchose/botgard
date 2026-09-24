@@ -72,6 +72,11 @@ def IndividualBase(unique_name: str) -> Type[models.Model]:
         class Meta:
             abstract = True
 
+        field_permissions = {
+            "found_coordinates": "individuals.can_see_found_coordinates",
+            "found_coordinates_decorator": "individuals.can_see_found_coordinates",
+        }
+
         accession_number = models.CharField(
             verbose_name=_("accession #"), blank=False, null=True, db_index=True,
             max_length=30,

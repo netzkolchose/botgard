@@ -364,7 +364,6 @@ class Individual(IndividualBase(unique_name="individual")):
         return mark_safe(geo_coord_to_html(self.found_coordinates))
     found_coordinates_decorator.short_description = _("collecting coordinates")
     found_coordinates_decorator.admin_order_field = "found_coordinates"
-    found_coordinates_decorator.permission = "individuals.can_see_found_coordinates"
 
     @configurable
     def projects_decorator(self) -> str:

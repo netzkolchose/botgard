@@ -1,5 +1,5 @@
 import types
-from typing import List, Tuple, Union, Dict, Callable
+from typing import List, Tuple, Union, Dict, Callable, Iterable
 
 from django.db import models
 from django.contrib import admin
@@ -17,6 +17,7 @@ import django.core.exceptions
 from django.contrib.admin.utils import label_for_field
 from django.contrib.auth import get_user_model
 
+from tools.fieldsets import remove_from_fieldsets, iterate_fields_from_fieldset
 from .forms import TableSettingsForm
 from .models import TableSettings
 from .changelist import ConfigurableChangeList
@@ -257,40 +258,56 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
                 settings=super().get_list_display(request),
             )
 
-        tablesettings.settings = self._filter_columns(request, tablesettings.settings)
+        tablesettings.settings = self._filter_fields(request, tablesettings.settings)
         return tablesettings
 
-    def _filter_columns(
+    def _filter_fields(
             self,
             request,
-            columns: Union[Tuple[str], Tuple[Tuple]]
+            columns: Union[Iterable[str], Iterable[Tuple]],
+            by_blacklist: bool = True,
     ) -> Union[Tuple[str], Tuple[Tuple]]:
         """
-        Filters columns or column attributes by
+        Filters fieldnames (or column attributes in tree-view) by
             - blacklist
             - existing fields
             - field-level (or decorator-level) permissions
+
+        Set `by_blacklist` to False if filtering changeform fields
         """
         _user_permissions = None
         _blacklist = (
             set(getattr(self, "blacklist", None) or ())
             | set(getattr(self.model, "blacklist", None) or ())
-        )
+        ) if by_blacklist else ()
+        model_field_permissions = getattr(self.model, "field_permissions", None) or {}
+
         def _include_field(name: str) -> bool:
             nonlocal _user_permissions
+
             # remove by blacklist, even if previously has been added to table-configuration
             if name in _blacklist:
                 return False
             field = getattr(self.model, name, None) or getattr(self, name, None)
-            # fix old configurations that require fields that are gone
+
+            # fix old table-configurations that require fields that are gone
             if not field:
                 return False
+
+            # remove fields with unfulfilled permissions
+            if perm := model_field_permissions.get(name):
+                if _user_permissions is None:
+                    _user_permissions = set(request.user.get_all_permissions())
+                if perm not in _user_permissions:
+                    return False
+
             # remove decorators with unfulfilled permission
             if perm := getattr(field, "permission", None):
                 if _user_permissions is None:
                     _user_permissions = set(request.user.get_all_permissions())
                 if perm not in _user_permissions:
                     return False
+
             return True
 
         ret_columns = []
@@ -364,8 +381,23 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
         return s.strip(' --> ')
 
     def get_fieldsets(self, request, obj=None):
+        """
+        Patches the fieldsets to
+            - include custom-properties and creation fields
+            - remove fields by field-level permissions
+        """
         fieldsets = super().get_fieldsets(request, obj)
+
+        # add custom-props and creation-fields
         fieldsets = botgard_base_model_patch_fieldsets(self.model, fieldsets)
+
+        # remove by field-level permissions
+        all_fields = list(iterate_fields_from_fieldset(fieldsets))
+        filtered_fields = self._filter_fields(request, all_fields, by_blacklist=False)
+        remove_fields = set(all_fields) - set(filtered_fields)
+        if remove_fields:
+            fieldsets = remove_from_fieldsets(fieldsets, *remove_fields)
+
         return fieldsets
 
     def get_readonly_fields(self, request, obj=None):
@@ -533,7 +565,7 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
         attributes = self.get_modelattributes_treepart(model, path, settings)
         attributes += self.get_decorated_functions(model, path, settings)
 
-        attributes = self._filter_columns(request, attributes)
+        attributes = self._filter_fields(request, attributes)
 
         # alphabetic sorting
         attributes = sorted(attributes, key=lambda a: a[0].lower())

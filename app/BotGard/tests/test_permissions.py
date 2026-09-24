@@ -577,39 +577,49 @@ class TestPermissions(TestBase):
         indi.found_coordinates = geos.Point(23, 45, srid=4326)
         indi.save()
 
+        entry = Entry.objects.get(accession_number=10)
+        entry.found_coordinates = geos.Point(23, 45, srid=4326)
+        entry.save()
+
         for is_visible, username in (
                 (True, "admin"),
                 (True, "kustos"),
                 (False, "gardener"),
         ):
             self.login(username)
-            # check field visibility in form
-            cf = self.get_changeform("individuals", "individual", pk=indi.pk)
-            field = cf.get_form_field("geo_lon_id_found_coordinates", do_assert=False)
-            (self.assertIsNotNone if is_visible else self.assertIsNone)(field, f"For {username}")
+            for app_name, model_name, instance in (
+                    ("individuals", "individual", indi),
+                    ("entrybook", "entry", entry),
+            ):
+                msg = f"For {username} in {app_name}:{model_name}"
 
-            # check column visibility in changelist
-            cl = self.get_changelist("individuals", "individual")
-            columns = cl.get_all_possible_columns()
-            # field itself is always blacklisted
-            self.assertNotIn("found_coordinates", columns)
-            # decorator is visible by permission
-            (self.assertIn if is_visible else self.assertNotIn)(
-                "found_coordinates_decorator", columns, f"For {username}"
-            )
+                # check field visibility in form
+                cf = self.get_changeform(app_name, model_name, pk=instance.pk)
+                field = cf.get_form_field("geo_lon_id_found_coordinates", do_assert=False)
+                (self.assertIsNotNone if is_visible else self.assertIsNone)(field, msg)
 
-            # suppose attacker modified a request to table-settings and enabled the field
-            TableSettings.objects.create(
-                user=User.objects.get(username=username),
-                model="individuals.individual",
-                settings=("change_link_decorator", "found_coordinates_decorator"),
-            )
-            cl = self.get_changelist("individuals", "individual")
-            columns = cl.get_all_possible_columns()
-            (self.assertIn if is_visible else self.assertNotIn)(
-                "found_coordinates_decorator", columns, f"For {username}"
-            )
-            if is_visible:
-                cl.assert_columns(["change_link_decorator", "found_coordinates_decorator"], f"For {username}")
-            else:
-                cl.assert_columns(["change_link_decorator"], f"For {username}")
+                # check column visibility in changelist
+                cl = self.get_changelist(app_name, model_name)
+                columns = cl.get_all_possible_columns()
+                # field itself is always blacklisted
+                self.assertNotIn("found_coordinates", columns)
+                # decorator is visible by permission
+                (self.assertIn if is_visible else self.assertNotIn)(
+                    "found_coordinates_decorator", columns, msg
+                )
+
+                # suppose attacker modified a request to table-settings and enabled the field
+                TableSettings.objects.create(
+                    user=User.objects.get(username=username),
+                    model=f"{app_name}.{model_name}",
+                    settings=("change_link_decorator", "found_coordinates_decorator"),
+                )
+                cl = self.get_changelist(app_name, model_name)
+                columns = cl.get_all_possible_columns()
+                (self.assertIn if is_visible else self.assertNotIn)(
+                    "found_coordinates_decorator", columns, msg
+                )
+                if is_visible:
+                    cl.assert_columns(["change_link_decorator", "found_coordinates_decorator"], msg)
+                else:
+                    cl.assert_columns(["change_link_decorator"], msg)

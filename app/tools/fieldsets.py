@@ -1,4 +1,20 @@
-from typing import Tuple
+from typing import Tuple, Generator
+
+
+def iterate_fields_from_fieldset(
+        fieldsets: tuple,
+) -> Generator[str, None, None]:
+    """
+    Yield all field-names from a fieldsets object
+    """
+    for i, entry in enumerate(fieldsets):
+        entry: Tuple[str, dict]
+        if fields := entry[1].get("fields"):
+            for field in fields:
+                if isinstance(field, str):
+                    yield field
+                elif isinstance(field, (tuple, list)):
+                    yield from field
 
 
 def remove_from_fieldsets(

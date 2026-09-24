@@ -126,18 +126,11 @@ class IndividualAdminMixin:
         """
         Override to
         - remove the display of `species_audit` if nothing is there
-        - remove found_coordinates if no permission
         """
         fieldsets = super().get_fieldsets(request, obj)
-        remove_fields = []
 
         if not obj or not obj.species_audit:
-            remove_fields.append("species_audit")
-        if not check_user_has_permissions(request.user, "individuals.can_see_found_coordinates"):
-            remove_fields.append("found_coordinates")
-
-        if remove_fields:
-            fieldsets = remove_from_fieldsets(fieldsets, *remove_fields)
+            fieldsets = remove_from_fieldsets(fieldsets, "species_audit")
 
         return fieldsets
 
