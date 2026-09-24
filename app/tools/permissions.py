@@ -5,6 +5,7 @@ from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.auth.models import User, Permission
 from django.http import HttpRequest
 from django.db import models
+from django.urls import reverse_lazy
 
 
 def check_user_can_write(user):
@@ -77,9 +78,11 @@ def get_nomenclature_user():
 
 ## --- decorators ---
 
-def login_required(function=None,
-                   redirect_field_name=REDIRECT_FIELD_NAME,
-                   login_url="/admin/login/"):
+def login_required(
+        function=None,
+        redirect_field_name=REDIRECT_FIELD_NAME,
+        login_url: Optional[str] = None
+):
     """
     Decorator for views that checks that the user is logged in, redirecting
     to the log-in page if necessary.
@@ -87,7 +90,7 @@ def login_required(function=None,
     """
     actual_decorator = user_passes_test(
         lambda u: u.is_authenticated,
-        login_url=login_url,
+        login_url=login_url or reverse_lazy("admin:login"),
         redirect_field_name=redirect_field_name
     )
     if function:
@@ -96,16 +99,18 @@ def login_required(function=None,
 
 
 
-def write_permission_required(function=None,
-                              redirect_field_name=REDIRECT_FIELD_NAME,
-                              login_url="/botman/no_permission"):
+def write_permission_required(
+        function=None,
+        redirect_field_name=REDIRECT_FIELD_NAME,
+        login_url: Optional[str] = None,
+):
     """
     Decorator for views that checks that the user is logged in and has write permission,
     redirecting to the log-in page if necessary.
     """
     actual_decorator = user_passes_test(
         lambda u: u.is_authenticated and check_user_can_write(u),
-        login_url=login_url,
+        login_url=login_url or reverse_lazy("botman:no_permission"),
         redirect_field_name=redirect_field_name
     )
     if function:
@@ -116,7 +121,7 @@ def write_permission_required(function=None,
 def permission_required(
         *permissions: str,
         redirect_field_name=REDIRECT_FIELD_NAME,
-        login_url="/botman/no_permission",
+        login_url: Optional[str] = None,
 ):
     """
     Decorator for views that checks that the user is logged in and has certain permission,
@@ -124,22 +129,24 @@ def permission_required(
     """
     actual_decorator = user_passes_test(
         lambda u: u.is_authenticated and check_user_has_permissions(u, *permissions),
-        login_url=login_url,
+        login_url=login_url or reverse_lazy("botman:no_permission"),
         redirect_field_name=redirect_field_name
     )
     return actual_decorator
 
 
-def admin_required(function=None,
-                   redirect_field_name=REDIRECT_FIELD_NAME,
-                   login_url="/botman/no_permission"):
+def admin_required(
+        function=None,
+        redirect_field_name=REDIRECT_FIELD_NAME,
+        login_url: Optional[str] = None,
+):
     """
     Decorator for views that checks that the user is logged in and has write permission,
     redirecting to the log-in page if necessary.
     """
     actual_decorator = user_passes_test(
         lambda u: u.is_superuser,
-        login_url=login_url,
+        login_url=login_url or reverse_lazy("botman:no_permission"),
         redirect_field_name=redirect_field_name
     )
     if function:

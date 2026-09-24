@@ -7,7 +7,7 @@ from django.utils import timezone
 from django.template import Context, loader
 from django.shortcuts import render
 
-from tools.permissions import *
+from tools.permissions import permission_required
 from tools.admin_extensions import minimal_admin_context
 from botman.models import *
 from botman.utils import fuzzy_find_bgci_garden

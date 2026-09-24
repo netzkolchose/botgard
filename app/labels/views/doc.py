@@ -17,11 +17,12 @@ from individuals.models import Individual
 from botman.models import BotanicGarden
 from entrybook.models import Entry
 from herbaria.models import HerbariumSpecimen
-from tools.permissions import login_required
-from config_app.models import CustomProperty, PropertyValueBool, PropertyValueText
+from tools.permissions import permission_required
+from config_app.models import CustomProperty
 
 
-@login_required
+
+@permission_required("labels.change_labeldefinition")
 def label_template_doc(request):
     """
     View to render documentation for label template variables

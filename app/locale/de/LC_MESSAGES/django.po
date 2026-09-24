@@ -587,8 +587,8 @@ msgstr "Home"
 
 #: botman/templates/botman/no-permission.html:6
 #: botman/views/utility_views.py:27
-msgid "Sorry, but you do not have write permission!"
-msgstr "Sie haben leider keine Schreibberechtigung"
+msgid "Sorry, but you do not have that permission!"
+msgstr "Sie haben leider keine Berechtigung"
 
 #: botman/templates/botman/no-permission.html:8
 #: botman/views/utility_views.py:28

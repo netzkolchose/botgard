@@ -3,6 +3,7 @@ import datetime
 
 from django.http import HttpResponse, HttpResponseRedirect
 from django.utils.translation import gettext_lazy as _
+from django.utils.text import format_lazy
 from django.utils import timezone
 from django.template import Context, loader
 from django.shortcuts import render
@@ -23,9 +24,11 @@ def index_page(request):
 
 # default fallback for "write_permission_required" decorators
 def no_permission_page(request):
-    return HttpResponse('<p>%s</p><p><a href="/admin/logout/">%s</a></p>'
-                        % (_("Sorry, but you do not have write permission!"),
-                           _("Log out and change user")))
+    return HttpResponse(format_lazy(
+        '<p>{}</p><p><a href="/admin/logout/">{}</a></p>',
+        _("Sorry, but you do not have that permission!"),
+        _("Log out and change user"),
+    ))
 
 
 @admin_required
