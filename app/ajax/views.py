@@ -1,12 +1,13 @@
 import traceback
+from gettext import translation
 from typing import Optional, Type, Tuple
 
 import django.core.exceptions
 from django.shortcuts import render
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpRequest
 from django.apps import apps
 from django.core.exceptions import FieldError, ValidationError
-from django.db import OperationalError, ProgrammingError
+from django.db import OperationalError, ProgrammingError, InternalError, transaction
 from django.db.models import Func
 from django.db import models
 
@@ -41,25 +42,27 @@ def model_fieldvalues_json(request):
             limit: Optional[Tuple[Type[models.Model], str]] = None,
     ):
         try:
-            try:
-                entries = Model.objects.filter(**filters[0]).distinct()
-            except ValidationError:
-                return None
-            for i in filters[1:]:
-                entries = entries.filter(**i).distinct()
+            with transaction.atomic():
+                try:
+                    entries = Model.objects.filter(**filters[0]).distinct()
+                    for i in filters[1:]:
+                        entries = entries.filter(**i).distinct()
 
-            if limit:
-                entries = entries.filter(
-                    pk__in=limit[0].objects.values_list(limit[1], flat=True).distinct()
-                ).distinct()
+                    if limit:
+                        entries = entries.filter(
+                            pk__in=limit[0].objects.values_list(limit[1], flat=True).distinct()
+                        ).distinct()
 
-            if not entries.exists():
-                return []
-            entries = _order_qset(entries, order_field)
-            # force eval
-            dummy = entries[0]
-            return entries
-        except FieldError:
+                except ValidationError:
+                    return None
+
+                if not entries.exists():
+                    return []
+                entries = _order_qset(entries, order_field)
+                # force eval
+                dummy = entries[0]
+                return entries
+        except (FieldError, InternalError):
             return None
 
     def _get_filters(fieldname, terms, filter_mode):
@@ -129,7 +132,7 @@ def model_fieldvalues_json(request):
                         break
         return short
 
-    def _get_list(request):
+    def _get_list(request: HttpRequest):
         custom_prop: Optional[CustomProperty] = None
         if (request.GET.get("id") or "").startswith("custom_property_"):
             app, modelname, fieldname = "config_app", "propertyvaluetext", "value"
@@ -151,6 +154,11 @@ def model_fieldvalues_json(request):
             return JsonResponse({"state": "none", "items": []})
 
         Model = apps.get_model(app, modelname)
+
+        if field_permissions := getattr(Model, "field_permissions", None):
+            if perm := field_permissions.get(fieldname):
+                if not request.user.has_perms([perm]):
+                    return JsonResponse({"state": "none", "items": []})
 
         try:
             field = Model._meta.get_field(fieldname)

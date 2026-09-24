@@ -704,6 +704,7 @@ class TestPermissions(TestBase):
                     )
 
                     # suppose attacker modified a request to table-settings and enabled the field
+                    # -> make sure it's still filtered out, even if explicitly stored in TableSettings
                     TableSettings.objects.create(
                         user=User.objects.get(username=username),
                         model=f"{app_name}.{model_name}",
@@ -751,3 +752,47 @@ class TestPermissions(TestBase):
                             response.content.decode().strip(),
                             msg
                         )
+
+    def test_field_permission_autocomplete(self):
+        old_field_permissions = Individual.field_permissions
+        try:
+            # little hack to protect a field that is actually autocomplete-able
+            Individual.field_permissions = {
+                "accession_number": "individuals.can_see_found_coordinates",
+            }
+
+            for is_visible, username in (
+                    (True, "admin"),
+                    (False, "gardener"),
+            ):
+                msg = f"For {username}"
+                with self.subTest(msg):
+                    self.login(username)
+
+                    self.assertEqual(
+                        {
+                            "state": "many",
+                            "items": list(
+                                Individual.objects.all().order_by("ipen_generated")
+                                .values_list("ipen_generated", flat=True)
+                            )
+                        },
+                        self.get_autocomplete_response("individuals", "individual", "ipen_generated", "0"),
+                        msg
+                    )
+                    self.assertEqual(
+                        {
+                            "state": "none",
+                            "items": [],
+                        } if not is_visible else {
+                            "state": "many",
+                            "items": list(
+                                Individual.objects.all().order_by("accession_number")
+                                .values_list("accession_number", flat=True)
+                            )
+                        },
+                        self.get_autocomplete_response("individuals", "individual", "accession_number", "0"),
+                        msg
+                    )
+        finally:
+            Individual.field_permissions = old_field_permissions

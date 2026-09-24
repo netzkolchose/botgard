@@ -330,6 +330,29 @@ class TestBase(TestCase):
             }
         return fields
 
+    def get_autocomplete_response(
+            self,
+            app_name: str,
+            model_name: str,
+            field_name: str,
+            query: str,
+            limit: Optional[str] = None,
+    ) -> dict:
+        params = {
+            "term": query,
+            "id": f"{app_name}-{model_name}-{field_name}",
+        }
+        if limit:
+            params["limit"] = limit
+
+        response = self.client.get(
+            reverse("ajax:model_json") + "?" + urllib.parse.urlencode(params)
+        )
+        try:
+            return json.loads(response.content.decode())
+        except json.JSONDecodeError:
+            raise AssertionError(f"Bad response: status={response.status_code} {response.content}")
+
     def create_custom_property(
             self,
             model: Union[models.Model, Type[models.Model]],
