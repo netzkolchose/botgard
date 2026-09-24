@@ -81,11 +81,6 @@ class TestPermissions(TestBase):
             GARDENER_PERMISSIONS,
         )
         user.groups.add(gardeners_group)
-        user.user_permissions.add(Permission.objects.get(
-            content_type__app_label="labels",
-            content_type__model="labeldefinition",
-            codename="change_labeldefinition",
-        ))
 
         BasicTicket.objects.create(
             created_by=User.objects.get(username="User1"),
@@ -108,11 +103,6 @@ class TestPermissions(TestBase):
             content_type__app_label="individuals",
             content_type__model="individual",
             codename="can_see_found_coordinates",
-        ))
-        user.user_permissions.add(Permission.objects.get(
-            content_type__app_label="labels",
-            content_type__model="labeldefinition",
-            codename="change_labeldefinition",
         ))
 
         user = get_user_model().objects.create_user(
@@ -620,6 +610,17 @@ class TestPermissions(TestBase):
             - label documentation
             - label rendering
         """
+        # make sure the non-admin users can see the label documentation
+        for user in (
+                User.objects.get(username="gardener"),
+                User.objects.get(username="kustos"),
+        ):
+            user.user_permissions.add(Permission.objects.get(
+                content_type__app_label="labels",
+                content_type__model="labeldefinition",
+                codename="change_labeldefinition",
+            ))
+
         indi = Individual.objects.get(accession_number=1000)
         indi.found_coordinates = geos.Point(23, 45, srid=4326)
         indi.save()
@@ -658,16 +659,20 @@ class TestPermissions(TestBase):
             display_name="3",
             type="herbarium_specimen",
             format="csv",
-            markup="IPEN\n{{obj.individual.ipen_generated}}\nCOORDS\n{{obj.individual.found_coordinates}}",
+            markup="IPEN\n{{obj.individual.ipen_generated}}\nCOORDS\n{{obj.individual.found_coordinates}}"
+                   "\nACCESSION#\n{{obj.individual.accession_number}}",
         )
 
+        # for each label format a rendered version with or without the found_coordinates field
+        # a geos.Point is not nicely rendered in templates, anyway
+        # right now it's just the only permission-protected field
         expected_label_responses = {
             (True, "html"): "<h1></h1>AU-0-GARD1-1000 - SRID=4326;POINT (23 45)",
             (False, "html"): "<h1></h1>AU-0-GARD1-1000 -",
             (True, "svg"): "<svg>xx-x-x-10 - SRID=4326;POINT (23 45)</svg>",
             (False, "svg"): "<svg>xx-x-x-10 - </svg>",
-            (True, "csv"): "IPEN,COORDS\r\nAU-0-GARD1-1000,SRID=4326;POINT (23 45)",
-            (False, "csv"): "IPEN,COORDS\r\nAU-0-GARD1-1000,",
+            (True, "csv"): "IPEN,COORDS,ACCESSION#\r\nAU-0-GARD1-1000,SRID=4326;POINT (23 45),1000",
+            (False, "csv"): "IPEN,COORDS,ACCESSION#\r\nAU-0-GARD1-1000,,1000",
         }
 
         for is_visible, username in (

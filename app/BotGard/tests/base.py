@@ -143,7 +143,7 @@ class TestBase(TestCase):
                 data[key].append(value)
 
         for inp in form.find_all("input"):
-            if "value" in inp.attrs and inp.attrs["type"] != "submit":
+            if "value" in inp.attrs and inp.attrs.get("name") and inp.attrs.get("type") != "submit":
                 _add_data(inp.attrs["name"], inp.attrs["value"])
 
         for inp in form.find_all("textarea"):
