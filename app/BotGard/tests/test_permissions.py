@@ -137,6 +137,35 @@ class TestPermissions(TestBase):
         super().login(username)
         self.current_user = username
 
+    def test_save_model_wrapper(self):
+        indi = Individual.objects.get(accession_number=1000)
+        indi.found_coordinates = geos.Point(23, 45, srid=4326)
+        indi.save()
+        indi2 = Individual.objects.get(accession_number=1002)
+        indi2.found_coordinates = geos.Point(23, 45, srid=4326)
+        indi2.save()
+
+        save_indi = SaveModelWrapper(indi, [])
+        self.assertEqual(indi.accession_number, save_indi.accession_number)
+        with self.assertRaises(AttributeError):
+            _ = save_indi.found_coordinates
+
+        self.assertTrue(isinstance(save_indi.species, SaveModelWrapper))
+        self.assertTrue(isinstance(save_indi.species.family, SaveModelWrapper))
+
+        self.assertEqual(
+            indi.found_coordinates,
+            SaveModelWrapper(indi, user_permissions=["individuals.can_see_found_coordinates"]).found_coordinates
+        )
+
+        specimen = HerbariumSpecimen.objects.get(individual=indi2)
+        save_specimen = SaveModelWrapper(specimen, [])
+
+        self.assertEqual(specimen.accession_number, save_specimen.accession_number)
+        self.assertEqual(specimen.individual.accession_number, save_specimen.individual.accession_number)
+        with self.assertRaises(AttributeError):
+            _ = save_specimen.individual.found_coordinates
+
     def test_permissions_admin(self):
         self.login("admin")
         self.assert_staff_permissions({
@@ -573,6 +602,14 @@ class TestPermissions(TestBase):
         return gathered_permissions
 
     def test_found_coordinates_field_permissions(self):
+        """
+        Test visibility for Individual/Entry.found_coordinates field.
+        Make sure it's appropriately filtered in:
+            - changelist
+            - changeform
+            - label documentation
+            - label rendering
+        """
         indi = Individual.objects.get(accession_number=1000)
         indi.found_coordinates = geos.Point(23, 45, srid=4326)
         indi.save()
@@ -581,45 +618,121 @@ class TestPermissions(TestBase):
         entry.found_coordinates = geos.Point(23, 45, srid=4326)
         entry.save()
 
+        specimen = HerbariumSpecimen.objects.create(
+            herbarium=Herbarium.objects.all().first(),
+            individual=indi,
+            collector=User.objects.get(username="admin"),
+        )
+
+        indi_label = LabelDefinition.objects.create(
+            id_name="1",
+            display_name="1",
+            type="individual",
+            format="html",
+            markup="{{obj.ipen_generated}} - {{obj.found_coordinates}}",
+            # just a sanity test - page_markup does not get an `obj` in template context
+            page_markup="<h1>{{obj.found_coordinates}}</h1>{{content}}",
+        )
+
+        entry_label = LabelDefinition.objects.create(
+            id_name="2",
+            display_name="2",
+            type="entry",
+            format="svg",
+            markup="<svg>{{obj.ipen_generated}} - {{obj.found_coordinates}}</svg>",
+        )
+
+        # also test access to related model fields via labels
+        specimen_label = LabelDefinition.objects.create(
+            id_name="3",
+            display_name="3",
+            type="herbarium_specimen",
+            format="csv",
+            markup="IPEN\n{{obj.individual.ipen_generated}}\nCOORDS\n{{obj.individual.found_coordinates}}",
+        )
+
+        expected_label_responses = {
+            (True, "html"): "<h1></h1>AU-0-GARD1-1000 - SRID=4326;POINT (23 45)",
+            (False, "html"): "<h1></h1>AU-0-GARD1-1000 -",
+            (True, "svg"): "<svg>xx-x-x-10 - SRID=4326;POINT (23 45)</svg>",
+            (False, "svg"): "<svg>xx-x-x-10 - </svg>",
+            (True, "csv"): "IPEN,COORDS\r\nAU-0-GARD1-1000,SRID=4326;POINT (23 45)",
+            (False, "csv"): "IPEN,COORDS\r\nAU-0-GARD1-1000,",
+        }
+
         for is_visible, username in (
                 (True, "admin"),
                 (True, "kustos"),
                 (False, "gardener"),
         ):
             self.login(username)
-            for app_name, model_name, instance in (
-                    ("individuals", "individual", indi),
-                    ("entrybook", "entry", entry),
+            for app_name, model_name, instance, label_instance in (
+                    ("individuals", "individual", indi, indi_label),
+                    ("entrybook", "entry", entry, entry_label),
             ):
-                msg = f"For {username} in {app_name}:{model_name}"
+                msg = f"For {username} in {app_name}.{model_name}"
+                with self.subTest(msg):
 
-                # check field visibility in form
-                cf = self.get_changeform(app_name, model_name, pk=instance.pk)
-                field = cf.get_form_field("geo_lon_id_found_coordinates", do_assert=False)
-                (self.assertIsNotNone if is_visible else self.assertIsNone)(field, msg)
+                    # check field visibility in form
+                    cf = self.get_changeform(app_name, model_name, pk=instance.pk)
+                    field = cf.get_form_field("geo_lon_id_found_coordinates", do_assert=False)
+                    (self.assertIsNotNone if is_visible else self.assertIsNone)(field, msg)
 
-                # check column visibility in changelist
-                cl = self.get_changelist(app_name, model_name)
-                columns = cl.get_all_possible_columns()
-                # field itself is always blacklisted
-                self.assertNotIn("found_coordinates", columns)
-                # decorator is visible by permission
-                (self.assertIn if is_visible else self.assertNotIn)(
-                    "found_coordinates_decorator", columns, msg
-                )
+                    # check column visibility in changelist
+                    cl = self.get_changelist(app_name, model_name)
+                    columns = cl.get_all_possible_columns()
+                    # field itself is always blacklisted
+                    self.assertNotIn("found_coordinates", columns)
+                    # decorator is visible by permission
+                    (self.assertIn if is_visible else self.assertNotIn)(
+                        "found_coordinates_decorator", columns, msg
+                    )
 
-                # suppose attacker modified a request to table-settings and enabled the field
-                TableSettings.objects.create(
-                    user=User.objects.get(username=username),
-                    model=f"{app_name}.{model_name}",
-                    settings=("change_link_decorator", "found_coordinates_decorator"),
-                )
-                cl = self.get_changelist(app_name, model_name)
-                columns = cl.get_all_possible_columns()
-                (self.assertIn if is_visible else self.assertNotIn)(
-                    "found_coordinates_decorator", columns, msg
-                )
-                if is_visible:
-                    cl.assert_columns(["change_link_decorator", "found_coordinates_decorator"], msg)
-                else:
-                    cl.assert_columns(["change_link_decorator"], msg)
+                    # suppose attacker modified a request to table-settings and enabled the field
+                    TableSettings.objects.create(
+                        user=User.objects.get(username=username),
+                        model=f"{app_name}.{model_name}",
+                        settings=("change_link_decorator", "found_coordinates_decorator"),
+                    )
+                    cl = self.get_changelist(app_name, model_name)
+                    columns = cl.get_all_possible_columns()
+                    (self.assertIn if is_visible else self.assertNotIn)(
+                        "found_coordinates_decorator", columns, msg
+                    )
+                    if is_visible:
+                        cl.assert_columns(["change_link_decorator", "found_coordinates_decorator"], msg)
+                    else:
+                        cl.assert_columns(["change_link_decorator"], msg)
+
+                    # --- make sure there is no access through labels ---
+
+                    # not listed in documentation
+                    label_doc = self.get_label_documentation(instance=instance)
+                    (self.assertIn if is_visible else self.assertNotIn)("found_coordinates", label_doc.keys(), msg)
+
+                    # value omitted in rendered labels
+                    response = self.get_label_response(
+                        label_model=label_instance,
+                        object_type=model_name,
+                        object_model=instance,
+                        format=label_instance.format,
+                    )
+                    self.assertEqual(
+                        expected_label_responses[(is_visible, label_instance.format)],
+                        response.content.decode().strip(),
+                        msg
+                    )
+
+                    # even for foreign relations like HerbariumSpecimen.individual.found_coordinates
+                    if isinstance(instance, Individual):
+                        response = self.get_label_response(
+                            label_model=specimen_label,
+                            object_type="herbarium_specimen",
+                            object_model=specimen,
+                            format=specimen_label.format,
+                        )
+                        self.assertEqual(
+                            expected_label_responses[(is_visible, specimen_label.format)],
+                            response.content.decode().strip(),
+                            msg
+                        )

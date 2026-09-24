@@ -1,7 +1,10 @@
+from typing import Optional, List
+
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.auth.models import User, Permission
 from django.http import HttpRequest
+from django.db import models
 
 
 def check_user_can_write(user):
@@ -142,3 +145,37 @@ def admin_required(function=None,
     if function:
         return actual_decorator(function)
     return actual_decorator
+
+
+class SaveModelWrapper:
+    """
+    Wraps a model instance and raises AttributeError for fields
+    for which a user does not have the field-level permissions
+    """
+
+    def __init__(
+            self,
+            instance: models.Model,
+            user_permissions: Optional[List[str]] = None,
+    ):
+        from .global_request import get_current_user
+        self.__instance = instance
+        self.__field_permissions = getattr(instance, "field_permissions", None) or {}
+        if not user_permissions:
+            if user := get_current_user():
+                user_permissions = user.get_all_permissions()
+        self.__user_permissions = user_permissions or []
+
+    def __getattr__(self, name: str):
+        if name.startswith("__"):
+            return super().__getattribute__(name)
+
+        if required_perm := self.__field_permissions.get(name):
+            if required_perm not in self.__user_permissions:
+                raise AttributeError(f"{type(self.__instance).__name__} object has no attribute '{name}'")
+
+        value = getattr(self.__instance, name)
+        if isinstance(value, models.Model):
+            value = SaveModelWrapper(value, self.__user_permissions)
+
+        return value

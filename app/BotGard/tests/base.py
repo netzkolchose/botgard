@@ -53,6 +53,7 @@ from config_app.management.commands.botgard_update_config import update_config_i
 from config_app.models import *
 from config_tables.models import *
 from config_tables.admin import ConfigurableTable
+from tools.permissions import SaveModelWrapper
 
 
 UserModel = get_user_model()
@@ -217,7 +218,7 @@ class TestBase(TestCase):
             object_model: Union[models.Model, List[models.Model]],
             format: str,
             expect_unchecked_nomenclature: bool = False,
-    ):
+    ) -> HttpResponse:
         if isinstance(object_model, list):
             if object_type == "garden":
                 url = reverse("admin:botman_botanicgarden_changelist")
@@ -225,6 +226,8 @@ class TestBase(TestCase):
                 url = reverse("admin:herbaria_herbariumspecimen_changelist")
             elif object_type == "individual":
                 url = reverse("admin:individuals_individual_changelist")
+            elif object_type == "entry":
+                url = reverse("admin:entrybook_entry_changelist")
             else:
                 raise NotImplementedError(f"object_type '{object_type}' not implemented")
 
@@ -275,6 +278,56 @@ class TestBase(TestCase):
             raise AssertionError(f"{err_msg}: {response.content[idx:idx + 5000]}")
 
         return response
+
+
+    def get_label_documentation(
+            self,
+            label_type: Optional[Literal["garden", "individual", "entry", "herbarium_specimen"]] = None,
+            instance: Optional[models.Model] = None,
+    ) -> Dict[str, Dict[str, str]]:
+        """
+        Return the available field names from label documentation page
+
+        :return: Something like
+            {
+                "field": {"description": str, "example": "23"},
+                "foreign_field.field": {"description": str, "example": "text"},
+            }
+        """
+        if not label_type and not instance:
+            raise ValueError(f"Must provide `label_type` or `instance`")
+
+        if not label_type:
+            if isinstance(instance, BotanicGarden):
+                label_type = "garden"
+            elif isinstance(instance, Individual):
+                label_type = "individual"
+            elif isinstance(instance, Entry):
+                label_type = "entry"
+            elif isinstance(instance, HerbariumSpecimen):
+                label_type = "herbarium_specimen"
+            else:
+                ValueError(f"No label implemented for {instance}")
+
+        params = {
+            "label_type": label_type,
+        }
+        if instance:
+            params["instance_id"] = getattr(instance, instance._id_field)
+
+        response = self.client.get(
+            reverse("labels:doc_template") + "?" + urllib.parse.urlencode(params)
+        )
+        soup = self.get_soup(response.content)
+        fields = {}
+        for tr in soup.find("table", {"class": "label-doc-table"}).find("tbody").find_all("tr"):
+            row = [td.text for td in tr.find_all("td")]
+            field = row[0][6:-2]  # strip {{obj. }}
+            fields[field] = {
+                "description": row[1],
+                "example": row[2] if len(row) > 2 else None,
+            }
+        return fields
 
     def create_custom_property(
             self,
