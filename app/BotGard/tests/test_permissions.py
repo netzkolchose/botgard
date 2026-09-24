@@ -99,6 +99,11 @@ class TestPermissions(TestBase):
             content_type__model="species",
             codename="can_check_nomenclature",
         ))
+        user.user_permissions.add(Permission.objects.get(
+            content_type__app_label="individuals",
+            content_type__model="individual",
+            codename="can_see_found_coordinates",
+        ))
 
         user = get_user_model().objects.create_user(
             username="guest",
@@ -566,3 +571,45 @@ class TestPermissions(TestBase):
                             gathered_permissions[f"{app_name}.{model_name}"] = perms
 
         return gathered_permissions
+
+    def test_found_coordinates_field_permissions(self):
+        indi = Individual.objects.get(accession_number=1000)
+        indi.found_coordinates = geos.Point(23, 45, srid=4326)
+        indi.save()
+
+        for is_visible, username in (
+                (True, "admin"),
+                (True, "kustos"),
+                (False, "gardener"),
+        ):
+            self.login(username)
+            # check field visibility in form
+            cf = self.get_changeform("individuals", "individual", pk=indi.pk)
+            field = cf.get_form_field("geo_lon_id_found_coordinates", do_assert=False)
+            (self.assertIsNotNone if is_visible else self.assertIsNone)(field, f"For {username}")
+
+            # check column visibility in changelist
+            cl = self.get_changelist("individuals", "individual")
+            columns = cl.get_all_possible_columns()
+            # field itself is always blacklisted
+            self.assertNotIn("found_coordinates", columns)
+            # decorator is visible by permission
+            (self.assertIn if is_visible else self.assertNotIn)(
+                "found_coordinates_decorator", columns, f"For {username}"
+            )
+
+            # suppose attacker modified a request to table-settings and enabled the field
+            TableSettings.objects.create(
+                user=User.objects.get(username=username),
+                model="individuals.individual",
+                settings=("change_link_decorator", "found_coordinates_decorator"),
+            )
+            cl = self.get_changelist("individuals", "individual")
+            columns = cl.get_all_possible_columns()
+            (self.assertIn if is_visible else self.assertNotIn)(
+                "found_coordinates_decorator", columns, f"For {username}"
+            )
+            if is_visible:
+                cl.assert_columns(["change_link_decorator", "found_coordinates_decorator"], f"For {username}")
+            else:
+                cl.assert_columns(["change_link_decorator"], f"For {username}")

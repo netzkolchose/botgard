@@ -31,6 +31,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.admin.models import LogEntry
 from django.http import HttpRequest, HttpResponse, QueryDict
 import django.contrib.admin
+from django.contrib.gis import geos
 
 import bs4
 import xlrd
@@ -50,6 +51,7 @@ from . import fixtures
 from .fixtures import create_permission_group, create_test_fixtures
 from config_app.management.commands.botgard_update_config import update_config_in_database
 from config_app.models import *
+from config_tables.models import *
 from config_tables.admin import ConfigurableTable
 
 
@@ -511,16 +513,22 @@ class ChangeListForm:
         admin = self.model_admin()
         if not isinstance(admin, ConfigurableTable):
             raise ValueError(f"expected ConfigurableTable ModelAdmin for {Model}")
-        columns = admin.get_modelattributes_treepart(Model)
-        columns += admin.get_decorated_functions(Model)
-        columns = admin.apply_blacklist(columns)
-        columns = [c[1] for c in columns]
-        return columns
 
-    def assert_columns(self, expected_columns: List[str]):
+        response = self.parent.client.get(
+            reverse(f"admin:{self.app_name}_{self.model_name}_configuretable_tree")
+        )
+        soup = self.parent.get_soup(response.content)
+
+        return [
+            li.find("input").attrs["id"]
+            for li in soup.find_all("li")
+        ]
+
+    def assert_columns(self, expected_columns: List[str], msg: Optional[str] = None):
         """
         Assert that the changelist admin view has the expected columns (IDs)
         """
+        msg = f"\n{msg}" if msg else ""
         # check changelist
         response = self.parent.client.get(
             reverse(f"admin:{self.app_name}_{self.model_name}_changelist"),
@@ -534,30 +542,30 @@ class ChangeListForm:
 
         self.parent.assertEqual(
             expected_columns, columns,
-            f"\nExpected:{expected_columns}\n\nGot:\n{columns}"
+            f"\nExpected:{expected_columns}\n\nGot:\n{columns}{msg}"
         )
 
         # check configure-table view
         response = self.parent.client.get(
             reverse(f"admin:{self.app_name}_{self.model_name}_configuretable")
         )
-        soup = bs4.BeautifulSoup(response.content, features="html.parser")
+        soup = self.parent.get_soup(response.content)
         columns = []
         for li in soup.find("ul", {"data-testid": "draggable-column-items"}).find_all("li"):
             columns.append(li.attrs["value"])
-        self.parent.assertEqual(expected_columns, columns)
+        self.parent.assertEqual(expected_columns, columns, msg)
 
         # check configure-table xhr endpoint
         response = self.parent.client.get(
             reverse(f"admin:{self.app_name}_{self.model_name}_configuretable_tree")
         )
-        soup = bs4.BeautifulSoup(response.content, features="html.parser")
+        soup = self.parent.get_soup(response.content)
         columns = []
         for inp in soup.find_all("input", {"type": "checkbox"}):
             if inp.attrs.get("checked"):
                 columns.append(inp.attrs["id"])
 
-        self.parent.assertEqual(set(expected_columns), set(columns))
+        self.parent.assertEqual(set(expected_columns), set(columns), msg)
 
         return columns
 
@@ -965,12 +973,17 @@ class ChangeForm:
             raise AssertionError(f"{e}\nIn changeform {self.url}")
         return response
 
-    def get_form_field(self, name_or_element: Union[str, bs4.PageElement]) -> FormField:
+    def get_form_field(
+            self,
+            name_or_element: Union[str, bs4.PageElement],
+            do_assert: bool = True,
+    ) -> Optional[FormField]:
         for field in self.fields:
             if field.name == name_or_element or field.element == name_or_element:
                 return field
-        sorted_names = sorted(f.name for f in self.fields)
-        raise AssertionError(f"Form field '{name_or_element}' not found, got only {sorted_names}")
+        if do_assert:
+            sorted_names = sorted(f.name for f in self.fields)
+            raise AssertionError(f"Form field '{name_or_element}' not found, got only {sorted_names}")
 
     def parse(self, response):
         self.soup = bs4.BeautifulSoup(response.content.decode(), features="html.parser")

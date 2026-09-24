@@ -221,20 +221,6 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
             ).order_by("order", "name"))
         return self._custom_properties
 
-    def _get_actual_tablesettings_object(self, request):
-        user = request.user
-        modelstring = '%s.%s' % (self.model._meta.app_label, self.model._meta.model_name)
-        try:
-            tablesettings = TableSettings.objects.get(user=user, model=modelstring)
-        except TableSettings.DoesNotExist:
-            tablesettings = TableSettings(
-                user=user,
-                model=modelstring,
-                settings=self.apply_blacklist(super().get_list_display(request)),
-            )
-
-        return tablesettings
-
     def __getattr__(self, key):
         if not (isinstance(key, str) and key.startswith("custom_property_decorator_")):
             return super().__getattribute__(key)
@@ -259,9 +245,32 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
             self._custom_property_decorators[key] = _func
         return self._custom_property_decorators[key]
 
-    def get_list_display(self, request):
-        names = self._get_actual_tablesettings_object(request).settings
+    def _get_actual_tablesettings_object(self, request) -> TableSettings:
+        user = request.user
+        modelstring = '%s.%s' % (self.model._meta.app_label, self.model._meta.model_name)
+        try:
+            tablesettings = TableSettings.objects.get(user=user, model=modelstring)
+        except TableSettings.DoesNotExist:
+            tablesettings = TableSettings(
+                user=user,
+                model=modelstring,
+                settings=super().get_list_display(request),
+            )
 
+        tablesettings.settings = self._filter_columns(request, tablesettings.settings)
+        return tablesettings
+
+    def _filter_columns(
+            self,
+            request,
+            columns: Union[Tuple[str], Tuple[Tuple]]
+    ) -> Union[Tuple[str], Tuple[Tuple]]:
+        """
+        Filters columns or column attributes by
+            - blacklist
+            - existing fields
+            - field-level (or decorator-level) permissions
+        """
         _user_permissions = None
         _blacklist = (
             set(getattr(self, "blacklist", None) or ())
@@ -269,7 +278,7 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
         )
         def _include_field(name: str) -> bool:
             nonlocal _user_permissions
-            # remove by blacklist, even if previously could be added to table-configuration
+            # remove by blacklist, even if previously has been added to table-configuration
             if name in _blacklist:
                 return False
             field = getattr(self.model, name, None) or getattr(self, name, None)
@@ -284,7 +293,18 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
                     return False
             return True
 
-        return [n for n in names if _include_field(n)]
+        ret_columns = []
+
+        for col in columns:
+            if isinstance(col, str) and not _include_field(col):
+                continue
+            if isinstance(col, (tuple, list)) and not _include_field(col[1]):
+                continue
+            ret_columns.append(col)
+        return tuple(ret_columns)
+
+    def get_list_display(self, request) -> Tuple[str]:
+        return self._get_actual_tablesettings_object(request).settings
 
     def get_list_display_csv(self, request):
         l = list(self.get_list_display(request))
@@ -513,23 +533,10 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
         attributes = self.get_modelattributes_treepart(model, path, settings)
         attributes += self.get_decorated_functions(model, path, settings)
 
-        attributes = self.apply_blacklist(attributes)
-
-        # remove decorators with unfulfilled permission
-        _user_permissions = None
-        def _include_field(attr: tuple) -> bool:
-            nonlocal _user_permissions
-            field = getattr(self.model, attr[1], None) or getattr(self, attr[1], None)
-            if field and (perm := getattr(field, "permission", None)):
-                if _user_permissions is None:
-                    _user_permissions = set(request.user.get_all_permissions())
-                if perm not in _user_permissions:
-                    return False
-            return True
-        attributes = [a for a in attributes if _include_field(a)]
+        attributes = self._filter_columns(request, attributes)
 
         # alphabetic sorting
-        attributes.sort(key=lambda a: a[0].lower())
+        attributes = sorted(attributes, key=lambda a: a[0].lower())
 
         ctx = {'attributes': attributes}
         return render(request, 'config_tables/treepart.html', ctx)
