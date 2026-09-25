@@ -3,8 +3,8 @@
 <div id="{{ id }}_div_map" class="dj_map_wrapper">
     {% if side_by_side %}<div style="display: flex">{% endif %}
     {% if with_input_fields %}<div>
-        <input type="number" name="geo_lon_{{ id }}" title="{% trans 'longitude' %}" placeholder="{% trans 'longitude' %}"><br/>
-        <input type="number" name="geo_lat_{{ id }}" title="{% trans 'latitude' %}" placeholder="{% trans 'latitude' %}">
+        <input type="number" name="geo_lon_{{ id }}" title="{% trans 'longitude' %} (WGS84)" placeholder="{% trans 'longitude' %} (WGS84)"><br/>
+        <input type="number" name="geo_lat_{{ id }}" title="{% trans 'latitude' %} (WGS84)" placeholder="{% trans 'latitude' %} (WGS84)">
     </div>{% endif %}
     <div>
         <div id="{{ id }}_map" class="dj_map" {% if map_size %}style="width: {{ map_size.0 }}px; height: {{ map_size.1 }}px"{% endif %}></div>
