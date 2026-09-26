@@ -421,6 +421,15 @@ class BotGardMapWidget {
             }
             elem_lat.onchange = change_handler;
             elem_lon.onchange = change_handler;
+            // also eat Returns, which is a common habit and results in dissatisfaction
+            for (const elem of [elem_lat, elem_lon]) {
+                elem.onkeydown = (event) => {
+                    if (event.key === "Enter" || event.key === "Return") {
+                        event.preventDefault()
+                        change_handler(event);
+                    }
+                };
+            }
         }
     }
 
