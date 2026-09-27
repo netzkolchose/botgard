@@ -65,6 +65,9 @@ class BotanicGarden(BotGardBaseModel(unique_name="garden", custom_properties=Tru
     __str__.short_description = _('botanic garden')
     __str__.searchable_field = 'full_name_generated'
 
+    def get_label_filename(self) -> str:
+        return self.name
+
     def get_full_name(self):
         return '%s (%s)' % (self.number, '/'.join([self.code if self.code else "-", self.name]))
 

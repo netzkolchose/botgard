@@ -1,0 +1,6 @@
+Department
+{{obj.department|safe}}
+IPEN
+{{obj.individual.ipen_generated|safe}}
+DATE
+{{obj.date|safe}}

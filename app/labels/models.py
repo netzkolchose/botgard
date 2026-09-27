@@ -2,7 +2,7 @@ import datetime
 import random
 import csv as csv_lib
 from io import StringIO
-from typing import Union, List, Tuple, Optional
+from typing import Union, List, Tuple, Optional, Type
 
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -14,6 +14,10 @@ from django.utils.html import format_html
 from django.contrib.auth import get_user_model
 
 from tools.permissions import SaveModelWrapper
+from botman.models import BotanicGarden
+from entrybook.models import Entry
+from individuals.models import Individual, Outplanting
+from herbaria.models import HerbariumSpecimen
 
 
 User = get_user_model()
@@ -21,10 +25,24 @@ User = get_user_model()
 
 LABEL_TYPE_CHOICES = (
     ('garden', _("Botanic Garden")),
-    ('individual', _("Individual")),
     ('entry', _("Entry")),
+    ('individual', _("Individual")),
+    ('outplanting', _("Outplanting")),
     ('herbarium_specimen', _("Specimen")),
 )
+
+LABEL_TYPE_TO_MODEL = {
+    'garden': BotanicGarden,
+    'entry': Entry,
+    'individual': Individual,
+    'outplanting': Outplanting,
+    'herbarium_specimen': HerbariumSpecimen,
+}
+
+for klass in LABEL_TYPE_TO_MODEL.values():
+    if not callable(getattr(klass, "get_label_filename", None)):
+        raise AssertionError(f"{klass.__name__} must have `get_label_filename` method")
+
 
 LABEL_ID_VALIDATOR = RegexValidator(
     r'^[0-9A-Za-z_]+$', _('Only alphanumeric characters and _ are allowed.'))
@@ -96,37 +114,28 @@ class LabelDefinition(models.Model):
     def __str__(self):
         return self.display_name
 
-    def preview_decorator(self):
-        if self.type == "garden":
-            from botman.models import BotanicGarden
-            qset = BotanicGarden.objects.all()
-            if not qset.exists():
-                return ""
-            markup = self.render_markup(self.get_garden_context(qset[random.randrange(qset.count())]))
-        elif self.type == "individual":
-            from individuals.models import Individual
-            qset = Individual.objects.all()
-            if not qset.exists():
-                return ""
-            markup = self.render_markup(self.get_individual_context(qset[random.randrange(qset.count())]))
-        elif self.type == "herbarium_specimen":
-            from herbaria.models import HerbariumSpecimen
-            qset = HerbariumSpecimen.objects.all()
-            if not qset.exists():
-                return ""
-            markup = self.render_markup(self.get_herbarium_specimen_context(qset[random.randrange(qset.count())]))
-        else:
+    @property
+    def model_class(self) -> Type[models.Model]:
+        """
+        The class of model of this label
+        e.g. BotanicGarden, Individual, ...
+        """
+        return LABEL_TYPE_TO_MODEL[self.type]
+
+    def preview_decorator(self) -> str:
+        qset = self.model_class.objects.all()
+        if not qset.exists():
             return ""
+        markup = self.render_markup(self.get_model_context(qset[random.randrange(qset.count())]))
         markup = f"""<div class="label-preview-background">{markup}</div>"""
         return mark_safe(markup)
-
     preview_decorator.short_description = _("preview")
 
     def render_markup(self, context: dict, without_page_markup: bool = False) -> str:
         """
         Render the label's markup template using the template context.
 
-        :param context: dict, provided context
+        :param context: dict, provided context, typically from LabelDefinition.get_model_context()
         :param without_page_markup: bool, for label of format `html`, only render using `markup` and without `page_markup`
         :return: rendered markup string
         """
@@ -211,7 +220,7 @@ class LabelDefinition(models.Model):
     def render_file(
             self,
             template_context: dict,
-            filename: str = _("label.pdf"),
+            filename: str = _("label"),
             format: str = "pdf",
     ) -> Tuple[str, str, Union[str, bytes]]:
         """
@@ -231,7 +240,7 @@ class LabelDefinition(models.Model):
             raise ValueError("Invalid format '%s', expected one of %s" % (format, ", ".join(FORMAT_CONTENT_TYPES)))
 
         if not filename.lower().endswith(f".{format}"):
-            filename = filename + f".{format}"
+            filename = f"{filename}.{format}"
 
         content = self.render(template_context, format)
         return filename, format, content
@@ -252,52 +261,25 @@ class LabelDefinition(models.Model):
         response['Content-Disposition'] = 'attachment; filename="%s"' % filename
         return response
 
-    @classmethod
-    def get_individual_context(cls, individual_or_pk):
-        from individuals.models import Individual
-        if isinstance(individual_or_pk, Individual):
-            indi = individual_or_pk
+    def get_model_context(
+            self,
+            instance_or_pk: Union[models.Model, int],
+            return_filename: bool = False,
+    ) -> Union[dict, Tuple[dict, str]]:
+        """
+        Return the template context for a specific model instance.
+        :param instance_or_pk: model instance or primary key
+        :param return_filename: bool, if True also return a filename (without extension)
+        """
+        if isinstance(instance_or_pk, models.Model):
+            instance = instance_or_pk
         else:
-            indi = Individual.objects.get(pk=individual_or_pk)
-        context = _get_default_context()
-        context["obj"] = SaveModelWrapper(indi)
-        return context
-
-    @classmethod
-    def get_garden_context(cls, garden_or_pk):
-        from botman.models import BotanicGarden
-        if isinstance(garden_or_pk, BotanicGarden):
-            garden = garden_or_pk
+            instance = self.model_class.objects.get(pk=instance_or_pk)
+        context = {
+            "today": datetime.date.today(),
+            "obj": SaveModelWrapper(instance),
+        }
+        if not return_filename:
+            return context
         else:
-            garden = BotanicGarden.objects.get(pk=garden_or_pk)
-        context = _get_default_context()
-        context["obj"] = SaveModelWrapper(garden)
-        return context
-
-    @classmethod
-    def get_entry_context(cls, entry_or_pk):
-        from entrybook.models import Entry
-        if isinstance(entry_or_pk, Entry):
-            indi = entry_or_pk
-        else:
-            indi = Entry.objects.get(pk=entry_or_pk)
-        context = _get_default_context()
-        context["obj"] = SaveModelWrapper(indi)
-        return context
-
-    @classmethod
-    def get_herbarium_specimen_context(cls, specimen_or_pk):
-        from herbaria.models import HerbariumSpecimen
-        if isinstance(specimen_or_pk, HerbariumSpecimen):
-            model = specimen_or_pk
-        else:
-            model = HerbariumSpecimen.objects.get(pk=specimen_or_pk)
-        context = _get_default_context()
-        context["obj"] = SaveModelWrapper(model)
-        return context
-
-
-def _get_default_context():
-    return {
-        "today": datetime.date.today(),
-    }
+            return context, instance.get_label_filename()

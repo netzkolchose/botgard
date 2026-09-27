@@ -52,6 +52,9 @@ class Outplanting(BotGardBaseModel(unique_name="outplanting")):
         else:
             return '%d-%d-%d %s' % (self.date.year, self.date.month, self.date.day, name)
 
+    def get_label_filename(self) -> str:
+        return self.individual.get_label_filename()
+
     def is_alive(self, strong=False):
         """Runtime (non-DB) check for 'aliveness'"""
         if not strong:

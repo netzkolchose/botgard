@@ -156,6 +156,10 @@ class TestAllViews(TestBase):
                 [LabelDefinition.objects.filter(type="individual"), Individual.objects.all()],
                 ["", "format=pdf", "format=png", "format=html&include_links=1"],
             ),
+            "labels:outplanting": (
+                [LabelDefinition.objects.filter(type="outplanting"), Outplanting.objects.all()],
+                ["", "format=pdf", "format=png", "format=html&include_links=1"],
+            ),
             "labels:garden": (
                 [LabelDefinition.objects.filter(type="garden"), BotanicGarden.objects.all()],
                 ["", "format=pdf", "format=png", "format=html&include_links=1"],
@@ -168,8 +172,14 @@ class TestAllViews(TestBase):
                 [LabelDefinition.objects.all()],
                 ["", "format=pdf", "format=png", "format=html&include_links=1"],
             ),
+            "labels:random_entry": (
+                [LabelDefinition.objects.filter(type="entry")],
+            ),
             "labels:random_individual": (
                 [LabelDefinition.objects.filter(type="individual")],
+            ),
+            "labels:random_outplanting": (
+                [LabelDefinition.objects.filter(type="outplanting")],
             ),
             "labels:random_garden": (
                 [LabelDefinition.objects.filter(type="garden")],

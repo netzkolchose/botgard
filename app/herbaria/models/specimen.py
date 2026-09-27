@@ -129,6 +129,9 @@ class HerbariumSpecimen(BotGardBaseModel(unique_name="herbariumspecimen", custom
     __str__.admin_order_field = 'individual.id_name_generated'
     __str__.short_description = _('Specimen')
 
+    def get_label_filename(self) -> str:
+        return self.individual.get_label_filename()
+
     @configurable
     def change_link_decorator(self):
         return _("show")

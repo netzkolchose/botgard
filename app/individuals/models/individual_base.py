@@ -194,6 +194,9 @@ def IndividualBase(unique_name: str) -> Type[models.Model]:
             max_length=128, null=True, blank=True,
         )
 
+        def get_label_filename(self) -> str:
+            return self.ipen_generated or self.accession_number
+
         def found_country_name(self) -> str:
             """Full name of `found_country` code"""
             return get_iso_country_name(self.found_country)

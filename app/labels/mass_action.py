@@ -3,6 +3,7 @@ from functools import partial
 import csv as csv_lib
 from io import StringIO, BytesIO
 import zipfile
+from pathlib import Path
 from typing import List, Union, Tuple
 
 from django.db import ProgrammingError
@@ -73,7 +74,7 @@ def render_mass_labels_action(admin: ModelAdmin, request, queryset, label_pk, fo
         unchecked_qset = None
         if label.type == "individual":
             unchecked_qset = queryset.filter(species__nomenclature_checked=False)
-        elif label.type == "herbarium_specimen":
+        elif label.type in ("outplanting", "herbarium_specimen"):
             unchecked_qset = queryset.filter(individual__species__nomenclature_checked=False)
 
         if unchecked_qset is not None and unchecked_qset.exists():
@@ -140,7 +141,7 @@ def _render_mass_labels_csv(label: LabelDefinition, pks: List[int], format: str 
     """
     rows = []
     for pk in pks:
-        context = getattr(label, f"get_{label.type}_context")(pk)
+        context = label.get_model_context(pk)
 
         if not rows:
             header_row = label.render_csv_row(context, header=True)
@@ -168,20 +169,25 @@ def _render_mass_labels_svg(label: LabelDefinition, pks: List[int], format: str 
     Renders all labels and returns zip file data
     """
     zip_file_io = BytesIO()
+    filename_set = set()
     with zipfile.ZipFile(zip_file_io, "w") as zip_file:
         for pk in pks:
-            context = getattr(label, f"get_{label.type}_context")(pk)
-
-            filename = str(pk)
-            if label.type == "individual":
-                filename = Individual.objects.get(pk=pk).id_name_generated
-            elif label.type == "garden":
-                filename = BotanicGarden.objects.get(pk=pk).full_name_generated
-            elif label.type == "entry":
-                filename = Entry.objects.get(pk=pk).id_name_generated
+            context, filename = label.get_model_context(pk, return_filename=True)
 
             filename, real_format, content = label.render_file(context, filename, format)
+
+            if filename in filename_set:
+                count = 2
+                filename = Path(filename)
+                while True:
+                    new_filename = str(filename.with_stem(f"{filename.stem}_{count}"))
+                    if new_filename not in filename_set:
+                        break
+                    count += 1
+                filename = new_filename
+
             zip_file.writestr(filename, content)
+            filename_set.add(filename)
 
     zip_file_io.seek(0)
     return zip_file_io.read()
@@ -191,28 +197,24 @@ def _render_single_label_svg(label: LabelDefinition, pk: int, format: str = "aut
     """
     Renders all labels and returns zip file data
     """
-    context = getattr(label, f"get_{label.type}_context")(pk)
-
-    filename = str(pk)
-    if label.type == "individual":
-        filename = Individual.objects.get(pk=pk).id_name_generated
-    elif label.type == "garden":
-        filename = BotanicGarden.objects.get(pk=pk).full_name_generated
-    elif label.type == "entry":
-        filename = Entry.objects.get(pk=pk).id_name_generated
+    context, filename = label.get_model_context(pk, return_filename=True)
 
     filename, real_format, content = label.render_file(context, filename, format)
     return real_format, content
 
 
-def _render_mass_labels_html(label: LabelDefinition, pks: List[int], format: str = "auto") -> Union[str, bytes]:
+def _render_mass_labels_html(
+        label: LabelDefinition,
+        pks: List[int],
+        format: str = "auto",
+) -> Union[str, bytes]:
     """
     Renders all labels and returns HTML or PDF file data
     """
     markups_per_object = []
 
     for pk in pks:
-        context = getattr(label, f"get_{label.type}_context")(pk)
+        context = label.get_model_context(pk)
 
         markup = label.render_markup(context, without_page_markup=True)
         markups_per_object.append(markup)
@@ -245,6 +247,8 @@ def nomenclature_confirmation_view(
 
     if label.type == "individual":
         species_qset = Species.objects.filter(individual__in=unchecked_qset)
+    elif label.type == "outplanting":
+        species_qset = Species.objects.filter(individual__outplanting__in=unchecked_qset)
     elif label.type == "herbarium_specimen":
         species_qset = Species.objects.filter(individual__herbarium_specimens__in=unchecked_qset)
     else:

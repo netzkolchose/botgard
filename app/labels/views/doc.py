@@ -11,12 +11,8 @@ from django.contrib.auth import get_user_model
 from tools.admin_extensions import minimal_admin_context
 
 from labels.models import (
-    LabelDefinition, LABEL_FORMAT_TO_FILE_FORMAT, LABEL_TYPE_CHOICES
+    LabelDefinition, LABEL_TYPE_CHOICES, LABEL_TYPE_TO_MODEL
 )
-from individuals.models import Individual
-from botman.models import BotanicGarden
-from entrybook.models import Entry
-from herbaria.models import HerbariumSpecimen
 from tools.permissions import permission_required
 from config_app.models import CustomProperty
 
@@ -45,37 +41,27 @@ def label_template_doc(request):
 
 
 def get_template_doc_context(request) -> dict:
-    label_type = request.GET.get("label_type", "garden")
+    label_type = request.GET.get("label_type", LABEL_TYPE_CHOICES[0][0])
     instance_id = request.GET.get("instance_id", None)
 
-    if label_type == "garden":
-        model = BotanicGarden
-        id_field_name = BotanicGarden._id_field
-    elif label_type == "individual":
-        model = Individual
-        id_field_name = Individual._id_field
-    elif label_type == "entry":
-        model = Entry
-        id_field_name = Entry._id_field
-    elif label_type == "herbarium_specimen":
-        model = HerbariumSpecimen
-        id_field_name = "pk"
-    else:
+    model_class = LABEL_TYPE_TO_MODEL.get(label_type)
+    if not model_class:
         raise ValueError(f"Invalid label type '{label_type}'")
+    id_field_name = getattr(model_class, "_id_field", None) or "pk"
 
     try:
-        instance = model.objects.get(**{id_field_name: instance_id})
-    except (model.DoesNotExist, ValueError):
+        instance = model_class.objects.get(**{id_field_name: instance_id})
+    except (model_class.DoesNotExist, ValueError):
         instance = None
         instance_id = ""
 
     return {
-        "docs": get_template_doc_from_model(request, model, instance),
+        "docs": get_template_doc_from_model(request, model_class, instance),
         "has_example": instance is not None,
         "instance_id": instance_id,
         "instance_field": {
             "json_url": reverse("ajax:model_json"),
-            "id": "%s-%s-%s" % (model._meta.app_label, model._meta.model_name, id_field_name)
+            "id": "%s-%s-%s" % (model_class._meta.app_label, model_class._meta.model_name, id_field_name)
         }
     }
 

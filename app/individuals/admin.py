@@ -414,6 +414,11 @@ class OutplantingAdmin(ConfigurableTable):
             *MAP_COLUMN_JS,
         )
 
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        add_label_mass_actions(request, actions, "outplanting")
+        return actions
+
 
 admin.site.register(Outplanting, OutplantingAdmin)
 

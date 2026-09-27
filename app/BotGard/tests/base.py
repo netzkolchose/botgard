@@ -179,10 +179,15 @@ class TestBase(TestCase):
             self,
             response: HttpResponse,
             status: Optional[int] = None,
+            msg: Optional[str] = None
     ):
+        if msg:
+            msg = f", {msg}"
+        else:
+            msg = ""
         if status is not None:
             if response.status_code != status:
-                raise AssertionError(f"Expected status {status}, got {response.status_code}")
+                raise AssertionError(f"Expected status {status}, got {response.status_code}{msg}",)
 
     def assert_no_warning(self, response: HttpResponse):
         for pattern in (
@@ -461,13 +466,21 @@ class ChangeListForm:
         sel = self.soup.find("select", {"name": "action"})
         return bool(sel.find("option", {"value": name}))
 
-    def run_action(self, name: str, rows: Union[bool, Tuple[int, int]] = True):
+    def run_action(
+            self,
+            name: str,
+            rows: Union[bool, Tuple[int, int]] = True,
+            return_response: bool = False,
+    ):
         """
         Select rows, select action and post.
 
         :param name: str, internal name of the action
         :param rows: either True, to "select-across" all (filtered) entities,
             or a range like (0, 3) to select rows 0, 1, 2
+        :param return_response: bool,
+            If True, return HttpResponse immediately
+            If False, expect table in response and parse as usual
         """
         sel = self.soup.find("select", {"name": "action"})
         if not sel.find("option", {"value": name}):
@@ -479,7 +492,9 @@ class ChangeListForm:
         params["action"] = name
 
         if rows is True:
-            params["select-across"] = "1"
+            params["select_across"] = "1"
+            for row in self.rows:
+                params.appendlist(row["action-checkbox"].name, row["action-checkbox"].value)
 
         elif isinstance(rows, (list, tuple)):
             self.parent.assertEqual(2, len(rows), f"Expected 2-tuple, got {rows}")
@@ -489,7 +504,27 @@ class ChangeListForm:
         else:
             raise AssertionError(f"rows must be True or a 2-tuple, got {rows}")
 
+        if return_response:
+            return self.parent.client.post(self.url, data=dict(params))
         self.post(params, no_save=True)
+
+    def label_action(self, label_id: str, format: Optional[str] = None) -> HttpResponse:
+        action_name = f"label_{label_id}"
+        if format:
+            action_name = f"{action_name}_{format}"
+        response = self.run_action(
+            action_name,
+            return_response=True,
+        )
+        if (response.headers.get("content-type") or "").startswith("text/html"):
+            soup = self.parent.get_soup(response.content)
+            form = soup.find("form", {"id": "label-confirmation-form"})
+            if form:
+                post_data = self.parent.get_form_data(form)
+                post_data["_confirmation_yes_button"] = ""
+                response = self.parent.client.post(self.url, data=dict(post_data), follow=True)
+        self.parent.assert_response(response, 200, f"For action '{action_name}'")
+        return response
 
     def request(self):
         response = self.parent.client.get(self.url, query_params=self.query_params)
@@ -497,13 +532,14 @@ class ChangeListForm:
         self.parent.assert_no_warning(response)
         self.parse(response.content.decode())
 
-    def parse(self, html: str):
+    def parse(self, html: str, expect_table: bool = True):
         self.soup = bs4.BeautifulSoup(html, features="html.parser")
         self.fields = []
         self.rows = []
-        self._parse_form()
-        self._parse_table()
-        self._parse_paginator()
+        if expect_table:
+            self._parse_form()
+            self._parse_table()
+            self._parse_paginator()
 
     def get_form_field(self, name_or_element: Union[str, bs4.PageElement]) -> FormField:
         for field in self.fields:
@@ -530,7 +566,12 @@ class ChangeListForm:
             if is_match:
                 return row
 
-    def post(self, override_values: Union[None, Dict, QueryDict] = None, no_save: bool = False):
+    def post(
+            self,
+            override_values: Union[None, Dict, QueryDict] = None,
+            no_save: bool = False,
+            expect_table: bool = True,
+    ):
         if override_values is None:
             values = QueryDict(mutable=True)
         elif isinstance(override_values, QueryDict):
@@ -573,7 +614,7 @@ class ChangeListForm:
 
         self.parent.assert_response(response, status=200)
         self.parent.assert_no_warning(response)
-        self.parse(response.content.decode())
+        self.parse(response.content.decode(), expect_table=expect_table)
 
     def model_class(self) -> Type[models.Model]:
         return apps.get_model(self.app_name, self.model_name)
