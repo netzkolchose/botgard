@@ -754,9 +754,13 @@ class TestPermissions(TestBase):
                         )
 
     def test_field_permission_autocomplete(self):
+        """
+        Test field-level permission in autocomplete
+        """
         old_field_permissions = Individual.field_permissions
         try:
             # little hack to protect a field that is actually autocomplete-able
+            # (the only protected field right now - gis.PointField - does not work with autocomplete)
             Individual.field_permissions = {
                 "accession_number": "individuals.can_see_found_coordinates",
             }
@@ -781,10 +785,13 @@ class TestPermissions(TestBase):
                         msg
                     )
                     self.assertEqual(
+                        # search on protected field just returns nothing
                         {
                             "state": "none",
                             "items": [],
-                        } if not is_visible else {
+                        }
+                        if not is_visible else
+                        {
                             "state": "many",
                             "items": list(
                                 Individual.objects.all().order_by("accession_number")
