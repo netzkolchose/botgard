@@ -64,6 +64,8 @@ INSTALLED_APPS = [
     'django.contrib.gis',
 
     'config_tables.apps.ConfigTablesConfig',
+    'literature.apps.LiteratureConfig',
+    'meta.apps.MetaConfig',
     'species.apps.SpeciesConfig',
     'individuals.apps.IndividualsConfig',
     'entrybook.apps.EntryBookConfig',

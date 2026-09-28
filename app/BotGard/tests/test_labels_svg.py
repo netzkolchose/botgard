@@ -7,10 +7,7 @@ class TestLabelsSVG(TestBase):
         create_test_fixtures()
 
     def test_svg_label_single(self):
-        self.assertTrue(
-            self.client.login(username="User1", password="the-secret"),
-            "failed to log in"
-        )
+        self.login(username="User1")
 
         response = self.get_label_response(
             LabelDefinition.objects.get(id_name="A1"),
@@ -18,9 +15,27 @@ class TestLabelsSVG(TestBase):
             BotanicGarden.objects.get(name="Garden 1"),
             "pdf",
         )
-        self.assert_pdf_size(response.content, [252, 102])
+        self.assert_pdf(response.content, expected_size_cm=[8.9, 3.6])
 
-    def test_svg_label_multi_garden(self):
+    def test_svg_label_multi_garden_pdf(self):
+        self.login("User1")
+
+        # --- multiple joined PDFs from change-list action ---
+
+        response = self.get_label_response(
+            LabelDefinition.objects.get(id_name="A1"),
+            "garden",
+            [BotanicGarden.objects.get(name="Garden 1"), BotanicGarden.objects.get(name="Garden 2")],
+            "pdf",
+        )
+        self.assertEqual("application/pdf", response.headers["Content-Type"])
+        self.assert_pdf(
+            response.content,
+            expected_size_cm=[8.9, 3.6],
+            expected_pages=2,
+        )
+
+    def test_svg_label_multi_garden_zip(self):
         self.login("User1")
 
         # --- multiple PDFS as zip from change-list action ---
@@ -29,10 +44,11 @@ class TestLabelsSVG(TestBase):
             LabelDefinition.objects.get(id_name="A1"),
             "garden",
             [BotanicGarden.objects.get(name="Garden 1"), BotanicGarden.objects.get(name="Garden 2")],
-            "pdf",
+            format="pdf",
+            action_format_suffix="zip",
         )
         self.assertEqual("application/zip", response.headers["Content-Type"])
-        self.assert_zip_with_pdfs(response, [252, 102])
+        self.assert_zip_with_pdfs(response, 2, [8.9, 3.6])
 
         # single selected file in change-list action returns no zip
         response = self.get_label_response(
@@ -40,10 +56,30 @@ class TestLabelsSVG(TestBase):
             "garden",
             [BotanicGarden.objects.get(name="Garden 1")],
             "pdf",
+            action_format_suffix="zip",
         )
-        self.assert_pdf_size(response.content, [252, 102])
+        self.assert_pdf(response.content, expected_size_cm=[8.9, 3.6], expected_pages=1)
 
-    def test_svg_label_multi_individual(self):
+
+    def test_svg_label_multi_individual_pdf(self):
+        self.login("User1")
+
+        # --- multiple joined PDFs from change-list action ---
+
+        response = self.get_label_response(
+            LabelDefinition.objects.get(id_name="I1"),
+            "individual",
+            [Individual.objects.get(accession_number=1000),
+             Individual.objects.get(accession_number=1001),
+             Individual.objects.get(accession_number=1002),
+             ],
+            "pdf",
+            expect_unchecked_nomenclature=True,
+        )
+        self.assertEqual("application/pdf", response.headers["Content-Type"])
+        self.assert_pdf(response.content, expected_size_cm=[8.9, 3.6], expected_pages=3)
+
+    def test_svg_label_multi_individual_zip(self):
         self.login("User1")
 
         # --- multiple PDFS as zip from change-list action ---
@@ -51,12 +87,16 @@ class TestLabelsSVG(TestBase):
         response = self.get_label_response(
             LabelDefinition.objects.get(id_name="I1"),
             "individual",
-            [Individual.objects.get(accession_number=1000), Individual.objects.get(accession_number=1001)],
+            [Individual.objects.get(accession_number=1000),
+             Individual.objects.get(accession_number=1001),
+             Individual.objects.get(accession_number=1002),
+             ],
             "pdf",
+            action_format_suffix="zip",
             expect_unchecked_nomenclature=True,
         )
         self.assertEqual("application/zip", response.headers["Content-Type"])
-        self.assert_zip_with_pdfs(response, [252, 102])
+        self.assert_zip_with_pdfs(response, 3, [8.9, 3.6])
 
         # single selected file in change-list action returns no zip
         response = self.get_label_response(
@@ -64,11 +104,12 @@ class TestLabelsSVG(TestBase):
             "individual",
             [Individual.objects.get(accession_number=1000)],
             "pdf",
+            action_format_suffix="zip",
             expect_unchecked_nomenclature=True,
         )
-        self.assert_pdf_size(response.content, [252, 102])
+        self.assert_pdf(response.content, expected_size_cm=[8.9, 3.6], expected_pages=1)
 
-    def test_svg_label_multi_specimen(self):
+    def test_svg_label_multi_specimen_zip(self):
         self.login("User1")
 
         # --- multiple PDFS as zip from change-list action ---
@@ -79,10 +120,11 @@ class TestLabelsSVG(TestBase):
             [HerbariumSpecimen.objects.get(individual__accession_number=1002),
              HerbariumSpecimen.objects.get(individual__accession_number=1003)],
             "pdf",
+            action_format_suffix="zip",
             expect_unchecked_nomenclature=True,
         )
         self.assertEqual("application/zip", response.headers["Content-Type"])
-        self.assert_zip_with_pdfs(response, [297, 212])
+        self.assert_zip_with_pdfs(response, 2, [10.5, 7.5])
 
         # single selected file in change-list action returns no zip
         response = self.get_label_response(
@@ -90,26 +132,48 @@ class TestLabelsSVG(TestBase):
             "herbarium_specimen",
             [HerbariumSpecimen.objects.get(individual__accession_number=1002)],
             "pdf",
+            action_format_suffix="zip",
             expect_unchecked_nomenclature=True,
         )
-        self.assert_pdf_size(response.content, [297, 212])
+        self.assert_pdf(response.content, expected_size_cm=[10.5, 7.5], expected_pages=1)
 
-    def assert_zip_with_pdfs(self, response: HttpResponse, pdf_size: List[int]):
+    def test_svg_label_multi_outplanting_zip(self):
+        self.login("User1")
+
+        # --- multiple PDFS as zip from change-list action ---
+
+        response = self.get_label_response(
+            LabelDefinition.objects.get(id_name="O2"),
+            "outplanting",
+            list(Outplanting.objects.all()),
+            "pdf",
+            action_format_suffix="zip",
+            expect_unchecked_nomenclature=True,
+        )
+        self.assertEqual("application/zip", response.headers["Content-Type"])
+        self.assert_zip_with_pdfs(response, Outplanting.objects.all().count(), [8.9, 3.6])
+
+        # single selected file in change-list action returns no zip
+        response = self.get_label_response(
+            LabelDefinition.objects.get(id_name="O2"),
+            "outplanting",
+            [Outplanting.objects.get(individual__accession_number=1000)],
+            "pdf",
+            action_format_suffix="zip",
+            expect_unchecked_nomenclature=True,
+        )
+        self.assert_pdf(response.content, expected_size_cm=[8.9, 3.6], expected_pages=1)
+
+    def assert_zip_with_pdfs(
+            self,
+            response: HttpResponse,
+            expected_num_files: int,
+            pdf_size_cm: List[float],
+    ):
         fp = io.BytesIO(response.content)
         with zipfile.ZipFile(fp) as zf:
-            self.assertEqual(2, len(zf.filelist))
+            self.assertEqual(expected_num_files, len(zf.filelist))
             for fileinfo in zf.filelist:
                 self.assertTrue(fileinfo.filename.endswith(".pdf"), fileinfo)
                 with zf.open(fileinfo.filename) as fp:
-                    self.assert_pdf_size(fp.read(), pdf_size)
-
-    def assert_pdf_size(self, pdf_data: bytes, expected_size: List[int]):
-        with tempfile.TemporaryDirectory() as path:
-            filename = Path(path) / "label.pdf"
-            filename.write_bytes(pdf_data)
-            result = subprocess.check_output(["pdfinfo", str(filename)]).decode()
-            match = re.match(r".*Page size:\s+(\d+\.?\d*)\sx\s(\d+.?\d*).*", result.replace("\n", " "))
-            if not match:
-                raise AssertionError(f"Page size not found in pdfinfo result: {result}")
-            page_size = [int(float(g)) for g in match.groups()]
-            self.assertEqual(list(expected_size), page_size, "PDF page size does not match")
+                    self.assert_pdf(fp.read(), expected_size_cm=pdf_size_cm, expected_pages=1)

@@ -54,8 +54,8 @@ class Migration(migrations.Migration):
                 ('user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL, verbose_name='Created by')),
             ],
             options={
-                'verbose_name': 'Seed/individual entry',
-                'verbose_name_plural': 'Seed/individual entries',
+                'verbose_name': 'entry',
+                'verbose_name_plural': 'entries',
             },
             bases=(models.Model, config_tables.admin.Configurable),
         ),

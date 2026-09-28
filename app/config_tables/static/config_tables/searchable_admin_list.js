@@ -131,3 +131,61 @@ $(function () {
     hook_search_focus_recall();
 });
 
+$(document).ready(function() {
+    /* put the custom properties of all type inlines into one flex-box */
+    function sort_custom_properties() {
+        const fieldset = document.querySelector("fieldset.custom-properties-fieldset");
+        if (!fieldset) {
+            return;
+        }
+
+        const prop_divs = [];
+        const error_lis = [];
+        fieldset.querySelectorAll("div.form-row").forEach(function(formrow) {
+            let found_some = false;
+            formrow.querySelectorAll("div.custom-property").forEach(function(propdiv) {
+                prop_divs.push(propdiv);
+                found_some = true;
+            })
+            /* Note: if we don't find them, we are probably in a read-only view,
+                which is messed up anyway (right now), so keep it as it is
+             */
+            if (found_some) {
+                const errorlist = formrow.querySelector("ul.errorlist");
+                if (errorlist) {
+                    errorlist.querySelectorAll("li").forEach(function (li) {
+                        error_lis.push(li);
+                    });
+                }
+                formrow.parentElement.removeChild(formrow);
+            }
+        });
+
+        prop_divs.sort(function(a, b) {
+            const o1 = parseInt(a.getAttribute("data-property-order"));
+            const o2 = parseInt(b.getAttribute("data-property-order"));
+            return o1 - o2;
+        });
+
+        const formrow = document.createElement("div");
+        formrow.classList.add("form-row");
+        if (error_lis.length) {
+            const errorlist = document.createElement("ul");
+            formrow.appendChild(errorlist);
+            errorlist.classList.add("errorlist");
+            for (const li of error_lis) {
+                errorlist.appendChild(li);
+            }
+        }
+        const flex = document.createElement("div");
+        formrow.appendChild(flex);
+        flex.classList.add("custom-properties");
+        for (const propdiv of prop_divs) {
+            flex.appendChild(propdiv);
+        }
+        fieldset.appendChild(formrow);
+    }
+
+    sort_custom_properties();
+});
+

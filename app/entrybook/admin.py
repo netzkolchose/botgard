@@ -11,7 +11,8 @@ from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.template.response import TemplateResponse
 
-from tools import readOnlyAdmin
+from tools.fieldsets import remove_from_fieldsets
+from tools.permissions import check_user_has_permissions
 from tools.search_fields import search_fields_compatible
 from config_tables.admin import ConfigurableTable, ForeignKeyFilter
 from labels.mass_action import add_label_mass_actions
@@ -19,9 +20,8 @@ from labels.mass_action import add_label_mass_actions
 from .models import *
 
 
-class EntryAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
+class EntryAdmin(ConfigurableTable):
     form = EntryForm
-    save_on_top = True
 
     list_display = (
         'change_link_decorator',
@@ -34,7 +34,7 @@ class EntryAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
     blacklist = (
         'id', '__str__',
         'ipen_transfer_restricted', 'ipen_garden_code', 'ipen_accession_number', 'ipen_country',
-        'department',
+        'department', 'found_coordinates',
     )
 
     list_display_links = ()
@@ -42,14 +42,18 @@ class EntryAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
         'accession_number',
         'ipen_generated',
         '@species',
-        'source',
-        'came_in_as',
+        '@source',
+        '@came_as_species',
         'sowing_number',
         'order_number',
     ))
     list_filter = (
         ("user__username", ForeignKeyFilter),
         ("department__code", ForeignKeyFilter),
+        ("literature__full_name_generated", ForeignKeyFilter),
+        ("projects__full_name_generated", ForeignKeyFilter),
+        ("created_by__username", ForeignKeyFilter),
+        ("modified_by__username", ForeignKeyFilter),
     )
 
     ordering = ('accession_number',)
@@ -59,7 +63,8 @@ class EntryAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
             'fields': (
                 ('accession_number', 'accession_extension', 'seed_available', 'seed_in_stock',),
                 ('species', 'species_checked_by', 'species_checked_date', 'came_as_species'),
-                ('user',),
+                'species_comment',
+                'literature',
             )
         }),
         (_('source'), {
@@ -72,11 +77,21 @@ class EntryAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
             'fields': (('ipen_country', 'ipen_transfer_restricted', 'ipen_garden_code', 'ipen_accession_number'),)
         }),
         (_('habitat'), {
-            'fields': (('found_country',), 'found_text', ('collector_name', 'collector_number', 'collector_date'),)
+            'fields': (
+                'found_country',
+                ('found_text', 'found_coordinates'),
+                ('collector_name', 'collector_number', 'collector_date'),
+            )
         }),
         (_('miscellaneous'), {
             'classes': 'collapse',
-            'fields': ('gender', 'comment', 'import_reference', 'status')
+            'fields': (
+                'gender',
+                'comment',
+                'projects',
+                'import_reference',
+                'status',
+            )
         }),
         (_('seeds'), {
             'fields': ('order_number', 'sowing_number')
@@ -163,3 +178,44 @@ class EntryAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
 
 
 admin.site.register(Entry, EntryAdmin)
+
+
+class DispatchAdmin(ConfigurableTable):
+    model = Dispatch
+    form = DispatchForm
+
+    list_display = (
+        'change_link_decorator',
+        'date',
+        'dispatch_number',
+        'individual_link_decorator',
+        'transfer_type',
+        'amount',
+        'transfer_by',
+        'destination',
+    )
+
+    blacklist = (
+        'pk', '__str__', 'individual', 'id_name_generated',
+    )
+
+    list_filter = (
+        ('created_by__username', ForeignKeyFilter),
+        ('modified_by__username', ForeignKeyFilter),
+        ('transfer_by__username', ForeignKeyFilter),
+        ('individual__id_name_generated', ForeignKeyFilter),
+        ('destination__full_name_generated', ForeignKeyFilter),
+        ('projects__full_name_generated', ForeignKeyFilter),
+    )
+
+    def get_form(self, request, obj=None, change=False, **kwargs):
+        """
+        Pre-fill `transfer_by` field
+        """
+        form = super().get_form(request, obj, change, **kwargs)
+        if "transfer_by" in form.base_fields:
+            form.base_fields["transfer_by"].initial = request.user.pk
+        return form
+
+
+admin.site.register(Dispatch, DispatchAdmin)

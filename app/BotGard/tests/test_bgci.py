@@ -9,10 +9,10 @@ class TestBGCI(TestBase):
     @classmethod
     def setUpTestData(cls):
         UserModel.objects.create_superuser(
-            username="User1", password="the-secret"
+            username="User1", password=cls.DEFAULT_PASSWORD,
         )
         user = UserModel.objects.create_user(
-            username="User2", password="the-secret", is_staff=True,
+            username="User2", password=cls.DEFAULT_PASSWORD, is_staff=True,
         )
         group = create_permission_group("gardens", {
             "botman.botanicgarden": {"add", "view", "change"},
@@ -21,7 +21,7 @@ class TestBGCI(TestBase):
         user.groups.add(group)
 
         user = UserModel.objects.create_user(
-            username="User3", password="the-secret", is_staff=True,
+            username="User3", password=cls.DEFAULT_PASSWORD, is_staff=True,
         )
         group = create_permission_group("gardens-readonly", {
             "botman.botanicgarden": {"view"},

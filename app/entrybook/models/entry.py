@@ -4,19 +4,21 @@ from django.utils.translation import gettext_lazy as _
 from django.utils.translation import ngettext_lazy as __
 from django.contrib.auth import get_user_model
 from django.utils import timezone
+import django.contrib.gis.forms as gis_forms
 
+from geo.widgets import BotGardOpenLayersWidget
+from geo.util import geo_coord_to_html
 from species.models import Species
 from botman.models import BotanicGarden
 from individuals.models.individual_base import *
-from individuals.models.territory import Department
 import config_app
 
 
-class Entry(IndividualBase, Configurable):
+class Entry(IndividualBase(unique_name="entry")):
 
     class Meta:
-        verbose_name = _("Seed/individual entry")
-        verbose_name_plural = _("Seed/individual entries")
+        verbose_name = _("entry")
+        verbose_name_plural = _("entries")
 
     _id_field = "id_name_generated"
 
@@ -71,6 +73,8 @@ class Entry(IndividualBase, Configurable):
         db_index=True,
     )
 
+    # ---- replace `related_name` attributes ----
+
     user = models.ForeignKey(
         verbose_name=_("Created by"),
         to=get_user_model(),
@@ -78,6 +82,21 @@ class Entry(IndividualBase, Configurable):
         null=True,
         blank=True,
         db_index=True,
+        related_name="entries",
+    )
+
+    projects = models.ManyToManyField(
+        verbose_name=_("project assignment"),
+        to="meta.Project",
+        related_name="entries",
+        blank=True,
+    )
+
+    literature = models.ForeignKey(
+        verbose_name=_("literature"),
+        to="literature.Literature",
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
         related_name="entries",
     )
 
@@ -144,6 +163,22 @@ class Entry(IndividualBase, Configurable):
     department_decorator.short_description = _("department")
     department_decorator.admin_order_field = "department__code"
 
+    @configurable
+    def found_coordinates_decorator(self):
+        if not self.found_coordinates:
+            return ""
+        return mark_safe(geo_coord_to_html(self.found_coordinates))
+    found_coordinates_decorator.short_description = _("collecting coordinates")
+    found_coordinates_decorator.admin_order_field = "found_coordinates"
+
+    @configurable
+    def projects_decorator(self) -> str:
+        from individuals.models.individual_base import projects_decorator
+        return projects_decorator(self)
+    projects_decorator.short_description = _("projects")
+    projects_decorator.admin_order_field = "projects__full_name_generated"
+    projects_decorator.original_field = "projects"
+
     def get_ipen_garden_code(self) -> Optional[str]:
         garden_code = self.ipen_garden_code
         if garden_code:
@@ -182,17 +217,31 @@ class EntryForm(
         }
     )
 ):
-    exclude_autocomplete = ("department", )
+    exclude_autocomplete = ("department", "projects")
+    found_coordinates = gis_forms.PointField(
+        srid=Entry.found_coordinates.field.srid,
+        widget=BotGardOpenLayersWidget(
+            with_input_fields=True,
+            red_dots=True,
+            side_by_side=True,
+            map_size=[200, 200],
+            default_zoom=5.,
+            auto_fit_zoom=False,
+        ),
+        required=False,
+    )
 
     def __init__(self, *args, **kwargs):
         if not kwargs.get("instance"):
             kwargs.setdefault("initial", {})
-            # create same random accession number in two fields when creating a new individual
+            # create same accession number in two fields when creating a new individual
             kwargs["initial"]["accession_number"] = kwargs["initial"]["ipen_accession_number"] = (
                 get_new_accession_number()
             )
-
         super(EntryForm, self).__init__(*args, **kwargs)
+        for key in ("literature", "species_comment"):
+            if field := self.fields.get(key):
+                field.widget.attrs["style"] = "width: 40rem;"
 
 
 def _validate_ipen_creation(code):

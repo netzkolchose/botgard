@@ -1,3 +1,4 @@
+import unicodedata
 from typing import Union, List, Tuple
 
 
@@ -20,3 +21,9 @@ def search_fields_compatible(
         )
 
     return search_fields
+
+
+def make_filter_term_compatible_with_natural_sort(term: str):
+    if not isinstance(term, str):
+        term = str(term)
+    return unicodedata.normalize("NFKC", term).casefold()
