@@ -222,25 +222,29 @@ class TestBase(TestCase):
             object_type: str,
             object_model: Union[models.Model, List[models.Model]],
             format: str,
+            action_format_suffix: Optional[str] = None,
             expect_unchecked_nomenclature: bool = False,
     ) -> HttpResponse:
         if isinstance(object_model, list):
-            if object_type == "garden":
-                url = reverse("admin:botman_botanicgarden_changelist")
-            elif object_type == "herbarium_specimen":
-                url = reverse("admin:herbaria_herbariumspecimen_changelist")
-            elif object_type == "individual":
-                url = reverse("admin:individuals_individual_changelist")
-            elif object_type == "entry":
-                url = reverse("admin:entrybook_entry_changelist")
-            else:
+            klass = LABEL_TYPE_TO_MODEL.get(object_type)
+            if not klass:
                 raise NotImplementedError(f"object_type '{object_type}' not implemented")
 
+            url = reverse(f"admin:{klass._meta.app_label}_{klass._meta.model_name}_changelist")
+
             action_name = f"label_{label_model.id_name}"
-            if format != "pdf":
-                if format == "true_pdf":
-                    format = "pdf"
-                action_name = f"label_{label_model.id_name}_{format}"
+            if action_format_suffix:
+                action_name = f"{action_name}_{action_format_suffix}"
+
+            # check that label action is present
+            soup = self.get_soup(self.client.get(url).content)
+            elem = soup.find("select", {"name": "action"})
+            self.assertTrue(elem, f"action selector not found")
+            if not elem.find("option", {"value": action_name}):
+                raise AssertionError(
+                    f"Action '{action_name}' is not in actions list, available actions are: "
+                    + ", ".join([opt.attrs["value"] for opt in elem.find_all("option") if opt.attrs.get("value")])
+                )
 
             response = self.client.post(
                 url,
@@ -257,6 +261,7 @@ class TestBase(TestCase):
                 if b"have no validated nomenclature" not in response.content:
                     raise AssertionError(
                         f"Expected mass-label confirmation page for {label_model} with objects {object_model}"
+                        f"\nResponse status={response.status_code}, content-type={response.headers.get('content-type')}"
                     )
                 soup = self.get_soup(response.content)
                 form = soup.find("form", {"id": "label-confirmation-form"})
@@ -268,11 +273,12 @@ class TestBase(TestCase):
                     follow=True,
                 )
         else:
-            if format == "true_pdf":
-                format = "pdf"
             response = self.client.get(
-                reverse(f"labels:{object_type}", args=(label_model.pk, object_model.pk)) + f"?format={format}",
-                )
+                reverse(
+                    f"labels:{object_type}",
+                    args=(label_model.pk, object_model.pk)
+                ) + f"?format={format}",
+            )
 
         self.assertLess(response.status_code, 400)
         self.assert_no_warning(response)
@@ -284,10 +290,9 @@ class TestBase(TestCase):
 
         return response
 
-
     def get_label_documentation(
             self,
-            label_type: Optional[Literal["garden", "individual", "entry", "herbarium_specimen"]] = None,
+            label_type: Optional[Literal["garden", "entry", "individual", "outplanting", "herbarium_specimen"]] = None,
             instance: Optional[models.Model] = None,
     ) -> Dict[str, Dict[str, str]]:
         """
@@ -397,6 +402,46 @@ class TestBase(TestCase):
             "action_flag",
             "change_message",
         ))
+
+    def assert_pdf(
+            self,
+            pdf_data: bytes,
+            expected_size_pts: Union[None, List[float], Tuple[float, float]] = None,
+            expected_size_cm: Union[None, List[float], Tuple[float, float]] = None,
+            expected_pages: Optional[int] = None,
+    ):
+        expected_size = expected_size_pts
+        if expected_size_cm:
+            expected_size = [
+                pt * 72. / 2.54
+                for pt in expected_size_cm
+            ]
+
+        with tempfile.TemporaryDirectory() as path:
+            filename = Path(path) / "label.pdf"
+            filename.write_bytes(pdf_data)
+            result = subprocess.check_output(["pdfinfo", str(filename)]).decode()
+
+            if expected_size is not None:
+                match = re.match(r".*Page size:\s+(\d+\.?\d*)\sx\s(\d+.?\d*).*", result.replace("\n", " "))
+                if not match:
+                    raise AssertionError(f"Page size not found in pdfinfo result: {result}")
+
+                page_size = [float(g) for g in match.groups()]
+                for expected_v, v in zip(expected_size, page_size):
+                    self.assertAlmostEqual(
+                        expected_v, v,
+                        places=1,
+                        msg=f"PDF page size does not match. Expected {expected_size} (pts), got {page_size}",
+                    )
+
+            if expected_pages is not None:
+                match = re.match(r".*Pages:\s+(\d+).*", result.replace("\n", " "))
+                if not match:
+                    raise AssertionError(f"Pages not found in pdfinfo result: {result}")
+
+                num_pages = int(match.groups()[0])
+                self.assertEqual(expected_pages, num_pages, f"PDF num pages does not match")
 
     def assert_admin_form_errors(self, response: HttpResponse):
         if not response.context:

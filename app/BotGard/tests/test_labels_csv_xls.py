@@ -110,11 +110,15 @@ class TestLabelsCSV(TestBase):
         self.assert_xls(label_model, object_type, object_model, expected_lines, expect_unchecked_nomenclature)
 
     def assert_csv(
-            self, label_model: LabelDefinition, object_type: str, object_model, expected_lines: List[List[str]],
+            self,
+            label_model: LabelDefinition,
+            object_type: str,
+            object_model: Union[models.Model, List[models.Model]],
+            expected_lines: List[List[str]],
             expect_unchecked_nomenclature: bool = False,
     ):
         response = self.get_label_response(
-            label_model, object_type, object_model, "csv",
+            label_model, object_type, object_model, "csv", action_format_suffix="csv",
             expect_unchecked_nomenclature=expect_unchecked_nomenclature,
         )
         fp = StringIO(response.content.decode("utf-8"))
@@ -128,11 +132,15 @@ class TestLabelsCSV(TestBase):
             raise
 
     def assert_xls(
-            self, label_model: LabelDefinition, object_type: str, object_model, expected_lines: List[List[str]],
+            self,
+            label_model: LabelDefinition,
+            object_type: str,
+            object_model: Union[models.Model, List[models.Model]],
+            expected_lines: List[List[str]],
             expect_unchecked_nomenclature: bool = False,
     ):
         response = self.get_label_response(
-            label_model, object_type, object_model, "xls",
+            label_model, object_type, object_model, "xls", action_format_suffix="xls",
             expect_unchecked_nomenclature=expect_unchecked_nomenclature,
         )
 
