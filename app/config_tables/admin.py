@@ -1018,8 +1018,8 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
             for i, x in enumerate(htmlrow):
                 if include[i]:
                     if not for_print:
-                        field = getattr(self.model, list_display[i])
-                        if hasattr(field, "as_csv"):
+                        field = getattr(self.model, list_display[i], None) or getattr(self, list_display[i], None)
+                        if field and hasattr(field, "as_csv"):
                             x = field.as_csv(x)
                         if x.startswith("<"):
                             if "icon-yes" in x:

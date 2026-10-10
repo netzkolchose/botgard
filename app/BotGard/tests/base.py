@@ -943,6 +943,24 @@ class ChangeListForm:
         if p.find("span", {"class": "this-page"}):
             self.num_pages += 1
 
+    def get_csv_export(self, override_params: Optional[dict] = None) -> List[List[str]]:
+        response = self.parent.client.get(
+            reverse(f"admin:{self.app_name}_{self.model_name}_csv"),
+            query_params=override_params if override_params is not None else self.query_params,
+        )
+        self.parent.assert_response(response, status=200)
+        reader = csv.reader(response.content.decode().splitlines())
+        return list(reader)
+
+    def assert_csv_export(
+            self,
+            expected_rows: List[List[str]],
+            override_params: Optional[dict] = None,
+    ):
+        rows = self.get_csv_export(override_params=override_params)
+        self.parent.assertEqual(expected_rows, rows)
+
+
 
 class ChangeForm:
     """

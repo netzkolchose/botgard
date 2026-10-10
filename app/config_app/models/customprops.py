@@ -124,13 +124,13 @@ class CustomProperty(models.Model):
 
     def get_python_value_for_model(self, model: models.Model) -> Union[None, bool, str, User]:
         type = self.type.split("_")[0]
-        if rel_manager := getattr(model, f"custom_values_{type}"):
-            prop_value = rel_manager.filter(property=self).first()
-            if prop_value:
-                return prop_value.value
-            if self.type == "bool":
-                return False
-            return None
+        rel_manager = getattr(model, f"custom_values_{type}")
+        prop_value = rel_manager.filter(property=self).first()
+        if prop_value:
+            return prop_value.value
+        if self.type == "bool":
+            return False
+        return None
 
     def get_decorator_value_for_model(self, model: models.Model):
         if v := self.get_value_for_model(model):
@@ -143,6 +143,28 @@ class CustomProperty(models.Model):
             )))
         else:
             return []
+
+    def set_value_for_model(self, instance: models.Model, value: Union[str, bool, User, None]):
+        """
+        Add (or remove) custom property value to model instance.
+        :param instance: instance of a django model that has the custom-properties base class
+        :param value: text, bool or User instance,
+            None, or False for type bool, deletes the value
+        """
+        type = self.type.split("_")[0]
+        rel_manager = getattr(instance, f"custom_values_{type}")
+        prop_value = rel_manager.filter(property=self).first()
+        if prop_value:
+            if value is None or (type == "bool" and value is False):
+                prop_value.delete()
+            else:
+                prop_value.value = value
+                prop_value.save()
+        else:
+            klass = globals()[f"PropertyValue{type.capitalize()}"]
+            rel_manager.add(
+                klass.objects.create(property=self, value=value)
+            )
 
     def create_list_filter(self) -> Type[SimpleListFilter]:
         prop = self
