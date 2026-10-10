@@ -1,5 +1,5 @@
 import types
-from typing import List, Tuple, Union, Dict, Callable, Iterable
+from typing import List, Tuple, Union, Dict, Callable, Iterable, Generator, Optional
 
 from django.db import models
 from django.contrib import admin
@@ -952,22 +952,14 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
         extra_context.update({"_for_print":True})
         return self.csv_view(request, extra_context)
 
-    def csv_view(self, request, extra_context=None):
-
-        def unescape(x):
-            return x.replace("&nbsp;", " ").replace('&amp;', '&').replace('&lt;', '<').replace('&gt;', '>').replace('&quot;', '"').replace('&#39;', "'")
-
-        # first build a minimal admin.ChangeList instance
-        # which will handle sorting and filtering
-        from django.contrib.admin.options import IncorrectLookupParameters
+    ITER_CHANGELIST_ROWS_PAGE_SIZE = 5000
+    def iter_changelist_rows(
+            self,
+            request: HttpRequest,
+            filter_columns: Optional[List[str]] = None,
+    ) -> Generator[Dict[str, str], None, None]:
         from django.contrib.admin.templatetags.admin_list import result_headers, results
-        from django.utils.html import escape
-        import bs4 as bs
 
-        if not self.has_change_permission(request, None):
-            raise PermissionDenied
-
-        opts = self.model._meta
         list_display = self.get_list_display(request)
         list_display_links = self.get_list_display_links(request, list_display)
         list_filter = self.get_list_filter(request)
@@ -976,66 +968,117 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
         sortable_by = self.get_sortable_by(request)
 
         ChangeList = self.get_changelist(request)
+
+        old_request_params = request.GET
+        new_request_params = QueryDict(mutable=True)
+        new_request_params.update(request.GET)
         try:
-            cl = ChangeList(
-                request=request,
-                model=self.model,
-                list_display=list_display,
-                list_display_links=list_display_links,
-                list_filter=list_filter,
-                date_hierarchy=self.date_hierarchy,
-                search_fields=search_fields,
-                list_select_related=list_select_related,
-                list_per_page=10000000,       # self.list_per_page,
-                list_max_show_all=10000000,   # self.list_max_show_all,
-                list_editable=[],             # self.list_editable,
-                model_admin=self,
-                sortable_by=sortable_by,
-                search_help_text=None,
-            )
-            cl.formset = None
-        except IncorrectLookupParameters:
-            # An error would have been checked in the admin page that lead to this csv page.
-            # This will probably never happen..
-            return HttpResponse(status=404)
+            request.GET = new_request_params
+            page_idx = 1
+            num_rows_yielded = 0
+            num_rows_total = None
+            include = None
+            while True:
+                request.GET["p"] = page_idx
+
+                batch_size = self.ITER_CHANGELIST_ROWS_PAGE_SIZE
+                cl = ChangeList(
+                    request=request,
+                    model=self.model,
+                    list_display=list_display,
+                    list_display_links=list_display_links,
+                    list_filter=list_filter,
+                    date_hierarchy=self.date_hierarchy,
+                    search_fields=search_fields,
+                    list_select_related=list_select_related,
+                    list_per_page=batch_size,       # self.list_per_page,
+                    list_max_show_all=batch_size,   # self.list_max_show_all,
+                    list_editable=[],               # self.list_editable,
+                    model_admin=self,
+                    sortable_by=sortable_by,
+                    search_help_text=None,
+                )
+                cl.formset = None
+
+                if include is None:
+                    if not filter_columns:
+                        include = [True] * len(list_display)
+                    else:
+                        include = [
+                            True if x in filter_columns else False
+                            for x in list_display
+                        ]
+
+                    headers = {
+                        list_display[i]: x["text"]
+                        for i, x in enumerate(result_headers(cl))
+                        if include[i]
+                    }
+                    yield headers
+
+                for row in results(cl):
+                    yield {
+                        list_display[i]: v
+                        for i, v in enumerate(row)
+                        if include[i]
+                    }
+                    num_rows_yielded += 1
+
+                if num_rows_total is None:
+                    num_rows_total = cl.result_count
+
+                if num_rows_yielded >= num_rows_total:
+                    break
+                else:
+                    page_idx += 1
+
+        finally:
+            request.GET = old_request_params
+
+    def csv_view(self, request, extra_context=None):
+        from django.utils.html import escape
+        import bs4 as bs
+
+        def unescape(x):
+            return x.replace("&nbsp;", " ").replace('&amp;', '&').replace('&lt;', '<').replace('&gt;', '>').replace('&quot;', '"').replace('&#39;', "'").strip()
+
+        if not self.has_change_permission(request, None):
+            raise PermissionDenied
+
+        opts = self.model._meta
 
         for_print = extra_context and "_for_print" in extra_context
 
-        # determine which columns to include in csv
-        # (must be done after ChangeList creation because the sort queries
-        #  reference the column number)
-        include = []
-        csv_columns = self.get_list_display_csv(request)
-        for x in list_display:
-            include.append(True if x in csv_columns else False)
-
-        # now convert the results back to text-only and skip unused columns
-        count = cl.result_list.count()
-        headers = [unescape(x["text"]) for i, x in enumerate(result_headers(cl)) if include[i]]
+        headers = None
         res = []
-        for htmlrow in results(cl):
-            row = []
-            for i, x in enumerate(htmlrow):
-                if include[i]:
-                    if not for_print:
-                        field = getattr(self.model, list_display[i], None) or getattr(self, list_display[i], None)
-                        if field and hasattr(field, "as_csv"):
-                            x = field.as_csv(x)
-                        if x.startswith("<"):
-                            if "icon-yes" in x:
-                                x = "X"
-                            elif "icon-no" in x:
-                                x = "-"
-                            else:
-                                soup = bs.BeautifulSoup(x, "html.parser")
-                                x = soup.text
-                    row.append(unescape(x))
-            res.append(row)
+        for htmlrow in self.iter_changelist_rows(
+                request,
+                filter_columns=self.get_list_display_csv(request),
+        ):
+            if headers is None:
+                headers = [unescape(x) for x in htmlrow.values()]
+            else:
+                row = []
+                for name, v in htmlrow.items():
+                    field = getattr(self.model, name, None) or getattr(self, name, None)
+                    if field and hasattr(field, "as_csv"):
+                        v = field.as_csv(v)
+                    if v.startswith("<"):
+                        if "icon-yes" in v:
+                            v = "X"
+                        elif "icon-no" in v:
+                            v = "-"
+                        else:
+                            soup = bs.BeautifulSoup(v, "html.parser")
+                            v = soup.text
+                    row.append(unescape(v))
+                res.append(row)
 
         if for_print:
-            headers = [x for i, x in enumerate(result_headers(cl)) if include[i]]
-            for h in headers:
-                h["text"] = escape(h["text"]).replace(" ", "&nbsp;")
+            headers = [
+                escape(h).replace(" ", "&nbsp;")
+                for h in headers
+            ]
             ctx = {
                 "headers": headers,
                 "rows": res,

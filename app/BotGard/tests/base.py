@@ -943,22 +943,46 @@ class ChangeListForm:
         if p.find("span", {"class": "this-page"}):
             self.num_pages += 1
 
-    def get_csv_export(self, override_params: Optional[dict] = None) -> List[List[str]]:
+    def get_csv_export(
+            self,
+            override_params: Optional[dict] = None,
+            expect_access: bool = True,
+    ) -> Optional[List[List[str]]]:
         response = self.parent.client.get(
             reverse(f"admin:{self.app_name}_{self.model_name}_csv"),
             query_params=override_params if override_params is not None else self.query_params,
         )
-        self.parent.assert_response(response, status=200)
-        reader = csv.reader(response.content.decode().splitlines())
-        return list(reader)
+        if expect_access:
+            self.parent.assert_response(response, status=200)
+            reader = csv.reader(response.content.decode().splitlines())
+            return list(reader)
+        else:
+            if response.status_code == 302:
+                self.parent.assertIn("/login", response.headers["location"])
+            else:
+                self.parent.assert_response(response, status=403)
 
     def assert_csv_export(
             self,
             expected_rows: List[List[str]],
             override_params: Optional[dict] = None,
     ):
-        rows = self.get_csv_export(override_params=override_params)
-        self.parent.assertEqual(expected_rows, rows)
+        # try with different page sizes
+        old_value = ConfigurableTable.ITER_CHANGELIST_ROWS_PAGE_SIZE
+        try:
+            for i in range(2):
+                rows = self.get_csv_export(override_params=override_params)
+                self.parent.assertEqual(
+                    expected_rows,
+                    rows,
+                    f"\nExpected:\n{'\n'.join(str(r)+',' for r in expected_rows)}"
+                    f"\nGot:\n{'\n'.join(str(r)+',' for r in rows)}"
+                    f"\npage_size={ConfigurableTable.ITER_CHANGELIST_ROWS_PAGE_SIZE}"
+                )
+
+                ConfigurableTable.ITER_CHANGELIST_ROWS_PAGE_SIZE = max(2, len(expected_rows) // 3)
+        finally:
+            ConfigurableTable.ITER_CHANGELIST_ROWS_PAGE_SIZE = old_value
 
 
 

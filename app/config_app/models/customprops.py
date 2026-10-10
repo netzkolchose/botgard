@@ -149,7 +149,7 @@ class CustomProperty(models.Model):
         Add (or remove) custom property value to model instance.
         :param instance: instance of a django model that has the custom-properties base class
         :param value: text, bool or User instance,
-            None, or False for type bool, deletes the value
+            None (or False for type bool), deletes the value
         """
         type = self.type.split("_")[0]
         rel_manager = getattr(instance, f"custom_values_{type}")

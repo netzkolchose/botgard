@@ -18,12 +18,12 @@ class TestCustomProps(TestBase):
     def setUpTestData(cls):
         from botman.models import BotanicGarden
 
-        UserModel.objects.create_superuser(
+        cls.USER1 = UserModel.objects.create_superuser(
             username="User1",
             email="user1@example.com",
             password=cls.DEFAULT_PASSWORD,
         )
-        UserModel.objects.create_user(
+        cls.USER2 = UserModel.objects.create_user(
             username="User2",
             email="user2@example.com",
             password=cls.DEFAULT_PASSWORD,
@@ -31,31 +31,19 @@ class TestCustomProps(TestBase):
 
         cls.CUSTOM_PROPS = {
             "g_type": CustomProperty.objects.create(model="botman.BotanicGarden", name="type", type="text"),
-            "g_size": CustomProperty.objects.create(model="botman.BotanicGarden", name="size", type="text"),
+            "g_size": CustomProperty.objects.create(model="botman.BotanicGarden", name="size", type="text_long"),
             "g_public": CustomProperty.objects.create(model="botman.BotanicGarden", name="public", type="bool"),
             "g_user": CustomProperty.objects.create(model="botman.BotanicGarden", name="user", type="user"),
         }
         def _add_props(model, data):
             for key, prop in cls.CUSTOM_PROPS.items():
+                prop: CustomProperty
                 if prop.model == CustomProperty.get_model_label(model) and data.get(key):
                     value = data[key]
-                    if prop.type == "bool":
-                        mgr = model.custom_values_bool
-                        kls = PropertyValueBool
-                    elif prop.type in ("text", "text_long"):
-                        mgr = model.custom_values_text
-                        kls = PropertyValueText
-                    elif prop.type == "user":
-                        mgr = model.custom_values_user
-                        kls = PropertyValueUser
+                    if prop.type == "user":
                         value = UserModel.objects.get(username=value)
-                    else:
-                        raise NotImplementedError(prop.type)
 
-                    mgr.add(kls.objects.create(
-                        property=cls.CUSTOM_PROPS[key],
-                        value=value,
-                    ))
+                    prop.set_value_for_model(model, value)
 
         for data in cls.GARDENS:
             model = BotanicGarden.objects.create(
@@ -66,6 +54,39 @@ class TestCustomProps(TestBase):
 
     def setUp(self):
         self.login(username="User1")
+
+    def test_custom_props_helper(self):
+        props = [
+            CustomProperty.objects.create_for_model(Individual, type[0], f"i_{type[0]}")
+            for type in CUSTOM_PROPERTY_TYPE_CHOICES
+        ]
+        instance = BotanicGarden.objects.create(number="-1", name="Dobbstown")
+        for prop in props:
+            self.assertIsNone(prop.get_value_for_model(instance))
+            self.assertEqual(
+                False if prop.type == "bool" else None,
+                prop.get_python_value_for_model(instance),
+            )
+
+            expected_value = "Accubeating"
+            if prop.type == "bool":
+                expected_value = True
+            elif prop.type == "user":
+                expected_value = self.USER2
+
+            prop.set_value_for_model(instance, expected_value)
+            self.assertIsNotNone(prop.get_value_for_model(instance))
+            self.assertEqual(
+                expected_value,
+                prop.get_python_value_for_model(instance),
+            )
+
+            prop.set_value_for_model(instance, None)
+            self.assertIsNone(prop.get_value_for_model(instance))
+            self.assertEqual(
+                False if prop.type == "bool" else None,
+                prop.get_python_value_for_model(instance),
+            )
 
     def test_garden_changelist(self):
         cl = self.get_changelist("botman", "botanicgarden")
