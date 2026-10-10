@@ -44,7 +44,7 @@ class CustomPropertyManager(models.Manager):
             type: Literal["text", "text_long", "bool", "user"],
             name: str,
             choices: str = "",
-    ):
+    ) -> "CustomProperty":
         return self.create(
             model=CustomProperty.get_model_label(model),
             type=type,

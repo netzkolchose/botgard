@@ -79,6 +79,26 @@ class TestConfigTables(TestBase):
             f'custom_property_decorator_{prop.pk}',
         ])
 
+
+    def test_filter_multi_word(self):
+        prop = CustomProperty.objects.create_for_model(Individual, "text", "extended field")
+        for i, m in enumerate(Individual.objects.all()):
+            m.custom_values_text.add(
+                PropertyValueText.objects.create(property=prop, value=f"Some: Text {i}")
+            )
+        cl = self.get_changelist("individuals", "individual")
+        cl.set_columns(["accession_number", f"custom_property_decorator_{prop.pk}"])
+        cl.assert_rows([
+            {"accession_number": "1000", f"custom_property_decorator_{prop.pk}": "Some: Text 0"},
+            {"accession_number": "1001", f"custom_property_decorator_{prop.pk}": "Some: Text 1"},
+            {"accession_number": "1002", f"custom_property_decorator_{prop.pk}": "Some: Text 2"},
+            {"accession_number": "1003", f"custom_property_decorator_{prop.pk}": "Some: Text 3"},
+        ])
+        cl.set_filters({f"custom_property_{prop.pk}": "Some: Text 3"})
+        cl.assert_rows([
+            {"accession_number": "1003", f"custom_property_decorator_{prop.pk}": "Some: Text 3"},
+        ])
+
     @override_settings(DEBUG=True)
     def test_all_filter_columns(self):
         """
