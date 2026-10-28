@@ -10,10 +10,16 @@
 {% block page_content %}
 
     <div class="object-tools" style="float: right;">
-        <li><a href="?csv=1">{% trans 'CSV-Export' %}</a></li>
+        <li><a href="?alive={{alive}}&csv=1">{% trans 'CSV-Export' %}</a></li>
     </div>
 
-    <p>{% blocktrans %}There are {{result_len}} individuals registered{% endblocktrans %}:</p>
+    <p>
+        {% if alive %}
+            {% blocktrans %}There are {{result_len}} alive individuals registered{% endblocktrans %}:
+        {% else %}
+            {% blocktrans %}There are {{result_len}} individuals registered{% endblocktrans %}:
+        {% endif %}
+    </p>
 
 
     <table class="checklist-table">

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-17 21:02+0200\n"
+"POT-Creation-Date: 2026-10-28 10:16+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -25,11 +25,11 @@ msgstr "Karte des Gartens"
 msgid "BotGard"
 msgstr "BotGard"
 
-#: BotGard/settings.py:186
+#: BotGard/settings.py:187
 msgid "German"
 msgstr "Deutsch"
 
-#: BotGard/settings.py:187
+#: BotGard/settings.py:188
 msgid "English"
 msgstr "Englisch"
 
@@ -206,11 +206,11 @@ msgstr "Hinzufügen"
 msgid "Move catalogs to archive"
 msgstr "Kataloge ins Archiv bewegen"
 
-#: botman/admin.py:177
+#: botman/admin.py:178
 msgid "Mark orders as processed"
 msgstr "Bestellungen als 'bestellt' markieren"
 
-#: botman/admin.py:183
+#: botman/admin.py:184
 #, python-format
 msgid "%(num_orders)s orders have been marked as processed"
 msgstr "%(num_orders)s Bestellungen wurden als 'bestellt' markiert"
@@ -283,9 +283,9 @@ msgstr "BGCI Daten"
 msgid "BGCI website"
 msgstr "BGCI Webseite"
 
-#: botman/models/catalogs.py:19 botman/models/catalogs.py:78
-#: botman/models/catalogs.py:95 botman/models/catalogs.py:117
-#: botman/models/catalogs.py:165
+#: botman/models/catalogs.py:19 botman/models/catalogs.py:85
+#: botman/models/catalogs.py:95 botman/models/catalogs.py:122
+#: botman/models/catalogs.py:140 botman/models/catalogs.py:188
 msgid "Botanic garden"
 msgstr "Botanischer Garten"
 
@@ -318,23 +318,24 @@ msgstr "Katalog/%(date)s"
 #: herbaria/models/specimen.py:115 herbaria/models/specimen.py:117
 #: individuals/models/individual.py:158 individuals/models/individual.py:160
 #: individuals/models/territory.py:131 individuals/models/territory.py:132
-#: individuals/models/territory.py:248 individuals/models/territory.py:249
+#: individuals/models/territory.py:262 individuals/models/territory.py:263
 #: species/models.py:91 species/models.py:92 species/models.py:243
 #: species/models.py:244
 msgid "delete"
 msgstr "Löschen"
 
-#: botman/models/catalogs.py:69 botman/models/garden.py:63
-msgid "number of orders"
-msgstr "Anzahl der Bestellungen"
-
-#: botman/models/catalogs.py:83
+#: botman/models/catalogs.py:60
 msgid "external catalog"
 msgstr "Externer Katalog"
 
-#: botman/models/catalogs.py:84
+#: botman/models/catalogs.py:61
 msgid "external catalogs"
 msgstr "Externe Kataloge"
+
+#: botman/models/catalogs.py:76 botman/models/catalogs.py:113
+#: botman/models/garden.py:63
+msgid "number of orders"
+msgstr "Anzahl der Bestellungen"
 
 #: botman/models/catalogs.py:90
 msgid "external catalog (archived)"
@@ -344,44 +345,44 @@ msgstr "Externer Katalog (archiviert)"
 msgid "external catalogs (archived)"
 msgstr "Externe Kataloge (archiviert)"
 
-#: botman/models/catalogs.py:112 botman/models/catalogs.py:156
+#: botman/models/catalogs.py:135 botman/models/catalogs.py:179
 msgid "outgoing order"
 msgstr "Ausgehende Bestellung"
 
-#: botman/models/catalogs.py:113
+#: botman/models/catalogs.py:136
 msgid "outgoing orders"
 msgstr "Ausgehende Bestellungen"
 
-#: botman/models/catalogs.py:124
+#: botman/models/catalogs.py:147
 msgid "Creation date"
 msgstr "Erstellt am"
 
-#: botman/models/catalogs.py:129
+#: botman/models/catalogs.py:152
 msgid "Ordered by user"
 msgstr "Bestellt von"
 
-#: botman/models/catalogs.py:136
+#: botman/models/catalogs.py:159
 msgid "Order text"
 msgstr "Bestellung"
 
-#: botman/models/catalogs.py:140
+#: botman/models/catalogs.py:163
 msgid "Processed"
 msgstr "Bestellt"
 
-#: botman/models/catalogs.py:151
+#: botman/models/catalogs.py:174
 #, python-format
 msgid "outgoing order/%(garden)s/%(user)s %(date)s"
 msgstr "Bestellung/%(garden)s/%(user)s %(date)s"
 
-#: botman/models/catalogs.py:175
+#: botman/models/catalogs.py:198
 msgid "garden email"
 msgstr "Garten eMail"
 
-#: botman/models/catalogs.py:185
+#: botman/models/catalogs.py:208
 msgid "user email"
 msgstr "Benutzer eMail"
 
-#: botman/models/catalogs.py:194 botman/models/garden.py:64
+#: botman/models/catalogs.py:217 botman/models/garden.py:64
 msgid "latest catalog date"
 msgstr "Aktuelles Katalogdatum"
 
@@ -448,7 +449,7 @@ msgstr "Etikett"
 #: individuals/models/individual.py:150 individuals/models/individual.py:152
 #: individuals/models/outplanting.py:61 individuals/models/outplanting.py:62
 #: individuals/models/territory.py:124 individuals/models/territory.py:125
-#: individuals/models/territory.py:234 individuals/models/territory.py:235
+#: individuals/models/territory.py:241 individuals/models/territory.py:242
 #: species/models.py:84 species/models.py:85 species/models.py:236
 #: species/models.py:237
 msgid "show"
@@ -637,21 +638,21 @@ msgstr "Typ \"%s\" unbekannt"
 msgid "Invalid type in KeyValue \"%s\""
 msgstr "Unbekannter Typ in KeyValue \"%s\""
 
-#: config_tables/admin.py:256 config_tables/admin.py:288
+#: config_tables/admin.py:271 config_tables/admin.py:303
 #, python-format
 msgid "Configure table %(name)s"
 msgstr "%(name)s-Tabelle bearbeiten"
 
-#: config_tables/admin.py:491
+#: config_tables/admin.py:504
 #, python-format
 msgid "Remove filter for %s"
 msgstr "Filter für %s entfernen"
 
-#: config_tables/admin.py:530
+#: config_tables/admin.py:558
 msgid "yes"
 msgstr "Ja"
 
-#: config_tables/admin.py:531
+#: config_tables/admin.py:559
 msgid "no"
 msgstr "Nein"
 
@@ -828,7 +829,7 @@ msgstr "Auspflanzdatum"
 #: entrybook/models/entry.py:97 entrybook/models/entry.py:144
 #: geo/templates/geo/garden_map.html:48 geo/templates/geo/garden_map.html:74
 #: individuals/models/outplanting.py:25 individuals/models/outplanting.py:68
-#: individuals/models/territory.py:202
+#: individuals/models/territory.py:209
 msgid "department"
 msgstr "Abteilung"
 
@@ -855,7 +856,7 @@ msgstr "Fullscreen"
 
 #: geo/templates/geo/garden_map.html:32 geo/templates/geo/garden_map.html:73
 #: individuals/models/outplanting.py:74 individuals/models/territory.py:96
-#: individuals/models/territory.py:207
+#: individuals/models/territory.py:214
 msgid "territory"
 msgstr "Revier"
 
@@ -929,7 +930,7 @@ msgid "date created"
 msgstr "Erstellt am"
 
 #: herbaria/models/herbarium.py:40 herbaria/models/specimen.py:93
-#: individuals/views/checklist_views.py:87
+#: individuals/views/checklist_views.py:90
 msgid "Comment"
 msgstr "Bemerkungen"
 
@@ -1031,7 +1032,7 @@ msgid "outplantings_generated"
 msgstr "outplantings_generated"
 
 #: individuals/models/individual.py:60 individuals/models/individual.py:209
-#: individuals/models/territory.py:203
+#: individuals/models/territory.py:210
 msgid "departments"
 msgstr "Abteilungen"
 
@@ -1326,31 +1327,36 @@ msgstr "Reviername"
 msgid "display name"
 msgstr "Anzeigename"
 
-#: individuals/models/territory.py:106 individuals/models/territory.py:216
+#: individuals/models/territory.py:106 individuals/models/territory.py:223
 msgid "polygon"
 msgstr "Polygon"
 
-#: individuals/models/territory.py:138 individuals/models/territory.py:241
+#: individuals/models/territory.py:138 individuals/models/territory.py:145
+#: individuals/models/territory.py:248 individuals/models/territory.py:255
 msgid "generate list"
 msgstr "Liste erstellen"
 
-#: individuals/models/territory.py:139 individuals/models/territory.py:242
+#: individuals/models/territory.py:139 individuals/models/territory.py:249
 msgid "List of individuals"
 msgstr "Liste der Individuen"
 
-#: individuals/models/territory.py:178
+#: individuals/models/territory.py:146 individuals/models/territory.py:256
+msgid "List of alive individuals"
+msgstr "Liste der lebenden Individuen"
+
+#: individuals/models/territory.py:185
 msgid "A list is expected."
 msgstr "Ein Liste wird erwartet"
 
-#: individuals/models/territory.py:180
+#: individuals/models/territory.py:187
 msgid "The list must contain at least two values."
 msgstr "Die Liste muß mindestens zwei Werte enthalten"
 
-#: individuals/models/territory.py:182
+#: individuals/models/territory.py:189
 msgid "The list must contain \"department\"."
 msgstr "Die Liste muß \"department\" enthalten"
 
-#: individuals/models/territory.py:322
+#: individuals/models/territory.py:336
 #, python-format
 msgid "A Department with code %(code)s in territory %(terr)s already exists"
 msgstr ""
@@ -1393,11 +1399,11 @@ msgstr "Die Methode um neue Akzessionsnummern zu erzeugen"
 msgid "The method used for generating new order numbers"
 msgstr "Die Methode um neue Bestellnummern zu erzeugen"
 
-#: individuals/numbers.py:167
+#: individuals/numbers.py:188
 msgid "Could not find a free accession_number in time, sorry"
 msgstr "Leider keine freie Akzessionsnummer gefunden"
 
-#: individuals/numbers.py:181
+#: individuals/numbers.py:202
 msgid "Could not find a free order_number in time, sorry"
 msgstr "Leider keine freie Bestellnummer gefunden"
 
@@ -1466,7 +1472,11 @@ msgstr "Verhältnis lebender/gepflanzter Gattungen"
 msgid "CSV-Export"
 msgstr "CSV-Export"
 
-#: individuals/templates/individuals/checklist.html:16
+#: individuals/templates/individuals/checklist.html:18
+msgid "There are %(result_len)s alive individuals registered"
+msgstr "Es sind %(result_len)s lebende Individuen erfasst"
+
+#: individuals/templates/individuals/checklist.html:20
 #, python-format
 msgid "There are %(result_len)s individuals registered"
 msgstr "Es sind %(result_len)s Individuen erfasst"
@@ -1476,26 +1486,26 @@ msgid "Department"
 msgstr "Abteilung"
 
 #: individuals/views/checklist_views.py:72
-#: individuals/views/checklist_views.py:87
+#: individuals/views/checklist_views.py:90
 msgid "Nr."
 msgstr "Nr."
 
 #: individuals/views/checklist_views.py:73
-#: individuals/views/checklist_views.py:87
+#: individuals/views/checklist_views.py:90
 msgid "Species"
 msgstr "Art"
 
 #: individuals/views/checklist_views.py:74
-#: individuals/views/checklist_views.py:87
+#: individuals/views/checklist_views.py:90
 msgid "Planted"
 msgstr "Gepflanzt"
 
 #: individuals/views/checklist_views.py:75
-#: individuals/views/checklist_views.py:87
+#: individuals/views/checklist_views.py:90
 msgid "Died?"
 msgstr "Gestorben?"
 
-#: individuals/views/checklist_views.py:103
+#: individuals/views/checklist_views.py:106
 msgid "Inventory list"
 msgstr "Bestandsliste"
 
