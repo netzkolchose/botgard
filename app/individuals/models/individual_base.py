@@ -6,6 +6,7 @@ from django.forms import widgets
 from django.forms.utils import ErrorList
 from django.utils.translation import gettext_lazy as _
 from django.utils.translation import ngettext_lazy as __
+from django.utils import timezone
 from django.urls import reverse
 from django.templatetags.static import static
 from django.utils.html import format_html, escape
@@ -124,7 +125,7 @@ def IndividualBase(unique_name: str) -> Type[models.Model]:
         ipen_transfer_restricted = models.CharField(max_length=1, choices=IPEN_TRANSFER_RESTRICTIONS, verbose_name="-")
         ipen_accession_number = models.CharField(max_length=50, verbose_name="-")
 
-        source_date = models.DateField(verbose_name=_("date of receipt"), blank=True, null=True)
+        source_date = models.DateField(verbose_name=_("date of receipt"), blank=True, null=True, default=timezone.now)
         came_in_as = models.CharField(
             max_length=2, choices=CAME_IN_AS_CHOICES, verbose_name=_("received as"), blank=True,
             db_index=True
