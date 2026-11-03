@@ -274,7 +274,7 @@ class TestAudit(TestBase):
                             'department_pk': D1.pk,
                             'plant_died': None, 'seeded_date': None,
                             'inventory_date': '2020-01-01',
-                            'location': 'POINT (0 0)',
+                            'location': [0., 0.],
                         },
                     ],
                 }
@@ -322,7 +322,7 @@ class TestAudit(TestBase):
                             'department_pk': D1.pk,
                             'plant_died': None, 'seeded_date': None,
                             'inventory_date': '2020-01-01',
-                            'location': 'POINT (0 0)',
+                            'location': [0., 0.],
                             'comment': '',
                         },
                     ]
@@ -338,7 +338,7 @@ class TestAudit(TestBase):
                             'department_pk': D1.pk,
                             'plant_died': None, 'seeded_date': None,
                             'inventory_date': '2020-01-01',
-                            'location': 'POINT (0 0)',
+                            'location': [0., 0.],
                             'comment': '',
                         },
                         {

@@ -8,19 +8,23 @@
         <h2>{% trans 'Outplanting audit' %}</h2>
 
         {% with table=object.outplanting_audit_table %}
-        <table>
+        <table class="outplanting_audit">
             <thead>
                 <tr>
                     {% for name in table.0.keys %}
-                        <th>{{ name }}</th>
+                        {% if name != "index" %}
+                            <th>{{ name }}</th>
+                        {% endif %}
                     {% endfor %}
                 </tr>
             </thead>
             <tbody>
                 {% for row in table %}
-                    <tr>
+                    <tr {% if row.index == 0 %}style="background: var(--selected-row);"{% endif %}>
                         {% for key, value in row.items %}
-                            <td>{{ value }}</td>
+                            {% if key != "index" %}
+                                <td>{{ value }}</td>
+                            {% endif %}
                         {% endfor %}
                     </tr>
                 {% endfor %}

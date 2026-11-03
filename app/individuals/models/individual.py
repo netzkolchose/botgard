@@ -488,7 +488,7 @@ class Individual(IndividualBase(unique_name="individual")):
                 "pk": o.pk,
                 "department": str(o.department),
                 "department_pk": o.department_id,
-                "location": o.location.wkt if o.location else None,
+                "location": list(o.location) if o.location else None,
                 "seeded_date": o.seeded_date.isoformat() if o.seeded_date else None,
                 "date": o.date.isoformat() if o.date else None,
                 "inventory_date": o.inventory_date.isoformat() if o.inventory_date else None,
@@ -520,18 +520,29 @@ class Individual(IndividualBase(unique_name="individual")):
         # store audit without calling Individual.save
         Individual.objects.filter(pk=self.pk).update(outplanting_audit=self.outplanting_audit)
 
-    def outplanting_audit_table(self) -> list[dict]:
+    def outplanting_audit_table(self, with_html: bool = True) -> list[dict]:
         from django.utils.translation import gettext as _
         rows = []
         if not self.outplanting_audit:
             return rows
         for audit in self.outplanting_audit:
             for i, outpl in enumerate(audit["outplantings"]):
+                location = outpl.get("location")
+                if location:
+                    try:
+                        if with_html:
+                            location = mark_safe(geo_coord_to_html(location))
+                        else:
+                            if isinstance(location, (list, tuple)):
+                                location = "/".join(str(l) for l in location)
+                    except:
+                        pass
                 rows.append({
                     _("modified at"): audit["date"] if i == 0 else "",
                     _("modified by"): audit["user"] if i == 0 else "",
+                    **({"index": i} if with_html else {}),
                     _("department"): outpl.get("department") or "",
-                    _("location"): outpl.get("location") or "",
+                    _("location"): location or "",
                     _("sowing date"): outpl.get("seeded_date") or "",
                     _("bed out date"): outpl.get("date") or "",
                     _("inventory date"): outpl.get("inventory_date") or "",
