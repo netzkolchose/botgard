@@ -64,7 +64,8 @@ class Individual(IndividualBase(unique_name="individual")):
     # format is list of
     # {
     #    "date": "YYYY-MM-DD"|None,
-    #    "user": "username", "user_pk": int|None,
+    #    "user": "username",
+    #    "user_pk": int|None,
     #    "species": "full_name_generated",
     #    "species_pk": int,
     #    "species_comment": str|None,
@@ -74,6 +75,25 @@ class Individual(IndividualBase(unique_name="individual")):
     # }
     species_audit = models.JSONField(
         verbose_name=_("Determination audit"),
+        null=True, blank=True,
+    )
+
+    # format is list of
+    # {
+    #    "date": "YYYY-MM-DD"|None,
+    #    "user": "username",
+    #    "user_pk": int|None,
+    #    "outplantings": [{
+    #       "department": str|None,
+    #       "department_pk": int|None,
+    #       "seeded_date": str|None,
+    #       "inventory_date": str|None,
+    #       "plant_died": str|None,
+    #       "comment": str|None,
+    #    }]
+    # }
+    outplanting_audit = models.JSONField(
+        verbose_name=_("Outplanting audit"),
         null=True, blank=True,
     )
 
@@ -137,7 +157,10 @@ class Individual(IndividualBase(unique_name="individual")):
             self.save(_no_creation_fields=True)
 
     def get_outplantings(self, alive_only=True) -> list:
-        """Returns list of belonging Outplanting instances from database-cache"""
+        """
+        Returns list of belonging Outplanting instances from pk list in
+        `outplantings_generated` or `alive_outplantings_generated`
+        """
         from .outplanting import Outplanting
         ids = self.alive_outplantings_generated if alive_only else self.outplantings_generated
         if not ids:
@@ -454,6 +477,52 @@ class Individual(IndividualBase(unique_name="individual")):
             if hasattr(row["date"], "isoformat"):
                 row["date"] = row["date"].isoformat()
         self.species_audit = audit
+
+    def get_outplantings_data(self):
+        """
+        Return current Outplantings data suitable for `outplanting_audit` field
+        """
+        return [
+            {
+                "pk": o.pk,
+                "department": str(o.department),
+                "department_pk": o.department_id,
+                "location": o.location.wkt if o.location else None,
+                "seeded_date": o.seeded_date.isoformat() if o.seeded_date else None,
+                "date": o.date.isoformat() if o.date else None,
+                "inventory_date": o.inventory_date.isoformat() if o.inventory_date else None,
+                "plant_died": o.plant_died.isoformat() if o.plant_died else None,
+                "comment": o.comment,
+            }
+            for o in self.outplanting_set.order_by("pk")
+        ]
+
+    def store_outplantings_audit(self, old_outplantings_data: List[dict]):
+        """
+        Store changes to outplantings in `outplanting_audit`.
+        Supply response of `get_outplantings_data` before changes to outplantings.
+        Does nothing, if `old_outplantings_data` is same as current data.
+        """
+        outplantings_data = self.get_outplantings_data()
+        if outplantings_data == old_outplantings_data:
+            return
+
+        user = get_current_user()
+        user_kwargs = {
+            "user": user.username if user else "-",
+            "user_pk": user.pk if user else None,
+        }
+        if not self.outplanting_audit:
+            self.outplanting_audit = []
+        self.outplanting_audit.append({
+            "date": timezone.now().date().isoformat(),
+            **user_kwargs,
+            "outplantings": outplantings_data,
+        })
+        # store audit without calling Individual.save
+        Individual.objects.filter(pk=self.pk).update(outplanting_audit=self.outplanting_audit)
+
+
 
 
 class IndividualValidateMixin(object):

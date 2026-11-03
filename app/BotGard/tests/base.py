@@ -1009,6 +1009,12 @@ class ChangeForm:
         def is_multiselect(self) -> bool:
             return self.type == "select" and "multiple" in self.element.attrs
 
+        def selected_value(self) -> str|None:
+            if self.type == "select":
+                for o in self.element.find_all("option"):
+                    if "selected" in o.attrs:
+                        return o.value
+
     def __init__(self, parent: TestBase, app_name: str, model_name: str, pk: Union[None, int, str]):
         self.pk = pk
         self.parent = parent
@@ -1125,17 +1131,21 @@ class ChangeForm:
 
         actual_values = QueryDict(mutable=True)
         for key in values.keys():
-            field = self.get_form_field(key)
+            is_inline_set = "-set-" in key or "_set-" in key
+            field = self.get_form_field(key, do_assert=not is_inline_set)
             for value in values.getlist(key):
-                if field.type == "checkbox":
-                    if isinstance(value, bool):
-                        if not value:
+                if not field and is_inline_set:
+                    value = str(value)
+                else:
+                    if field.type == "checkbox":
+                        if isinstance(value, bool):
+                            if not value:
+                                continue
+                            value = "on"
+                    elif value is None:
+                        if field.is_multiselect:
                             continue
-                        value = "on"
-                elif value is None:
-                    if field.is_multiselect:
-                        continue
-                    value = ""
+                        value = ""
                 actual_values.appendlist(key, value)
 
         url = self.url

@@ -193,3 +193,166 @@ class TestAudit(TestBase):
             ],
             rows
         )
+
+    def test_individual_outplanting_audit_method(self):
+        D1 = Department.objects.get(code="D1")
+        indi = Individual.objects.get(accession_number=1000)
+        self.assertIsNone(indi.outplanting_audit)
+
+        old_data = indi.get_outplantings_data()
+        indi.store_outplantings_audit(old_data)
+        self.assertIsNone(indi.outplanting_audit)
+
+        o = indi.outplanting_set.first()
+        o.comment = "Inventory"
+        o.inventory_date = "2123-01-01"
+        o.save()
+        indi.store_outplantings_audit(old_data)
+        self.assertEqual(
+            [
+                {
+                    'date': timezone.now().date().isoformat(),
+                    'user': '-',
+                    'user_pk': None,
+                    'outplantings': [
+                        {
+                            'pk': indi.outplanting_set.order_by("pk")[0].pk,
+                            'department': str(D1),
+                            'department_pk': D1.pk,
+                            'location': None, 'seeded_date': None, 'date': None,
+                            'inventory_date': '2123-01-01',
+                            'plant_died': None,
+                            'comment': 'Inventory'}
+                    ],
+                }
+            ],
+            indi.outplanting_audit,
+        )
+
+    def test_individual_outplanting_audit(self):
+        self.login("User1")
+
+        D1, D2, D3 = (
+            Department.objects.get(code=code)
+            for code in ("D1", "D2", "D3")
+        )
+        indi = Individual.objects.get(accession_number=1000)
+
+        cf = self.get_changeform("individuals", "individual", indi.pk)
+        cf.assert_data({
+            "outplanting_set-0-department": str(D1.pk),
+            "outplanting_set-0-location": "",
+            "outplanting_set-0-seeded_date": "",
+            "outplanting_set-0-date": "",
+            "outplanting_set-0-inventory_date": "",
+            "outplanting_set-0-plant_died": "",
+            "outplanting_set-0-comment": "",
+        })
+
+        # no change
+        cf.save()
+        indi.refresh_from_db()
+        self.assertIsNone(indi.outplanting_audit)
+
+        # change something in outpl 0
+        cf.save({
+            "outplanting_set-0-inventory_date": "2020-01-01",
+            "outplanting_set-0-location": '{ "type": "Point", "coordinates": [ 0.0, 0.0 ] }',
+        })
+        today = timezone.now().date().isoformat()
+        indi.refresh_from_db()
+        self.assertEqual(
+            [
+                {
+                    'date': today,
+                    'user': 'User1', 'user_pk': User.objects.get(username="User1").pk,
+                    'outplantings': [
+                        {
+                            'pk': indi.outplanting_set.order_by("pk")[0].pk,
+                            'date': None, 'comment': '',
+                            'department': str(D1),
+                            'department_pk': D1.pk,
+                            'plant_died': None, 'seeded_date': None,
+                            'inventory_date': '2020-01-01',
+                            'location': 'POINT (0 0)',
+                        },
+                    ],
+                }
+            ],
+            indi.outplanting_audit,
+        )
+
+        # add new outplanting
+        cf.save({
+            "outplanting_set-TOTAL_FORMS": 2,
+            "id_outplanting_set-1-id": "",
+            "id_outplanting_set-1-individual": str(indi.pk),
+            "outplanting_set-1-department": str(D2.pk),
+            "outplanting_set-1-date": "2022-01-01",
+            "outplanting_set-1-inventory_date": "2023-02-03",
+            "outplanting_set-1-comment": "new plant layer",
+        })
+        cf.assert_data({
+            "outplanting_set-0-department": str(D1.pk),
+            "outplanting_set-0-location": '{ "type": "Point", "coordinates": [ 0.0, 0.0 ] }',
+            "outplanting_set-0-seeded_date": "",
+            "outplanting_set-0-date": "",
+            "outplanting_set-0-inventory_date": "2020-01-01",
+            "outplanting_set-0-plant_died": "",
+            "outplanting_set-0-comment": "",
+            "outplanting_set-1-department": str(D2.pk),
+            "outplanting_set-1-seeded_date": "",
+            "outplanting_set-1-date": "2022-01-01",
+            "outplanting_set-1-inventory_date": "2023-02-03",
+            "outplanting_set-1-plant_died": "",
+            "outplanting_set-1-comment": "new plant layer",
+        })
+
+        indi.refresh_from_db()
+        self.assertEqual(
+            [
+                {
+                    'date': today,
+                    'user': 'User1', 'user_pk': User.objects.get(username="User1").pk,
+                    'outplantings': [
+                        {
+                            'pk': indi.outplanting_set.order_by("pk")[0].pk,
+                            'date': None,
+                            'department': str(D1),
+                            'department_pk': D1.pk,
+                            'plant_died': None, 'seeded_date': None,
+                            'inventory_date': '2020-01-01',
+                            'location': 'POINT (0 0)',
+                            'comment': '',
+                        },
+                    ]
+                },
+                {
+                    'date': today,
+                    'user': 'User1', 'user_pk': User.objects.get(username="User1").pk,
+                    'outplantings': [
+                        {
+                            'pk': indi.outplanting_set.order_by("pk")[0].pk,
+                            'date': None,
+                            'department': str(D1),
+                            'department_pk': D1.pk,
+                            'plant_died': None, 'seeded_date': None,
+                            'inventory_date': '2020-01-01',
+                            'location': 'POINT (0 0)',
+                            'comment': '',
+                        },
+                        {
+                            'pk': indi.outplanting_set.order_by("pk")[1].pk,
+                            'date': '2022-01-01',
+                            'location': None,
+                            'department': str(D2),
+                            'department_pk': D2.pk,
+                            'plant_died': None, 'seeded_date': None,
+                            'inventory_date': '2023-02-03',
+                            'comment': 'new plant layer',
+                        }
+                    ],
+                }
+            ],
+            indi.outplanting_audit,
+        )

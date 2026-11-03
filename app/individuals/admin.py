@@ -84,7 +84,7 @@ class OutplantingInline(admin.TabularInline):
     form = OutplantingForm
     model = Outplanting
     fields = (
-        "department", "location", "seeded_date", "date", "plant_died", "comment",
+        "department", "location", "seeded_date", "date", "inventory_date", "plant_died", "comment",
     )
     min_num = 0
     extra = 0
@@ -110,7 +110,7 @@ class IndividualAdminMixin:
 
     def save_form(self, request, form: forms.Form, change: bool):
         """
-        Override to store Individuals.species_audit
+        Override to store Individual.species_audit
         """
         instance = super().save_form(request, form, change)
         if instance.species_audit == '':
@@ -121,6 +121,20 @@ class IndividualAdminMixin:
         except Individual.DoesNotExist:
             pass
         return instance
+
+    def save_formset(self, request, form, formset: forms.BaseFormSet, change: bool):
+        """
+        Override to store Individual.outplanting_audit
+        """
+        old_outplantings_data = None
+        if formset.model is Outplanting and form.instance:
+            old_outplantings_data = form.instance.get_outplantings_data()
+
+        super().save_formset(request, form, formset, change)
+
+        if old_outplantings_data:
+            form.instance.store_outplantings_audit(old_outplantings_data)
+
 
     def get_fieldsets(self, request, obj=None):
         """
@@ -226,6 +240,7 @@ class IndividualAdmin(IndividualAdminMixin, ConfigurableTable):
     class Media:
         css = {"screen": (
             "BotGard/css_dropdown/css_dropdown.css",
+            "individuals/outplanting-inline.css",
             *MAP_COLUMN_CSS,
         )}
         js = (

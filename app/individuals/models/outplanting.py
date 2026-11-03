@@ -35,6 +35,7 @@ class Outplanting(BotGardBaseModel(unique_name="outplanting")):
     )
     seeded_date = models.DateField(verbose_name=_("sowing date"), blank=True, null=True)
     date = models.DateField(verbose_name=_("bed out date"), blank=True, null=True)
+    inventory_date = models.DateField(verbose_name=_("inventory date"), blank=True, null=True)
     plant_died = models.DateField(verbose_name=_("plant died on"), blank=True, null=True)
     comment = models.TextField(
         verbose_name=_("comment"),
@@ -132,6 +133,13 @@ class OutplantingForm(AutoCompleteForm(Outplanting)):
         ),
         required=False,
     )
+    class Meta:
+        widgets = {
+            "comment": forms.Textarea(attrs={
+                "style": "min-width: 240px; width: 240px; height: 175px",
+            })
+        }
+
 
 
 def _recalc_outplanting_fields(outplanting, exclude_outplanting=None):

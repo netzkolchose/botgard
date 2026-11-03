@@ -37,6 +37,7 @@ Tests should go into BotGard/tests/test_model_dependencies.py
         Individual.ipen_generated -> self
         Individual.is_alive_generated -> [Outplanting,].department
         Individual.location_generated -> [Outplanting,].department
+        Individual.outplanting_audit -> Outplanting
         Individual.name_generated -> Species.family.genus
         Individual.has_specimen_generated -> HerbariumSpecimen
         
