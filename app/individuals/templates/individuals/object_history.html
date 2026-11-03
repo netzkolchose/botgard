@@ -1,0 +1,32 @@
+{% extends "admin/object_history.html" %}
+{% load i18n %}
+
+{% block content %}
+    {{ block.super }}
+
+    {% if object.outplanting_audit %}
+        <h2>{% trans 'Outplanting audit' %}</h2>
+
+        {% with table=object.outplanting_audit_table %}
+        <table>
+            <thead>
+                <tr>
+                    {% for name in table.0.keys %}
+                        <th>{{ name }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in table %}
+                    <tr>
+                        {% for key, value in row.items %}
+                            <td>{{ value }}</td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endwith %}
+
+    {% endif %}
+{% endblock %}

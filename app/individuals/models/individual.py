@@ -20,6 +20,7 @@ from species.models import Species
 from tools.admin_extensions import minimal_admin_context
 from tools.global_request import get_current_user
 from geo.widgets import BotGardOpenLayersWidget
+from tools.users import get_full_username
 from .individual_base import *
 from individuals.numbers import generate_individual_ipen
 from individuals.widgets import SpeciesAuditWidget
@@ -459,7 +460,7 @@ class Individual(IndividualBase(unique_name="individual")):
             user = get_current_user()
             if user:
                 user_pk = user.pk
-                user = user.username
+                user = get_full_username(user)
         audit.append({
             "date": self.species_checked_date or timezone.now().date().isoformat(),
             "user": user,
@@ -508,21 +509,36 @@ class Individual(IndividualBase(unique_name="individual")):
             return
 
         user = get_current_user()
-        user_kwargs = {
-            "user": user.username if user else "-",
-            "user_pk": user.pk if user else None,
-        }
         if not self.outplanting_audit:
             self.outplanting_audit = []
         self.outplanting_audit.append({
             "date": timezone.now().date().isoformat(),
-            **user_kwargs,
+            "user": get_full_username(user) if user else "-",
+            "user_pk": user.pk if user else None,
             "outplantings": outplantings_data,
         })
         # store audit without calling Individual.save
         Individual.objects.filter(pk=self.pk).update(outplanting_audit=self.outplanting_audit)
 
-
+    def outplanting_audit_table(self) -> list[dict]:
+        from django.utils.translation import gettext as _
+        rows = []
+        if not self.outplanting_audit:
+            return rows
+        for audit in self.outplanting_audit:
+            for i, outpl in enumerate(audit["outplantings"]):
+                rows.append({
+                    _("modified at"): audit["date"] if i == 0 else "",
+                    _("modified by"): audit["user"] if i == 0 else "",
+                    _("department"): outpl.get("department") or "",
+                    _("location"): outpl.get("location") or "",
+                    _("sowing date"): outpl.get("seeded_date") or "",
+                    _("bed out date"): outpl.get("date") or "",
+                    _("inventory date"): outpl.get("inventory_date") or "",
+                    _("plant died on"): outpl.get("plant_died") or "",
+                    _("comment"): outpl.get("comment") or "",
+                })
+        return rows
 
 
 class IndividualValidateMixin(object):

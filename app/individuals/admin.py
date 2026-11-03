@@ -8,6 +8,7 @@ from django.contrib.admin import SimpleListFilter
 from django import forms
 from django.db import transaction
 from django.urls import reverse
+from setuptools.depends import extract_constant
 
 from config_app.forms import CustomPropertyTabularInline
 from tools.fieldsets import remove_from_fieldsets
@@ -151,6 +152,7 @@ class IndividualAdminMixin:
 
 class IndividualAdmin(IndividualAdminMixin, ConfigurableTable):
     change_form_template = "individuals/change_form_individual.html"
+    object_history_template = "individuals/object_history.html"
     form = IndividualForm
     save_on_top = True
     list_display = (
@@ -253,6 +255,10 @@ class IndividualAdmin(IndividualAdminMixin, ConfigurableTable):
         add_label_mass_actions(request, actions, "individual")
         return actions
 
+    def history_view(self, request, object_id, extra_context = None):
+        extra_context = extra_context.copy() if extra_context else {}
+        extra_context.update({"a": "b"})
+        return super().history_view(request, object_id, extra_context)
 
 
 class SeedAdmin(IndividualAdminMixin, ConfigurableTable):
