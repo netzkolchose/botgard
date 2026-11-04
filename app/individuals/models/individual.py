@@ -556,7 +556,12 @@ class Individual(IndividualBase(unique_name="individual")):
                 rows.append({
                     _("modified at"): audit["date"] if i == 0 else "",
                     _("modified by"): audit["user"] if i == 0 else "",
-                    **({"index": i} if with_html else {}),
+                    **({
+                           "background": "--selected-row" if i == 0 else (
+                               "--body-bg" if i % 2 == 1 else "--darkened-bg"
+                           )
+                       } if with_html else {}
+                    ),
                     _("department"): outpl.get("department") or "",
                     _("location"): location or "",
                     _("sowing date"): outpl.get("seeded_date") or "",
@@ -567,11 +572,8 @@ class Individual(IndividualBase(unique_name="individual")):
                 })
 
                 if prev_row := prev_rows.get(i):
-                    print("X")
-                    print(prev_row)
-                    print(rows[-1])
                     for key in rows[-1]:
-                        if key not in ("index", _("modified at"), _("modified by")):
+                        if key not in ("background", _("modified at"), _("modified by")):
                             if rows[-1][key] != prev_row[key]:
                                 mark_changed.setdefault(len(rows)-1, set()).add(key)
 

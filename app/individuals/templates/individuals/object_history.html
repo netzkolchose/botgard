@@ -12,7 +12,7 @@
             <thead>
                 <tr>
                     {% for name in table.0.keys %}
-                        {% if name != "index" %}
+                        {% if name != "background" %}
                             <th>{{ name }}</th>
                         {% endif %}
                     {% endfor %}
@@ -20,9 +20,9 @@
             </thead>
             <tbody>
                 {% for row in table %}
-                    <tr {% if row.index == 0 %}style="background: var(--selected-row);"{% endif %}>
+                    <tr {% if row.background %}style="background: var({{ row.background }});"{% endif %}>
                         {% for key, value in row.items %}
-                            {% if key != "index" %}
+                            {% if key != "background" %}
                                 <td>{{ value }}</td>
                             {% endif %}
                         {% endfor %}
