@@ -104,6 +104,13 @@ class TestBase(TestCase):
 
     DEFAULT_PASSWORD = fixtures.DEFAULT_PASSWORD
 
+    def assertEqualNice(self, a, b, msg=None):
+        if a != b:
+            full_msg = f"\nExpected:\n{pprint.pformat(a)}\nGot:\n{pprint.pformat(b)}"
+            if msg:
+                full_msg = f"{full_msg}\n\n{msg}"
+            self.assertEqual(a, b, full_msg)
+
     def get_visible_models(self) -> List[Type[models.Model]]:
         return [
             model for model in django.apps.apps.get_models()

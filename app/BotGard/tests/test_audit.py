@@ -208,10 +208,27 @@ class TestAudit(TestBase):
         o.inventory_date = "2123-01-01"
         o.save()
         indi.store_outplantings_audit(old_data)
-        self.assertEqual(
+        today = timezone.now().date().isoformat()
+        self.assertEqualNice(
             [
                 {
-                    'date': timezone.now().date().isoformat(),
+                    'date': today,
+                    'user': "-",
+                    'user_pk': None,
+                    'outplantings': [
+                        {
+                            'pk': indi.outplanting_set.order_by("pk")[0].pk,
+                            'department': str(D1),
+                            'department_pk': D1.pk,
+                            'location': None, 'seeded_date': None, 'date': None,
+                            'inventory_date': None,
+                            'plant_died': None,
+                            'comment': None,
+                        }
+                    ],
+                },
+                {
+                    'date': today,
                     'user': '-',
                     'user_pk': None,
                     'outplantings': [
@@ -222,7 +239,8 @@ class TestAudit(TestBase):
                             'location': None, 'seeded_date': None, 'date': None,
                             'inventory_date': '2123-01-01',
                             'plant_died': None,
-                            'comment': 'Inventory'}
+                            'comment': 'Inventory'
+                        }
                     ],
                 }
             ],
@@ -261,15 +279,32 @@ class TestAudit(TestBase):
         })
         today = timezone.now().date().isoformat()
         indi.refresh_from_db()
-        self.assertEqual(
+        self.assertEqualNice(
             [
+                {
+                    'date': today,
+                    'user': "-",
+                    'user_pk': None,
+                    'outplantings': [
+                        {
+                            'pk': indi.outplanting_set.order_by("pk")[0].pk,
+                            'department': str(D1),
+                            'department_pk': D1.pk,
+                            'location': None, 'seeded_date': None, 'date': None,
+                            'inventory_date': None,
+                            'plant_died': None,
+                            'comment': None,
+                        }
+                    ],
+                },
                 {
                     'date': today,
                     'user': 'User1', 'user_pk': User.objects.get(username="User1").pk,
                     'outplantings': [
                         {
                             'pk': indi.outplanting_set.order_by("pk")[0].pk,
-                            'date': None, 'comment': '',
+                            'date': None,
+                            'comment': None,
                             'department': str(D1),
                             'department_pk': D1.pk,
                             'plant_died': None, 'seeded_date': None,
@@ -313,19 +348,19 @@ class TestAudit(TestBase):
             [
                 {
                     'date': today,
-                    'user': 'User1', 'user_pk': User.objects.get(username="User1").pk,
+                    'user': "-",
+                    'user_pk': None,
                     'outplantings': [
                         {
                             'pk': indi.outplanting_set.order_by("pk")[0].pk,
-                            'date': None,
                             'department': str(D1),
                             'department_pk': D1.pk,
-                            'plant_died': None, 'seeded_date': None,
-                            'inventory_date': '2020-01-01',
-                            'location': [0., 0.],
-                            'comment': '',
-                        },
-                    ]
+                            'location': None, 'seeded_date': None, 'date': None,
+                            'inventory_date': None,
+                            'plant_died': None,
+                            'comment': None,
+                        }
+                    ],
                 },
                 {
                     'date': today,
@@ -339,7 +374,24 @@ class TestAudit(TestBase):
                             'plant_died': None, 'seeded_date': None,
                             'inventory_date': '2020-01-01',
                             'location': [0., 0.],
-                            'comment': '',
+                            'comment': None,
+                        },
+                    ]
+                },
+                {
+                    'date': today,
+                    'user': 'User1',
+                    'user_pk': User.objects.get(username="User1").pk,
+                    'outplantings': [
+                        {
+                            'pk': indi.outplanting_set.order_by("pk")[0].pk,
+                            'date': None,
+                            'department': str(D1),
+                            'department_pk': D1.pk,
+                            'plant_died': None, 'seeded_date': None,
+                            'inventory_date': '2020-01-01',
+                            'location': [0., 0.],
+                            'comment': None,
                         },
                         {
                             'pk': indi.outplanting_set.order_by("pk")[1].pk,

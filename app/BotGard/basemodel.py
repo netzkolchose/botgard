@@ -1,9 +1,11 @@
+import datetime
 from typing import Optional, Type, Union, List, Tuple
 
 from django.db import models
-from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
+from django.contrib.auth import get_user_model
+
 
 CREATION_FIELDS = (
     "created_date", "created_by", "modified_date", "modified_by",
@@ -42,9 +44,14 @@ def BotGardBaseModel(
 
     :return: the requested django Model base class
     """
+    from django.contrib.admin.models import LogEntry
+    from django.contrib.contenttypes.models import ContentType
+
     from config_app.basemodel import CustomPropertiesBaseModel
     from config_tables.admin import Configurable
     from tools.global_request import get_current_user
+
+    User = get_user_model()
 
     klass = models.Model
 
@@ -93,6 +100,23 @@ def BotGardBaseModel(
                         self.modified_date = timezone.now().date()
                         self.modified_by = user
                 return super().save(*args, **kwargs)
+
+            def get_creation_date_and_user(self) -> Tuple[Optional[datetime.date], Optional[User]]:
+                """
+                Return tuple of creation date and user.
+                Falls back to django's LogEntry model in case self.created_date or self.created_user is not set
+                """
+                date = self.created_date
+                user = self.created_by
+                if not date or not user:
+                    ct = ContentType.objects.get_for_model(self.__class__)
+                    logentry = LogEntry.objects.filter(content_type=ct, object_id=self.pk, action_flag=1).first()
+                    if logentry:
+                        if not date:
+                            date = logentry.action_time.date()
+                        if not user:
+                            user = logentry.user
+                return date, user
 
         klass = Model
 

@@ -1,6 +1,6 @@
 import datetime
 import json
-from typing import List
+from typing import List, Tuple, Optional
 
 from django.db.models import QuerySet
 from django.utils.translation import gettext_lazy as _
@@ -493,7 +493,7 @@ class Individual(IndividualBase(unique_name="individual")):
                 "date": o.date.isoformat() if o.date else None,
                 "inventory_date": o.inventory_date.isoformat() if o.inventory_date else None,
                 "plant_died": o.plant_died.isoformat() if o.plant_died else None,
-                "comment": o.comment,
+                "comment": o.comment or None,
             }
             for o in self.outplanting_set.order_by("pk")
         ]
@@ -511,6 +511,16 @@ class Individual(IndividualBase(unique_name="individual")):
         user = get_current_user()
         if not self.outplanting_audit:
             self.outplanting_audit = []
+            # fallback, if outplanting_audit has not existed before outplanting creation
+            if old_outplantings_data:
+                creation_date, creation_user = self.get_creation_date_and_user()
+                self.outplanting_audit.append({
+                    "date": creation_date.isoformat() if creation_date else "-",
+                    "user": get_full_username(creation_user) if creation_user else "-",
+                    "user_pk": creation_user.pk if creation_user else None,
+                    "outplantings": old_outplantings_data,
+                })
+
         self.outplanting_audit.append({
             "date": timezone.now().date().isoformat(),
             "user": get_full_username(user) if user else "-",
@@ -525,8 +535,14 @@ class Individual(IndividualBase(unique_name="individual")):
         rows = []
         if not self.outplanting_audit:
             return rows
-        for audit in self.outplanting_audit:
-            for i, outpl in enumerate(audit["outplantings"]):
+        prev_rows = {}
+        mark_changed = {}
+        for audit_idx, audit in enumerate(self.outplanting_audit):
+            outplantings = audit["outplantings"]
+            if not outplantings:
+                outplantings = [{}]
+            new_prev_rows = {}
+            for i, outpl in enumerate(outplantings):
                 location = outpl.get("location")
                 if location:
                     try:
@@ -549,6 +565,24 @@ class Individual(IndividualBase(unique_name="individual")):
                     _("plant died on"): outpl.get("plant_died") or "",
                     _("comment"): outpl.get("comment") or "",
                 })
+
+                if prev_row := prev_rows.get(i):
+                    print("X")
+                    print(prev_row)
+                    print(rows[-1])
+                    for key in rows[-1]:
+                        if key not in ("index", _("modified at"), _("modified by")):
+                            if rows[-1][key] != prev_row[key]:
+                                mark_changed.setdefault(len(rows)-1, set()).add(key)
+
+                new_prev_rows[i] = rows[-1]
+
+            prev_rows = new_prev_rows.copy()
+
+        for row_idx, keys in mark_changed.items():
+            for key in keys:
+                rows[row_idx][key] = mark_safe(format_html("<b>{}</b>", rows[row_idx][key]))
+
         return rows
 
 
