@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-23 12:35+0200\n"
+"POT-Creation-Date: 2026-11-04 14:14+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -25,23 +25,25 @@ msgstr "Karte des Gartens"
 msgid "BotGard"
 msgstr "BotGard"
 
-#: BotGard/basemodel.py:63
+#: BotGard/basemodel.py:70
 msgid "created by"
 msgstr "erstellt von"
 
-#: BotGard/basemodel.py:70 config_app/models/customprops.py:66
+#: BotGard/basemodel.py:77 config_app/models/customprops.py:66
 msgid "created at"
 msgstr "erstellt am"
 
-#: BotGard/basemodel.py:74
+#: BotGard/basemodel.py:81 individuals/models/individual.py:558
+#: individuals/models/individual.py:574
 msgid "modified by"
 msgstr "geändert von"
 
-#: BotGard/basemodel.py:81
+#: BotGard/basemodel.py:88 individuals/models/individual.py:557
+#: individuals/models/individual.py:574
 msgid "modified at"
 msgstr "geändert am"
 
-#: BotGard/basemodel.py:132
+#: BotGard/basemodel.py:156
 msgid "Changes"
 msgstr "Änderungen"
 
@@ -85,33 +87,33 @@ msgstr "Übermitteln"
 #: BotGard/tests/data/label-individual-complex.html:5
 #: config_app/models/customprops.py:27
 #: demo-data/labels/individual-multipage-inner.html:5
-#: individuals/models/individual.py:231 individuals/models/individual.py:616
-#: individuals/models/outplanting.py:95 species/models.py:59
+#: individuals/models/individual.py:258 individuals/models/individual.py:753
+#: individuals/models/outplanting.py:99 species/models.py:59
 #: species/models.py:70 species/models.py:289
 msgid "genus"
 msgstr "Gattung"
 
 #: BotGard/tests/data/label-individual-complex.html:10
 #: demo-data/labels/individual-multipage-inner.html:10
-#: individuals/models/individual_base.py:137
+#: individuals/models/individual_base.py:143
 msgid "collecting place description"
 msgstr "Fundort - detail."
 
 #: BotGard/tests/data/label-individual-complex.html:14
 #: demo-data/labels/individual-multipage-inner.html:14
-#: individuals/models/individual_base.py:138
+#: individuals/models/individual_base.py:144
 msgid "collector's name"
 msgstr "Sammlername"
 
 #: BotGard/tests/data/label-individual-complex.html:17
 #: demo-data/labels/individual-multipage-inner.html:17
-#: individuals/models/individual_base.py:140
+#: individuals/models/individual_base.py:146
 msgid "collection number"
 msgstr "Sammelnummer"
 
 #: BotGard/tests/data/label-individual-complex.html:20
 #: demo-data/labels/individual-multipage-inner.html:20
-#: individuals/models/individual_base.py:143
+#: individuals/models/individual_base.py:149
 msgid "collection date"
 msgstr "Sammeldatum"
 
@@ -122,20 +124,20 @@ msgstr "Verbreitung"
 
 #: BotGard/tests/data/label-individual-complex.html:30
 #: demo-data/labels/individual-multipage-inner.html:30 entrybook/admin.py:70
-#: entrybook/models/entry.py:62 individuals/admin.py:216
-#: individuals/models/individual.py:58
+#: entrybook/models/entry.py:62 individuals/admin.py:225
+#: individuals/models/individual.py:59
 msgid "source"
 msgstr "Quelle"
 
 #: BotGard/tests/data/label-individual-complex.html:33
 #: demo-data/labels/individual-multipage-inner.html:33
-#: individuals/models/individual_base.py:122
+#: individuals/models/individual_base.py:128
 msgid "date of receipt"
 msgstr "Eingangsdatum"
 
 #: BotGard/tests/data/label-individual-complex.html:36
 #: demo-data/labels/individual-multipage-inner.html:36
-#: individuals/models/individual_base.py:124
+#: individuals/models/individual_base.py:130
 msgid "received as"
 msgstr "Eingangsform"
 
@@ -259,7 +261,7 @@ msgstr "IPEN-Kürzel"
 
 #: botman/models/bgci_gardens.py:23 botman/models/garden.py:42
 #: config_app/models/customprops.py:79 entrybook/models/dispatch.py:107
-#: individuals/models/individual_base.py:88
+#: individuals/models/individual_base.py:94
 msgid "name"
 msgstr "Name"
 
@@ -270,7 +272,7 @@ msgid "type"
 msgstr "Typ"
 
 #: botman/models/bgci_gardens.py:26 botman/models/bgci_gardens.py:44
-#: botman/models/garden.py:50 botman/models/garden.py:90
+#: botman/models/garden.py:50 botman/models/garden.py:93
 msgid "website"
 msgstr "Webseite"
 
@@ -279,7 +281,7 @@ msgid "phone"
 msgstr "Telefon"
 
 #: botman/models/bgci_gardens.py:28 botman/models/bgci_gardens.py:56
-#: botman/models/garden.py:51 botman/models/garden.py:111
+#: botman/models/garden.py:51 botman/models/garden.py:114
 msgid "email"
 msgstr "eMail"
 
@@ -307,7 +309,7 @@ msgstr "Adresse"
 msgid "BGCI data"
 msgstr "BGCI Daten"
 
-#: botman/models/bgci_gardens.py:46 botman/models/garden.py:101
+#: botman/models/bgci_gardens.py:46 botman/models/garden.py:104
 msgid "BGCI website"
 msgstr "BGCI Webseite"
 
@@ -349,11 +351,11 @@ msgstr "Externe Kataloge"
 
 #: botman/models/catalogs.py:69 botman/models/catalogs.py:70
 #: botman/models/catalogs.py:113 botman/models/catalogs.py:114
-#: botman/models/garden.py:131 botman/models/garden.py:132
+#: botman/models/garden.py:134 botman/models/garden.py:135
 #: entrybook/models/entry.py:137 entrybook/models/entry.py:138
 #: herbaria/models/herbarium.py:62 herbaria/models/herbarium.py:64
-#: herbaria/models/specimen.py:142 herbaria/models/specimen.py:144
-#: individuals/models/individual.py:194 individuals/models/individual.py:196
+#: herbaria/models/specimen.py:145 herbaria/models/specimen.py:147
+#: individuals/models/individual.py:221 individuals/models/individual.py:223
 #: individuals/models/territory.py:131 individuals/models/territory.py:132
 #: individuals/models/territory.py:254 individuals/models/territory.py:255
 #: species/models.py:95 species/models.py:96 species/models.py:302
@@ -415,7 +417,7 @@ msgstr "Benutzer eMail"
 msgid "latest catalog date"
 msgstr "Aktuelles Katalogdatum"
 
-#: botman/models/garden.py:17 labels/models.py:18
+#: botman/models/garden.py:17 labels/models.py:27
 msgid "Botanic Garden"
 msgstr "Botanischer Garten"
 
@@ -437,9 +439,11 @@ msgid "garden number"
 msgstr "Gartennummer"
 
 #: botman/models/garden.py:52 entrybook/models/dispatch.py:93
-#: individuals/models/individual_base.py:153
-#: individuals/models/outplanting.py:40 meta/models/project.py:65
-#: plantimages/models.py:12 species/models.py:184
+#: individuals/models/individual.py:566
+#: individuals/models/individual_base.py:159
+#: individuals/models/outplanting.py:41
+#: individuals/templates/individuals/species_audit_widget.html:10
+#: meta/models/project.py:65 plantimages/models.py:12 species/models.py:184
 msgid "comment"
 msgstr "Bemerkungen"
 
@@ -458,7 +462,7 @@ msgstr ""
 msgid "full name"
 msgstr "ganzer Name"
 
-#: botman/models/garden.py:80
+#: botman/models/garden.py:83
 msgid ""
 "Each line in the address is available separately, e.g. "
 "{{obj.botanicgarden.address_lines.0}}, "
@@ -468,19 +472,19 @@ msgstr ""
 "{{obj.botanicgarden.address_lines.0}}, "
 "{{obj.botanicgarden.address_lines.1}}, usw."
 
-#: botman/models/garden.py:120 individuals/models/individual.py:625
-#: labels/__init__.py:81
+#: botman/models/garden.py:123 individuals/models/individual.py:762
+#: labels/__init__.py:81 labels/models.py:223
 msgid "label"
 msgstr "Etikett"
 
-#: botman/models/garden.py:125 botman/models/garden.py:126
-#: config_app/models/customprops.py:182 config_app/models/customprops.py:183
+#: botman/models/garden.py:128 botman/models/garden.py:129
+#: config_app/models/customprops.py:204 config_app/models/customprops.py:205
 #: entrybook/models/dispatch.py:122 entrybook/models/dispatch.py:123
 #: entrybook/models/entry.py:130 entrybook/models/entry.py:131
 #: herbaria/models/herbarium.py:54 herbaria/models/herbarium.py:56
-#: herbaria/models/specimen.py:134 herbaria/models/specimen.py:136
-#: individuals/models/individual.py:186 individuals/models/individual.py:188
-#: individuals/models/outplanting.py:63 individuals/models/outplanting.py:64
+#: herbaria/models/specimen.py:137 herbaria/models/specimen.py:139
+#: individuals/models/individual.py:213 individuals/models/individual.py:215
+#: individuals/models/outplanting.py:67 individuals/models/outplanting.py:68
 #: individuals/models/territory.py:124 individuals/models/territory.py:125
 #: individuals/models/territory.py:240 individuals/models/territory.py:241
 #: literature/models/literature.py:108 literature/models/literature.py:109
@@ -586,12 +590,12 @@ msgid "Home"
 msgstr "Home"
 
 #: botman/templates/botman/no-permission.html:6
-#: botman/views/utility_views.py:27
+#: botman/views/utility_views.py:29
 msgid "Sorry, but you do not have that permission!"
 msgstr "Sie haben leider keine Berechtigung"
 
 #: botman/templates/botman/no-permission.html:8
-#: botman/views/utility_views.py:28
+#: botman/views/utility_views.py:30
 msgid "Log out and change user"
 msgstr "Abmelden und Benutzer wechseln"
 
@@ -605,16 +609,16 @@ msgstr "%s Kataloge ins Archiv bewegt"
 msgid "Error moving catalogs: %s"
 msgstr "Fehler beim Verschieben der Kataloge: %s"
 
-#: botman/views/utility_views.py:69
+#: botman/views/utility_views.py:72
 #, python-format
 msgid "Deleted <b>%s</b>"
 msgstr "<b>%s</b> gelöscht"
 
-#: botman/views/utility_views.py:71
+#: botman/views/utility_views.py:74
 msgid "Invalid id"
 msgstr "ungültige ID"
 
-#: botman/views/utility_views.py:153
+#: botman/views/utility_views.py:156
 msgid "user activity"
 msgstr "Benutzeraktivität"
 
@@ -634,11 +638,11 @@ msgstr "Tabelleneinstellungen"
 msgid "bool values"
 msgstr "Boolean Werte"
 
-#: config_app/fields.py:114 config_app/models/customprops.py:219
+#: config_app/fields.py:114 config_app/models/customprops.py:241
 msgid "text values"
 msgstr "Text Werte"
 
-#: config_app/fields.py:120 config_app/models/customprops.py:250
+#: config_app/fields.py:120 config_app/models/customprops.py:272
 msgid "user values"
 msgstr "Benutzer Werte"
 
@@ -667,15 +671,16 @@ msgid "Text (long)"
 msgstr "Text (lang)"
 
 #: config_app/models/customprops.py:25 geo/templates/geo/garden_map.html:32
-#: geo/templates/geo/garden_map.html:73 individuals/models/outplanting.py:76
+#: geo/templates/geo/garden_map.html:73 individuals/models/outplanting.py:80
 #: individuals/models/territory.py:96 individuals/models/territory.py:210
 msgid "territory"
 msgstr "Revier"
 
 #: config_app/models/customprops.py:26 entrybook/models/entry.py:116
 #: entrybook/models/entry.py:163 geo/templates/geo/garden_map.html:48
-#: geo/templates/geo/garden_map.html:74 individuals/models/outplanting.py:27
-#: individuals/models/outplanting.py:70 individuals/models/territory.py:205
+#: geo/templates/geo/garden_map.html:74 individuals/models/individual.py:560
+#: individuals/models/outplanting.py:27 individuals/models/outplanting.py:74
+#: individuals/models/territory.py:205
 msgid "department"
 msgstr "Abteilung"
 
@@ -697,8 +702,8 @@ msgstr "Ausgang"
 
 #: config_app/models/customprops.py:31 entrybook/models/dispatch.py:63
 #: entrybook/models/dispatch.py:144 herbaria/models/specimen.py:81
-#: herbaria/models/specimen.py:158 individuals/models/individual.py:34
-#: individuals/models/outplanting.py:26 individuals/models/outplanting.py:83
+#: herbaria/models/specimen.py:161 individuals/models/individual.py:35
+#: individuals/models/outplanting.py:26 individuals/models/outplanting.py:87
 #: tickets/models.py:141
 msgid "individual"
 msgstr "Individuum"
@@ -710,13 +715,13 @@ msgid "Herbarium"
 msgstr "Herbarium"
 
 #: config_app/models/customprops.py:33 herbaria/models/specimen.py:69
-#: herbaria/models/specimen.py:130 herbaria/models/specimen.py:164
-#: labels/models.py:21
+#: herbaria/models/specimen.py:130 herbaria/models/specimen.py:167
+#: labels/models.py:31
 msgid "Specimen"
 msgstr "Herbarbeleg"
 
 #: config_app/models/customprops.py:34 entrybook/models/entry.py:96
-#: individuals/models/individual_base.py:111
+#: individuals/models/individual_base.py:117
 #: individuals/templates/individuals/species_audit_widget.html:9
 #: literature/models/literature.py:17 literature/models/literature.py:18
 #: species/models.py:188
@@ -727,8 +732,8 @@ msgstr "Literatur"
 msgid "project"
 msgstr "Projekt"
 
-#: config_app/models/customprops.py:58 config_app/models/customprops.py:195
-#: config_app/models/customprops.py:224 config_app/models/customprops.py:255
+#: config_app/models/customprops.py:58 config_app/models/customprops.py:217
+#: config_app/models/customprops.py:246 config_app/models/customprops.py:277
 msgid "custom property"
 msgstr "Freie Eigenschaft"
 
@@ -756,25 +761,25 @@ msgstr "Wahlmöglichkeiten"
 msgid "For text properties, limits the selection to these items, one per line"
 msgstr "Für Text-Werte, limitiert die Auswahl auf diese Werte, einen pro Zeile"
 
-#: config_app/models/customprops.py:189
+#: config_app/models/customprops.py:211
 msgid "boolean value"
 msgstr "Boolean Wert"
 
-#: config_app/models/customprops.py:190
+#: config_app/models/customprops.py:212
 msgid "boolean values"
 msgstr "Boolean Werte"
 
-#: config_app/models/customprops.py:201 config_app/models/customprops.py:230
-#: config_app/models/customprops.py:261 config_app/models/keyvalue.py:23
+#: config_app/models/customprops.py:223 config_app/models/customprops.py:252
+#: config_app/models/customprops.py:283 config_app/models/keyvalue.py:23
 #: config_app/models/keyvalue.py:24 config_app/models/keyvalue.py:71
 msgid "value"
 msgstr "Wert"
 
-#: config_app/models/customprops.py:218
+#: config_app/models/customprops.py:240
 msgid "text value"
 msgstr "Text Wert"
 
-#: config_app/models/customprops.py:249
+#: config_app/models/customprops.py:271
 msgid "user value"
 msgstr "Benutzer Wert"
 
@@ -824,21 +829,21 @@ msgstr "Typ \"%s\" unbekannt"
 msgid "Invalid type in KeyValue \"%s\""
 msgstr "Unbekannter Typ in KeyValue \"%s\""
 
-#: config_tables/admin.py:404 config_tables/admin.py:436
+#: config_tables/admin.py:456 config_tables/admin.py:488
 #, python-format
 msgid "Configure table %(name)s"
 msgstr "%(name)s-Tabelle bearbeiten"
 
-#: config_tables/admin.py:665
+#: config_tables/admin.py:704
 #, python-format
 msgid "Remove filter for %s"
 msgstr "Filter für %s entfernen"
 
-#: config_tables/admin.py:725
+#: config_tables/admin.py:764
 msgid "yes"
 msgstr "Ja"
 
-#: config_tables/admin.py:726
+#: config_tables/admin.py:765
 msgid "no"
 msgstr "Nein"
 
@@ -958,21 +963,21 @@ msgstr "90 (Kulturpflanze/Samen wechselnder Herkünfte)"
 msgid "W (Wildsamen)"
 msgstr "W (Wildsamen)"
 
-#: entrybook/admin.py:79 individuals/admin.py:209
+#: entrybook/admin.py:79 individuals/admin.py:218
 msgid "habitat"
 msgstr "Herkunft"
 
-#: entrybook/admin.py:86 individuals/admin.py:219
+#: entrybook/admin.py:86 individuals/admin.py:228
 msgid "miscellaneous"
 msgstr "Verschiedenes"
 
-#: entrybook/admin.py:96 individuals/admin.py:226
-#: individuals/models/individual.py:604 species/models.py:330
+#: entrybook/admin.py:96 individuals/admin.py:235
+#: individuals/models/individual.py:741 species/models.py:330
 msgid "seeds"
 msgstr "Samen"
 
 #: entrybook/admin.py:99 individuals/models/outplanting.py:23
-#: individuals/models/outplanting.py:46
+#: individuals/models/outplanting.py:47 labels/models.py:30
 msgid "Outplanting"
 msgstr "Pflanzung"
 
@@ -980,7 +985,7 @@ msgstr "Pflanzung"
 msgid "entry/dispatch books"
 msgstr "Eingangs-/Ausgangsbücher"
 
-#: entrybook/models/dispatch.py:20 individuals/models/individual_base.py:39
+#: entrybook/models/dispatch.py:20 individuals/models/individual_base.py:40
 msgid "Plant"
 msgstr "Pflanze"
 
@@ -992,11 +997,11 @@ msgstr "Blatt"
 msgid "Branch"
 msgstr "Zweig"
 
-#: entrybook/models/dispatch.py:23 individuals/models/individual_base.py:41
+#: entrybook/models/dispatch.py:23 individuals/models/individual_base.py:42
 msgid "Seed"
 msgstr "Samen"
 
-#: entrybook/models/dispatch.py:24 individuals/models/individual_base.py:43
+#: entrybook/models/dispatch.py:24 individuals/models/individual_base.py:44
 msgid "Scion"
 msgstr "Steckling"
 
@@ -1037,18 +1042,18 @@ msgid "transfer by"
 msgstr "Abgabe durch"
 
 #: entrybook/models/dispatch.py:99 entrybook/models/entry.py:89
-#: individuals/models/individual_base.py:176
+#: individuals/models/individual_base.py:182
 msgid "project assignment"
 msgstr "Projektzuordnung"
 
 #: entrybook/models/dispatch.py:132 entrybook/models/entry.py:148
-#: entrybook/models/entry.py:157 herbaria/models/specimen.py:172
-#: individuals/models/individual.py:209
+#: entrybook/models/entry.py:157 herbaria/models/specimen.py:175
+#: individuals/models/individual.py:236
 msgid "create label"
 msgstr "Etikett erstellen"
 
-#: entrybook/models/dispatch.py:151 entrybook/models/entry.py:179
-#: individuals/models/individual.py:370 meta/models/project.py:18
+#: entrybook/models/dispatch.py:151 entrybook/models/entry.py:178
+#: individuals/models/individual.py:396 meta/models/project.py:18
 msgid "projects"
 msgstr "Projekte"
 
@@ -1056,24 +1061,26 @@ msgstr "Projekte"
 msgid "entries"
 msgstr "Eingänge"
 
-#: entrybook/models/entry.py:43 individuals/models/individual_base.py:134
+#: entrybook/models/entry.py:43 individuals/models/individual_base.py:140
 msgid "collecting country"
 msgstr "Fundort - Land"
 
-#: entrybook/models/entry.py:54 individuals/models/individual.py:54
+#: entrybook/models/entry.py:54 individuals/models/individual.py:55
 #: individuals/templates/individuals/species_audit_widget.html:6
 msgid "genus & Species"
 msgstr "Gattung & Art"
 
-#: entrybook/models/entry.py:79 individuals/models/individual.py:43
+#: entrybook/models/entry.py:79 individuals/models/individual.py:44
 msgid "Created by"
 msgstr "Erstellt von"
 
-#: entrybook/models/entry.py:106 individuals/models/outplanting.py:36
+#: entrybook/models/entry.py:106 individuals/models/individual.py:562
+#: individuals/models/outplanting.py:36
 msgid "sowing date"
 msgstr "Aussaatdatum"
 
-#: entrybook/models/entry.py:111 individuals/models/outplanting.py:37
+#: entrybook/models/entry.py:111 individuals/models/individual.py:563
+#: individuals/models/outplanting.py:37
 msgid "bed out date"
 msgstr "Auspflanzdatum"
 
@@ -1081,8 +1088,8 @@ msgstr "Auspflanzdatum"
 msgid "Seed/individual entry"
 msgstr "Eingang"
 
-#: entrybook/models/entry.py:171 individuals/models/individual.py:362
-#: individuals/models/individual_base.py:146
+#: entrybook/models/entry.py:171 individuals/models/individual.py:389
+#: individuals/models/individual_base.py:152
 msgid "collecting coordinates"
 msgstr "Fundort - Koordinaten"
 
@@ -1227,7 +1234,7 @@ msgstr "3D getrocknet"
 msgid "Specimens"
 msgstr "Herbarbelege"
 
-#: herbaria/models/specimen.py:89 individuals/models/individual_base.py:76
+#: herbaria/models/specimen.py:89 individuals/models/individual_base.py:82
 msgid "accession #"
 msgstr "Akzessionsnummer"
 
@@ -1247,7 +1254,7 @@ msgstr "Belegtyp"
 msgid "Specimen of {}"
 msgstr "Herbarbeleg von {}"
 
-#: herbaria/models/specimen.py:205
+#: herbaria/models/specimen.py:208
 msgid "Please select..."
 msgstr "Bitte auswählen..."
 
@@ -1276,269 +1283,278 @@ msgstr "{} Samen aus {} entfernt"
 msgid "Individuals and their locations"
 msgstr "Individuen und Standorte"
 
-#: individuals/models/individual.py:35 species/models.py:320
+#: individuals/models/individual.py:36 species/models.py:320
 #: tickets/models.py:142
 msgid "individuals"
 msgstr "Individuen"
 
-#: individuals/models/individual.py:37
+#: individuals/models/individual.py:38
 msgid "Can see collecting coordinates"
 msgstr "Kann Fundort-Koordinaten sehen"
 
-#: individuals/models/individual.py:73
+#: individuals/models/individual.py:78
 msgid "Determination audit"
 msgstr "Bestimmungsrevision"
 
-#: individuals/models/individual.py:81
+#: individuals/models/individual.py:97
+#: individuals/templates/individuals/object_history.html:8
+msgid "Outplanting audit"
+msgstr "Bestandshistorie"
+
+#: individuals/models/individual.py:105
 msgid "alive_outplantings_generated"
 msgstr "alive_outplantings_generated"
 
-#: individuals/models/individual.py:85
+#: individuals/models/individual.py:109
 msgid "outplantings_generated"
 msgstr "outplantings_generated"
 
-#: individuals/models/individual.py:90 individuals/models/individual.py:245
+#: individuals/models/individual.py:114 individuals/models/individual.py:272
 #: individuals/models/territory.py:206
 msgid "departments"
 msgstr "Abteilungen"
 
-#: individuals/models/individual.py:92 individuals/models/individual.py:251
+#: individuals/models/individual.py:116 individuals/models/individual.py:278
 #: individuals/models/territory.py:97
 msgid "territories"
 msgstr "Reviere"
 
-#: individuals/models/individual.py:94 individuals/models/individual.py:279
+#: individuals/models/individual.py:118 individuals/models/individual.py:306
 msgid "is alive"
 msgstr "lebend"
 
-#: individuals/models/individual.py:95
+#: individuals/models/individual.py:119
 msgid "has specimen"
 msgstr "Herbarbeleg vorhanden"
 
-#: individuals/models/individual.py:101 labels/models.py:19
+#: individuals/models/individual.py:125 labels/models.py:29
 msgid "Individual"
 msgstr "Individuum"
 
-#: individuals/models/individual.py:225 individuals/models/individual.py:610
-#: individuals/models/outplanting.py:89 species/models.py:66
+#: individuals/models/individual.py:252 individuals/models/individual.py:747
+#: individuals/models/outplanting.py:93 species/models.py:66
 #: species/models.py:283
 msgid "family"
 msgstr "Familie"
 
-#: individuals/models/individual.py:238 species/models.py:170
+#: individuals/models/individual.py:265 species/models.py:170
 msgid "endangering"
 msgstr "Gefährdung"
 
-#: individuals/models/individual.py:259 individuals/models/individual.py:633
+#: individuals/models/individual.py:286 individuals/models/individual.py:770
 #: species/models.py:182
 msgid "nomenclature checked"
 msgstr "Nomenklatur geprüft"
 
-#: individuals/models/individual.py:265 individuals/models/individual.py:647
+#: individuals/models/individual.py:292 individuals/models/individual.py:784
 #: species/models.py:167
 msgid "label text"
 msgstr "Verbreitung"
 
-#: individuals/models/individual.py:271 individuals/models/individual.py:640
+#: individuals/models/individual.py:298 individuals/models/individual.py:777
 #: species/models.py:169
 msgid "detailed"
 msgstr "Verbreitung detail."
 
-#: individuals/models/individual.py:299 plantimages/models.py:8
+#: individuals/models/individual.py:326 plantimages/models.py:8
 #: plantimages/models.py:11
 msgid "image"
 msgstr "Bild"
 
-#: individuals/models/individual.py:343
+#: individuals/models/individual.py:370
 msgid "locations"
 msgstr "Standorte"
 
-#: individuals/models/individual.py:354 individuals/models/outplanting.py:117
+#: individuals/models/individual.py:381 individuals/models/outplanting.py:121
 msgid "Map"
 msgstr "Karte"
 
-#: individuals/models/individual.py:475
+#: individuals/models/individual.py:561 individuals/models/outplanting.py:30
+#: individuals/models/outplanting.py:107 literature/models/literature.py:84
+msgid "location"
+msgstr "Standort"
+
+#: individuals/models/individual.py:564 individuals/models/outplanting.py:38
+msgid "inventory date"
+msgstr "Inventurdatum"
+
+#: individuals/models/individual.py:565 individuals/models/outplanting.py:39
+msgid "plant died on"
+msgstr "Pflanze gestorben am"
+
+#: individuals/models/individual.py:612
 msgid "The selected garden does not have an IPEN code."
 msgstr "Der gewählte Garten hat keinen IPEN-Code"
 
-#: individuals/models/individual.py:491
+#: individuals/models/individual.py:628
 msgid "Order number must be assigned"
 msgstr "Bestellnummer muß angegeben werden"
 
-#: individuals/models/individual.py:497
+#: individuals/models/individual.py:634
 #, python-format
 msgid "Order number already exists, next free number is %s"
 msgstr "Die Bestellnummer ist bereits vergeben, die nächste freie Nummer is %s"
 
-#: individuals/models/individual.py:546
+#: individuals/models/individual.py:683
 msgid "included"
 msgstr "enthalten"
 
-#: individuals/models/individual.py:547
+#: individuals/models/individual.py:684
 msgid "not included"
 msgstr "nicht enthalten"
 
-#: individuals/models/individual.py:552
+#: individuals/models/individual.py:689
 msgid "is in latest catalog"
 msgstr "im Katalog enthalten"
 
-#: individuals/models/individual.py:565
+#: individuals/models/individual.py:702
 msgid "All"
 msgstr "Alle"
 
-#: individuals/models/individual.py:603 seedcatalog/models.py:55
+#: individuals/models/individual.py:740 seedcatalog/models.py:55
 msgid "seed"
 msgstr "Samen"
 
-#: individuals/models/individual.py:656
+#: individuals/models/individual.py:793
 msgid "Create new catalog."
 msgstr "Neuen Katalog erstellen"
 
-#: individuals/models/individual.py:666 individuals/models/individual.py:671
+#: individuals/models/individual.py:803 individuals/models/individual.py:808
 msgid "catalog"
 msgstr "Katalog"
 
-#: individuals/models/individual.py:666
+#: individuals/models/individual.py:803
 msgid "remove"
 msgstr "entfernen"
 
-#: individuals/models/individual.py:671
+#: individuals/models/individual.py:808
 msgid "add"
 msgstr "hinzufügen"
 
-#: individuals/models/individual.py:674
+#: individuals/models/individual.py:811
 msgid "add to current catalog"
 msgstr "Zu letztem Katalog hinzufügen"
 
-#: individuals/models/individual_base.py:34
+#: individuals/models/individual_base.py:35
 msgid "1 (transfer restricted)"
 msgstr "1 (Transfer beschränkt)"
 
-#: individuals/models/individual_base.py:35
+#: individuals/models/individual_base.py:36
 msgid "0 (transfer unrestriced)"
 msgstr "0 (Transfer unbeschränkt)"
 
-#: individuals/models/individual_base.py:40
+#: individuals/models/individual_base.py:41
 msgid "Plant part"
 msgstr "Pflanzenteil"
 
-#: individuals/models/individual_base.py:42
+#: individuals/models/individual_base.py:43
 msgid "Seedling"
 msgstr "Sämling"
 
-#: individuals/models/individual_base.py:44
+#: individuals/models/individual_base.py:45
 msgid "Spores"
 msgstr "Sporen"
 
-#: individuals/models/individual_base.py:45
-#: individuals/models/individual_base.py:52
-#: individuals/models/individual_base.py:204 tickets/models.py:24
+#: individuals/models/individual_base.py:46
+#: individuals/models/individual_base.py:53
+#: individuals/models/individual_base.py:213 tickets/models.py:24
 #: tools/countries.py:264
 msgid "unknown"
 msgstr "unbekannt"
 
-#: individuals/models/individual_base.py:49
+#: individuals/models/individual_base.py:50
 msgid "male"
 msgstr "männlich"
 
-#: individuals/models/individual_base.py:50
+#: individuals/models/individual_base.py:51
 msgid "female"
 msgstr "weiblich"
 
-#: individuals/models/individual_base.py:51
+#: individuals/models/individual_base.py:52
 msgid "hermaphrodite"
 msgstr "zwittrig"
 
-#: individuals/models/individual_base.py:56
+#: individuals/models/individual_base.py:57
 msgid "wild seed"
 msgstr "Wildsamen"
 
-#: individuals/models/individual_base.py:57
+#: individuals/models/individual_base.py:58
 msgid "cultivated wild plant"
 msgstr "kultivierte Wildpflanze"
 
-#: individuals/models/individual_base.py:58
+#: individuals/models/individual_base.py:59
 msgid "cultivated plant"
 msgstr "kultiviertes Gartenmaterial"
 
-#: individuals/models/individual_base.py:83
+#: individuals/models/individual_base.py:89
 msgid "code of origin"
 msgstr "Herkunftscode"
 
-#: individuals/models/individual_base.py:94
+#: individuals/models/individual_base.py:100
 #: individuals/templates/individuals/species_audit_widget.html:7
 msgid "plant categorized by"
 msgstr "Pflanze bestimmt von"
 
-#: individuals/models/individual_base.py:97
+#: individuals/models/individual_base.py:103
 #: individuals/templates/individuals/species_audit_widget.html:8
 msgid "categorized at"
 msgstr "Pflanze bestimmt am"
 
-#: individuals/models/individual_base.py:101
+#: individuals/models/individual_base.py:107
 msgid "received as species"
 msgstr "Erhalten als Art"
 
-#: individuals/models/individual_base.py:105
+#: individuals/models/individual_base.py:111
 msgid "comment (determination)"
 msgstr "Bemerkung (Bestimmung)"
 
-#: individuals/models/individual_base.py:128
+#: individuals/models/individual_base.py:134
 msgid "External order number"
 msgstr "Externe Bestellnummer"
 
-#: individuals/models/individual_base.py:152
+#: individuals/models/individual_base.py:158
 msgid "gender"
 msgstr "Geschlecht"
 
-#: individuals/models/individual_base.py:161
+#: individuals/models/individual_base.py:167
 msgid "seed available"
 msgstr "Samen vorhanden"
 
-#: individuals/models/individual_base.py:163 individuals/numbers.py:268
+#: individuals/models/individual_base.py:169 individuals/numbers.py:268
 msgid "order number"
 msgstr "Bestellnummer"
 
-#: individuals/models/individual_base.py:167
+#: individuals/models/individual_base.py:173
 msgid "seed's collection date"
 msgstr "Sameneingangsdatum"
 
-#: individuals/models/individual_base.py:168
+#: individuals/models/individual_base.py:174
 msgid "seed in stock"
 msgstr "Samen in Lager"
 
-#: individuals/models/individual_base.py:171
+#: individuals/models/individual_base.py:177
 msgid "sowing number"
 msgstr "Aussaatnummer"
 
-#: individuals/models/individual_base.py:183
+#: individuals/models/individual_base.py:189
 msgid "import reference"
 msgstr "Import-Referenz"
 
-#: individuals/models/individual_base.py:185
+#: individuals/models/individual_base.py:191
 msgid "a reference number in an external data source"
 msgstr "Eine Referenznummer in einer externen Datenquelle"
 
-#: individuals/models/individual_base.py:188
+#: individuals/models/individual_base.py:194
 msgid "status"
 msgstr "Status"
 
-#: individuals/models/individual_base.py:195
+#: individuals/models/individual_base.py:204
 msgid "collecting country name"
 msgstr "Fundort - Ländername"
 
 #: individuals/models/outplanting.py:24
 msgid "Outplantings"
 msgstr "Pflanzungen"
-
-#: individuals/models/outplanting.py:30 individuals/models/outplanting.py:103
-#: literature/models/literature.py:84
-msgid "location"
-msgstr "Standort"
-
-#: individuals/models/outplanting.py:38
-msgid "plant died on"
-msgstr "Pflanze gestorben am"
 
 #: individuals/models/territory.py:28
 msgid "# outplantings"
@@ -1580,7 +1596,7 @@ msgstr "Reviercode"
 msgid "territory name"
 msgstr "Reviername"
 
-#: individuals/models/territory.py:103 labels/models.py:64
+#: individuals/models/territory.py:103 labels/models.py:87
 msgid "display name"
 msgstr "Anzeigename"
 
@@ -1781,7 +1797,7 @@ msgstr "Die Nomenklatur der Art wurde noch nicht überprüft"
 msgid "select label"
 msgstr "Etikett auswählen"
 
-#: labels/apps.py:8 labels/models.py:55
+#: labels/apps.py:8 labels/models.py:78
 msgid "Labels"
 msgstr "Etiketten"
 
@@ -1789,62 +1805,62 @@ msgstr "Etiketten"
 msgid "sheet 1"
 msgstr "Blatt 1"
 
-#: labels/mass_action.py:44
+#: labels/mass_action.py:45 labels/mass_action.py:50
 #, python-format
 msgid "Label: %(name)s"
 msgstr "Etikett: %(name)s"
 
-#: labels/mass_action.py:54
+#: labels/mass_action.py:60
 #, python-format
 msgid "Label: %(name)s (%(format)s)"
 msgstr "Etikett: %(name)s (%(format)s)"
 
-#: labels/mass_action.py:66
+#: labels/mass_action.py:72
 msgid "No objects have been selected"
 msgstr "Es wurden keine Objekte ausgewählt"
 
-#: labels/mass_action.py:85
+#: labels/mass_action.py:91
 msgid "Export of labels aborted"
 msgstr "Export der Etiketten abgebrochen"
 
-#: labels/mass_action.py:97
+#: labels/mass_action.py:103
 msgid "labels"
 msgstr "Etiketten"
 
-#: labels/mass_action.py:104
+#: labels/mass_action.py:110
 #, python-format
 msgid "Error creating labels: %s"
 msgstr "Fehler beim Erstellen der Etiketten: %s"
 
-#: labels/models.py:20
+#: labels/models.py:28
 msgid "Entry"
 msgstr "Eingang"
 
-#: labels/models.py:25
+#: labels/models.py:48
 msgid "Only alphanumeric characters and _ are allowed."
 msgstr "Nur alphanumerische Zeichen und _ erlaubt"
 
-#: labels/models.py:28
+#: labels/models.py:51
 msgid "SVG (Vector Graphics)"
 msgstr "SVG (Vektorgraphik)"
 
-#: labels/models.py:29
+#: labels/models.py:52
 msgid "CSV (Table)"
 msgstr "CSV (Tabelle)"
 
-#: labels/models.py:30
+#: labels/models.py:53
 msgid "HTML (Page)"
 msgstr "HTML (Seite)"
 
-#: labels/models.py:54
+#: labels/models.py:77
 msgid "Label"
 msgstr "Etikett"
 
-#: labels/models.py:58
+#: labels/models.py:81
 msgid "identification"
 msgstr "Identifikation"
 
-#: labels/models.py:60
+#: labels/models.py:83
 msgid ""
 "This name is used to identify a label type in a label ticket. You can "
 "replace a label by reusing it's identification name"
@@ -1852,28 +1868,28 @@ msgstr ""
 "Dieser Name identifiziert ein Etikett in den Lasergravurtickets. Ein Etikett "
 "kann ersetzt werden, wenn dieser Name wiederbenutzt wird."
 
-#: labels/models.py:68 labels/templates/labels/template_doc.html:16
+#: labels/models.py:91 labels/templates/labels/template_doc.html:16
 #: tickets/models.py:147
 msgid "label type"
 msgstr "Etikettentyp"
 
-#: labels/models.py:74
+#: labels/models.py:97
 msgid "label format"
 msgstr "Etiketten-Format"
 
-#: labels/models.py:81
+#: labels/models.py:104
 msgid "markup"
 msgstr "Markup"
 
-#: labels/models.py:82
+#: labels/models.py:105
 msgid "The template for SVG, CSV or HTML"
 msgstr "Die Vorlage für SVG, CSV oder HTML"
 
-#: labels/models.py:86
+#: labels/models.py:109
 msgid "page markup"
 msgstr "Seiten-Markup"
 
-#: labels/models.py:87
+#: labels/models.py:110
 msgid ""
 "The outer template for HTML. The rendered markup from above is available as "
 "{{content}}"
@@ -1881,11 +1897,11 @@ msgstr ""
 "Die äußere Vorlage für HTML. Das fertige Markup von oben is vergügbar als "
 "{{content}}"
 
-#: labels/models.py:118
+#: labels/models.py:132
 msgid "preview"
 msgstr "Vorschau"
 
-#: labels/models.py:209 labels/models.py:237
+#: labels/models.py:251
 msgid "label.pdf"
 msgstr "Etikett.pdf"
 
@@ -1942,57 +1958,21 @@ msgstr "Beschreibung"
 msgid "example"
 msgstr "Beispiel"
 
-#: labels/views/doc.py:30
+#: labels/views/doc.py:27
 msgid "Label template documentation"
 msgstr "Etikett Template Dokumentation"
 
-#: labels/views/doc.py:134
+#: labels/views/doc.py:125
 msgid "Full user name"
 msgstr "ganzer Benutzername"
 
-#: labels/views/labels.py:46 labels/views/labels.py:113
-#: labels/views/labels.py:137 labels/views/labels.py:161
-#: labels/views/labels.py:185
+#: labels/views/labels.py:53 labels/views/labels.py:109
 msgid "Invalid label id"
 msgstr "ungültige Etiketten-ID"
 
-#: labels/views/labels.py:57
-#, python-format
-msgid "Invalid label type '%s'"
-msgstr "Ungültiger Etikettentyp '%s'"
-
-#: labels/views/labels.py:65
-msgid "No individuals"
-msgstr "Keine Individuen"
-
-#: labels/views/labels.py:77
-msgid "No botanic gardens defined"
-msgstr "Keine Botanischen Gärten angelegt"
-
-#: labels/views/labels.py:89 labels/views/labels.py:101
-msgid "No entries defined"
-msgstr "Keine Eingänge angelegt"
-
-#: labels/views/labels.py:116 labels/views/labels.py:140
-#: labels/views/labels.py:164 labels/views/labels.py:188
-msgid "Invalid label type"
-msgstr "Ungültiger Etikettentyp"
-
-#: labels/views/labels.py:121
-msgid "Invalid individual id"
-msgstr "Ungültige Individuum-ID"
-
-#: labels/views/labels.py:145
-msgid "Invalid garden id"
-msgstr "ungültige Garten-ID"
-
-#: labels/views/labels.py:169
-msgid "Invalid entry id"
-msgstr "Ungültige Eingangs-ID"
-
-#: labels/views/labels.py:193
-msgid "Invalid specimen id"
-msgstr "Ungültige Herbarbeleg-ID"
+#: labels/views/labels.py:114
+msgid "Invalid model id"
+msgstr "ungültige Model-ID"
 
 #: literature/apps.py:7
 msgid "Literature"
@@ -2617,6 +2597,34 @@ msgstr "Alle Etiketten erstellt. Als 'abgearbeitet' markieren!"
 #: tickets/views.py:99
 msgid "show ticket: "
 msgstr "Ticket anzeigen: "
+
+#, python-format
+#~ msgid "Invalid label type '%s'"
+#~ msgstr "Ungültiger Etikettentyp '%s'"
+
+#~ msgid "No individuals"
+#~ msgstr "Keine Individuen"
+
+#~ msgid "No botanic gardens defined"
+#~ msgstr "Keine Botanischen Gärten angelegt"
+
+#~ msgid "No entries defined"
+#~ msgstr "Keine Eingänge angelegt"
+
+#~ msgid "Invalid label type"
+#~ msgstr "Ungültiger Etikettentyp"
+
+#~ msgid "Invalid individual id"
+#~ msgstr "Ungültige Individuum-ID"
+
+#~ msgid "Invalid garden id"
+#~ msgstr "ungültige Garten-ID"
+
+#~ msgid "Invalid entry id"
+#~ msgstr "Ungültige Eingangs-ID"
+
+#~ msgid "Invalid specimen id"
+#~ msgstr "Ungültige Herbarbeleg-ID"
 
 #~ msgid "Seed/individual entries"
 #~ msgstr "Eingänge"
