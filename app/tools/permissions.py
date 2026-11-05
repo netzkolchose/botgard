@@ -19,6 +19,10 @@ def check_user_can_write(user):
 
 
 def check_user_has_permissions(user, *permissions: str):
+    """
+    Check that user has all the permissions.
+    E.g. `individuals.change_individual`
+    """
     if not user.is_staff or not user.is_active:
         return False
     user_perms = user.get_all_permissions()
@@ -28,6 +32,21 @@ def check_user_has_permissions(user, *permissions: str):
             return False
 
     return True
+
+
+def check_user_has_any_permissions(user, *permissions: str):
+    """
+    Check that user has any of the permissions.
+    E.g. `individuals.change_individual`
+    """
+    if not user.is_staff or not user.is_active:
+        return False
+    user_perms = user.get_all_permissions()
+    for p in permissions:
+        if p in user_perms:
+            return True
+
+    return False
 
 
 def is_kustos(request_or_user):

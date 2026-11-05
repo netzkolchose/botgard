@@ -558,7 +558,7 @@ class Individual(IndividualBase(unique_name="individual")):
                     _("modified by"): audit["user"] if i == 0 else "",
                     **({
                            "background": "--selected-row" if i == 0 else (
-                               "--body-bg" if i % 2 == 1 else "--darkened-bg"
+                               "--body-bg" if i % 2 == 0 else "--darkened-bg"
                            )
                        } if with_html else {}
                     ),

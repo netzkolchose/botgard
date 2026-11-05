@@ -8,11 +8,11 @@ from django.contrib.admin import SimpleListFilter
 from django import forms
 from django.db import transaction
 from django.urls import reverse
-from setuptools.depends import extract_constant
+from django.core.exceptions import PermissionDenied
 
 from config_app.forms import CustomPropertyTabularInline
 from tools.fieldsets import remove_from_fieldsets
-from tools.permissions import check_user_has_permissions
+from tools.permissions import check_user_has_permissions, check_user_has_any_permissions
 from .models import *
 from plantimages.admin import PlantImageInline
 
@@ -133,7 +133,7 @@ class IndividualAdminMixin:
 
         super().save_formset(request, form, formset, change)
 
-        if old_outplantings_data:
+        if old_outplantings_data is not None:
             form.instance.store_outplantings_audit(old_outplantings_data)
 
 
@@ -255,10 +255,136 @@ class IndividualAdmin(IndividualAdminMixin, ConfigurableTable):
         add_label_mass_actions(request, actions, "individual")
         return actions
 
-    def history_view(self, request, object_id, extra_context = None):
-        extra_context = extra_context.copy() if extra_context else {}
-        extra_context.update({"a": "b"})
-        return super().history_view(request, object_id, extra_context)
+    # ---- allow change to Outplanting inlines even if no change-permission to Individual ----
+
+    def has_outplanting_change_permission(self, request) -> bool:
+        return check_user_has_any_permissions(
+            request.user,
+            "individuals.change_outplanting",
+            "individuals.add_outplanting"
+        )
+
+    def has_outplanting_add_permission(self, request) -> bool:
+        return check_user_has_permissions(request.user, "individuals.add_outplanting")
+
+    def get_inline_formsets(self, request, formsets, inline_instances, obj=None):
+        """Override to set OutplantingInlineFormSet.has_change_permission=True"""
+        from django.contrib.admin.helpers import InlineAdminFormSet
+        formsets: List[InlineAdminFormSet] = super().get_inline_formsets(request, formsets, inline_instances, obj)
+        if self.has_outplanting_change_permission(request):
+            for fs in formsets:
+                if fs.formset.model is Outplanting:
+                    fs.has_change_permission = True
+                    if self.has_outplanting_add_permission(request):
+                        fs.has_add_permission = True
+                        fs.formset.max_num = 1000
+        return formsets
+
+    def save_related(self, request, form, formsets, change):
+        """Override to allow saving OutplantingInlineFormSet and skip all the rest if no Individual change permission"""
+        if super().has_change_permission(request):
+            return super().save_related(request, form, formsets, change)
+        else:
+            if not self.has_outplanting_change_permission(request):
+                raise PermissionDenied
+            else:
+                # Don't save self (form) and only save Outplanting formset
+                for formset in formsets:
+                    if formset.model is Outplanting:
+                        self.save_formset(request, form, formset, change=change)
+                    else:
+                        formset.new_objects = []
+                        formset.changed_objects = []
+                        formset.deleted_objects = []
+
+    def _changeform_view(self, request, object_id, form_url, extra_context):
+        """
+        Override to allow saving OutplantingInlineFormSet and skip all the rest if no Individual change permission
+        """
+        if (
+                request.method != "POST"
+                or "_saveasnew" in request.POST
+                or self.has_change_permission(request)
+                or self.has_add_permission(request)
+        ):
+            return super()._changeform_view(request, object_id, form_url, extra_context)
+
+        # -- Below is copied from Django 5.2 contrib/admin/options.py with some adjustments --
+
+        from django.contrib.admin.options import (
+            TO_FIELD_VAR, IS_POPUP_VAR, DisallowedModelAdminToField, unquote, flatten_fieldsets,
+            all_valid, helpers,
+        )
+        to_field = request.POST.get(TO_FIELD_VAR, request.GET.get(TO_FIELD_VAR))
+        if to_field and not self.to_field_allowed(request, to_field):
+            raise DisallowedModelAdminToField(
+                "The field %s cannot be referenced." % to_field
+            )
+
+        obj = self.get_object(request, unquote(object_id), to_field)
+        if obj is None:
+            return self._get_obj_does_not_exist_redirect(
+                request, self.opts, object_id
+            )
+
+        fieldsets = self.get_fieldsets(request, obj)
+        ModelForm = self.get_form(
+            request, obj, change=True, fields=flatten_fieldsets(fieldsets)
+        )
+
+        form = ModelForm(request.POST, request.FILES, instance=obj)
+        formsets, inline_instances = self._create_formsets(
+            request,
+            form.instance,
+            change=True,
+        )
+        if all_valid(formsets):
+            self.save_related(request, form, formsets, change=True)
+            change_message = self.construct_change_message(
+                request, forms.Form(), formsets, add=False,
+            )
+            self.log_change(request, obj, change_message)
+            return self.response_change(request, obj)
+
+        readonly_fields = flatten_fieldsets(fieldsets)
+        #else:
+        #    readonly_fields = self.get_readonly_fields(request, obj)
+        admin_form = helpers.AdminForm(
+            form,
+            list(fieldsets),
+            {},
+            readonly_fields,
+            model_admin=self,
+        )
+        media = self.media + admin_form.media
+
+        inline_formsets = self.get_inline_formsets(
+            request, formsets, inline_instances, obj
+        )
+        for inline_formset in inline_formsets:
+            media += inline_formset.media
+
+        title = _("View %s")
+        context = {
+            **self.admin_site.each_context(request),
+            "title": title % self.opts.verbose_name,
+            "subtitle": str(obj) if obj else None,
+            "adminform": admin_form,
+            "object_id": object_id,
+            "original": obj,
+            "is_popup": IS_POPUP_VAR in request.POST or IS_POPUP_VAR in request.GET,
+            "to_field": to_field,
+            "media": media,
+            "inline_admin_formsets": inline_formsets,
+            "errors": helpers.AdminErrorList(form, formsets),
+            "preserved_filters": self.get_preserved_filters(request),
+        }
+
+        context.update(extra_context or {})
+
+        return self.render_change_form(
+            request, context, add=False, change=True, obj=obj, form_url=form_url
+        )
 
 
 class SeedAdmin(IndividualAdminMixin, ConfigurableTable):
