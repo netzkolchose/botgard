@@ -75,7 +75,10 @@ def _checklist_view(request, Model, forId, outplantings_list):
             _("Died?"),
         )
         rows = [("%s" % o.department.full_code,
-                 "%s" % o.individual.accession_number + (("-%s" % o.individual.accession_extension) if o.individual.accession_extension else ""),
+                 "%s" % o.individual.accession_number + (
+                     # TODO: This is JENA specific
+                     ("-%s" % o.individual.accession_extension) if o.individual.accession_extension else ""
+                 ),
                  "%s %s" % (o.individual.species.family.family, o.individual.species.full_name()),
                  "%s" % o.date if o.date else "",
                  "%s" % o.plant_died if o.plant_died else "",
@@ -102,6 +105,7 @@ def _checklist_view(request, Model, forId, outplantings_list):
     ctx = minimal_admin_context(request, Model,
         title=_("Inventory list") + " %s - %s" % (location_name, timezone.now().date()),
         extra={
+            "alive": request.GET.get("alive") or 0,
             "headers": headers,
             "rows": "\n".join(rows),
             'territory': instance,
@@ -113,15 +117,21 @@ def _checklist_view(request, Model, forId, outplantings_list):
 
 @login_required
 def checklist_territory(request, forId):
+    is_alive = bool(request.GET.get("alive"))
+
     qset = Outplanting.objects.filter(department__territory=forId)
-    qset = qset.filter(plant_died=None) | qset.filter(individual__seed_available=True)
+    if is_alive:
+        qset = qset.filter(plant_died=None)
 
     return _checklist_view(request, Territory, forId, qset)
 
 
 @login_required
 def checklist_department(request, forId):
+    is_alive = bool(request.GET.get("alive"))
+
     qset = Outplanting.objects.filter(department=forId)
-    qset = qset.filter(plant_died=None) | qset.filter(individual__seed_available=True)
+    if is_alive:
+        qset = qset.filter(plant_died=None)
 
     return _checklist_view(request, Department, forId, qset)

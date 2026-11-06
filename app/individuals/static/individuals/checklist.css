@@ -1,12 +1,13 @@
 
+
 div.checkbox {
 	width: 14px;
 	height: 14px;
-	border: 1px solid black;
+	border: 1px solid var(--body-fg);
 }
 
 div.checkbox_checked{
-	background-color: black;
+	background-color: var(--body-fg);
 }
 
 table.checklist-table td {
@@ -38,4 +39,8 @@ table.checklist-table td {
     #container {
         display: block;
     }
+
+	div.checkbox_checked:before {
+		content: "⨯";
+	}
 }

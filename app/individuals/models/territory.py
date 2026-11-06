@@ -139,6 +139,13 @@ class Territory(CalcOutplantingsMixin, BotGardBaseModel(unique_name="territory",
     list_link_decorator.short_description = _("List of individuals")
     list_link_decorator.exclude_csv = True
 
+    @configurable
+    def list_alive_link_decorator(self):
+        url = reverse("individuals:checklist_territory", args=(self.pk,)) + "?alive=1"
+        return mark_safe('<a href="%s">%s</a>' % (url, _("generate list")))
+    list_alive_link_decorator.short_description = _("List of alive individuals")
+    list_alive_link_decorator.exclude_csv = True
+
     def save(self, *args, **kwargs):
         # update name_generated
         if hasattr(self, "name_generated"):
@@ -247,6 +254,13 @@ class Department(CalcOutplantingsMixin, BotGardBaseModel(unique_name="department
         return mark_safe('<a href="%s">%s</a>' % (url, _("generate list")))
     list_link_decorator.short_description = _("List of individuals")
     list_link_decorator.exclude_csv = True
+
+    @configurable
+    def list_alive_link_decorator(self):
+        url = reverse("individuals:checklist_department", args=(self.pk,)) + "?alive=1"
+        return mark_safe('<a href="%s">%s</a>' % (url, _("generate list")))
+    list_alive_link_decorator.short_description = _("List of alive individuals")
+    list_alive_link_decorator.exclude_csv = True
 
     @configurable
     def delete_link_decorator(self):
