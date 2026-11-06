@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('literature', '0001_initial'),
+        ('meta', '0001_initial'),
         ('species', '0004_customprops'),
     ]
 
@@ -15,16 +15,16 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='species',
             name='literature',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='species', to='literature.literature', verbose_name='literature'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='species', to='meta.literature', verbose_name='literature'),
         ),
         migrations.AddField(
             model_name='species',
             name='literature_distribution',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='species_distribution', to='literature.literature', verbose_name='literature (distribution)'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='species_distribution', to='meta.literature', verbose_name='literature (distribution)'),
         ),
         migrations.AddField(
             model_name='species',
             name='literature_german_name',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='species_german_name', to='literature.literature', verbose_name='literature (german name)'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='species_german_name', to='meta.literature', verbose_name='literature (german name)'),
         ),
     ]

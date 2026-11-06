@@ -186,7 +186,7 @@ class Species(BotGardBaseModel(unique_name="species", custom_properties=True)):
 
     literature = models.ForeignKey(
         verbose_name=_("literature"),
-        to="literature.Literature",
+        to="meta.Literature",
         on_delete=models.SET_NULL,
         related_name="species",
         null=True, blank=True,
@@ -194,7 +194,7 @@ class Species(BotGardBaseModel(unique_name="species", custom_properties=True)):
 
     literature_distribution = models.ForeignKey(
         verbose_name=_("literature (distribution)"),
-        to="literature.Literature",
+        to="meta.Literature",
         on_delete=models.SET_NULL,
         related_name="species_distribution",
         null=True, blank=True,
@@ -202,7 +202,7 @@ class Species(BotGardBaseModel(unique_name="species", custom_properties=True)):
 
     literature_german_name = models.ForeignKey(
         verbose_name=_("literature (german name)"),
-        to="literature.Literature",
+        to="meta.Literature",
         on_delete=models.SET_NULL,
         related_name="species_german_name",
         null=True, blank=True,

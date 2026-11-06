@@ -31,7 +31,7 @@ CUSTOM_PROPERTIES = [
     {"model": "individuals.Individual", "type": "text", "name": "individual_comment"},
     {"model": "herbaria.Herbarium", "type": "text", "name": "herbarium_comment"},
     {"model": "herbaria.HerbariumSpecimen", "type": "text", "name": "specimen_comment"},
-    {"model": "literature.Literature", "type": "text", "name": "literature_comment"},
+    {"model": "meta.Literature", "type": "text", "name": "literature_comment"},
     {"model": "meta.Project", "type": "text", "name": "project_comment"},
 ]
 
@@ -176,8 +176,7 @@ def create_test_fixtures():
     from tickets.models import BasicTicket, LaserGravurTicket
     from seedcatalog.models import SeedCatalog
     from config_app.models import CustomProperty, PropertyValueText, PropertyValueBool
-    from literature.models import Literature
-    from meta.models import Project
+    from meta.models import Literature, Project
 
     UserModel = get_user_model()
 

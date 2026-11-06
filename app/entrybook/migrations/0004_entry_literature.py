@@ -10,14 +10,14 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('entrybook', '0003_customprops'),
-        ('literature', '0001_initial'),
+        ('meta', '0001_initial'),
     ]
 
     operations = [
         migrations.AddField(
             model_name='entry',
             name='literature',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='entries', to='literature.literature', verbose_name='literature'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='entries', to='meta.literature', verbose_name='literature'),
         ),
         migrations.AlterField(
             model_name='entry',

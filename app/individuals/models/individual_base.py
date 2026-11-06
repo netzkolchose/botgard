@@ -115,7 +115,7 @@ def IndividualBase(unique_name: str) -> Type[models.Model]:
 
         literature = models.ForeignKey(
             verbose_name=_("literature"),
-            to="literature.Literature",
+            to="meta.Literature",
             on_delete=models.SET_NULL,
             null=True, blank=True,
             related_name="individuals",

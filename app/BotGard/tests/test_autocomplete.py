@@ -274,15 +274,15 @@ class TestAutocomplete(TestBase):
                     "limit": "species-species-family"
                 },
                 "literature": {
-                    "id": "literature-literature-full_name_generated",
+                    "id": "meta-literature-full_name_generated",
                     "limit": "species-species-literature"
                 },
                 "literature_distribution": {
-                    "id": "literature-literature-full_name_generated",
+                    "id": "meta-literature-full_name_generated",
                     "limit": "species-species-literature_distribution"
                 },
                 "literature_german_name": {
-                    "id": "literature-literature-full_name_generated",
+                    "id": "meta-literature-full_name_generated",
                     "limit": "species-species-literature_german_name"
                 },
             }
@@ -329,7 +329,7 @@ class TestAutocomplete(TestBase):
                     "limit": "individuals-individual-species"
                 },
                 "literature": {
-                    "id": "literature-literature-full_name_generated",
+                    "id": "meta-literature-full_name_generated",
                     "limit": "individuals-individual-literature"
                 },
                 "projects_decorator": {
@@ -464,7 +464,7 @@ class TestAutocomplete(TestBase):
                     "limit": "entrybook-entry-department"
                 },
                 "literature": {
-                    "id": "literature-literature-full_name_generated",
+                    "id": "meta-literature-full_name_generated",
                     "limit": "entrybook-entry-literature"
                 },
                 "projects_decorator": {

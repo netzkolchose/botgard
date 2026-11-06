@@ -8,7 +8,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('individuals', '0007_individual_natural_sort'),
-        ('literature', '0001_initial'),
+        ('meta', '0001_initial'),
     ]
 
     operations = [
@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='individual',
             name='literature',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='individuals', to='literature.literature', verbose_name='literature'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='individuals', to='meta.literature', verbose_name='literature'),
         ),
         migrations.AlterField(
             model_name='outplanting',
