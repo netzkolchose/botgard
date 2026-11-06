@@ -18,6 +18,12 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='labeldefinition',
             name='type',
-            field=models.CharField(choices=[('garden', 'Botanic Garden'), ('individual', 'Individual'), ('entry', 'Entry')], default='individual', max_length=30, verbose_name='label type'),
+            field=models.CharField(choices=[
+                ('garden', 'Botanic Garden'),
+                ('entry', 'Entry'),
+                ('individual', 'Individual'),
+                ('outplanting', 'Outplanting'),
+                ('herbarium_specimen', 'Specimen'),
+            ], default='individual', max_length=30, verbose_name='label type'),
         ),
     ]

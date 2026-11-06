@@ -49,6 +49,10 @@ class BotGardOpenLayersWidget(BaseGeometryWidget):
             red_dots: bool = False,
             read_only: bool = False,
             map_size: Union[None, Tuple[int, int], List[int]] = None,
+            side_by_side: bool = False,
+            no_clear_features: bool = False,
+            default_zoom: float = 16.7,
+            auto_fit_zoom: bool = True,
     ):
         super().__init__(attrs)
         self._with_garden_map = with_garden_map
@@ -56,6 +60,10 @@ class BotGardOpenLayersWidget(BaseGeometryWidget):
         self._red_dots = red_dots
         self._map_size = map_size
         self._read_only = read_only
+        self._side_by_side = side_by_side
+        self._no_clear_features = no_clear_features
+        self._default_zoom = default_zoom
+        self._auto_fit_zoom = auto_fit_zoom
 
     class Media:
         css = {
@@ -76,6 +84,10 @@ class BotGardOpenLayersWidget(BaseGeometryWidget):
             "red_dots": self._red_dots,
             "with_input_fields": self._with_input_fields,
             "read_only": self._read_only,
+            "side_by_side": self._side_by_side,
+            "no_clear_features": self._no_clear_features,
+            "default_zoom": self._default_zoom,
+            "auto_fit_zoom": self._auto_fit_zoom,
             **get_botgard_map_template_context(),
         })
         if self._with_garden_map:

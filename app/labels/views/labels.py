@@ -1,11 +1,12 @@
 import random
 
-from django.http import HttpResponse
+from django.http import HttpRequest, HttpResponse
 from django.utils.translation import gettext_lazy as _
 from django.urls import reverse
 from django.utils.html import format_html
 
-from labels.models import LabelDefinition, LABEL_FORMAT_TO_FILE_FORMAT
+from labels import valid_filename
+from labels.models import LabelDefinition, LABEL_FORMAT_TO_FILE_FORMAT, LABEL_TYPE_TO_MODEL
 from individuals.models import Individual
 from entrybook.models import Entry
 from botman.models import BotanicGarden
@@ -16,188 +17,110 @@ from tools.permissions import login_required
 @login_required
 def label_garden(request, label_pk, garden_pk):
     """View to render garden address label"""
-    return _render_label_garden(request, label_pk, garden_pk)
-
-
-@login_required
-def label_individual(request, label_pk, indi_pk):
-    """View to render individual label"""
-    return _render_label_individual(request, label_pk, indi_pk)
+    return _render_label(request, label_pk, garden_pk)
 
 
 @login_required
 def label_entry(request, label_pk, entry_pk):
     """View to render entry book label"""
-    return _render_label_entry(request, label_pk, entry_pk)
+    return _render_label(request, label_pk, entry_pk)
+
+
+@login_required
+def label_individual(request, label_pk, indi_pk):
+    """View to render individual label"""
+    return _render_label(request, label_pk, indi_pk)
+
+
+@login_required
+def label_outplanting(request, label_pk, indi_pk):
+    """View to render outplanting label"""
+    return _render_label(request, label_pk, indi_pk)
 
 
 @login_required
 def label_herbarium_specimen(request, label_pk, specimen_pk):
     """View to render specimen label"""
-    return _render_herbarium_specimen_entry(request, label_pk, specimen_pk)
+    return _render_label(request, label_pk, specimen_pk)
 
 
 @login_required
-def label_random(request, label_pk):
+def label_random(request: HttpRequest, label_pk: int):
     """view to render a random label"""
     try:
         label = LabelDefinition.objects.get(pk=label_pk)
     except LabelDefinition.DoesNotExist:
         return HttpResponse(_("Invalid label id"), status=404)
 
-    if label.type == "garden":
-        return label_random_garden(request, label_pk)
-    if label.type == "individual":
-        return label_random_individual(request, label_pk)
-    if label.type == "entry":
-        return label_random_entry(request, label_pk)
-    if label.type == "herbarium_specimen":
-        return label_random_herbarium_specimen(request, label_pk)
-
-    return HttpResponse(_("Invalid label type '%s'") % label.type, status=404)
-
-
-@login_required
-def label_random_individual(request, label_pk):
-    """View to render random individual label"""
-    qset = Individual.objects.all()
-    if not qset.exists():
-        return HttpResponse(_("No individuals"), status=404)
-
-    indi = qset[random.randrange(qset.count())]
-
-    return _render_label_individual(request, label_pk, indi.pk)
+    return globals()[f"label_random_{label.type}"](request, label_pk)
 
 
 @login_required
 def label_random_garden(request, label_pk):
     """View to render random garden address label"""
-    qset = BotanicGarden.objects.all()
-    if not qset.exists():
-        return HttpResponse(_("No botanic gardens defined"), status=404)
-
-    garden = qset[random.randrange(qset.count())]
-
-    return _render_label_garden(request, label_pk, garden.pk)
+    return _label_random_type(request, label_pk, "garden")
 
 
 @login_required
 def label_random_entry(request, label_pk):
     """View to render random entry label"""
-    qset = Entry.objects.all()
-    if not qset.exists():
-        return HttpResponse(_("No entries defined"), status=404)
+    return _label_random_type(request, label_pk, "entry")
 
-    entry = qset[random.randrange(qset.count())]
 
-    return _render_label_entry(request, label_pk, entry.pk)
+@login_required
+def label_random_individual(request: HttpRequest, label_pk: int):
+    """View to render random individual label"""
+    return _label_random_type(request, label_pk, "individual")
+
+
+@login_required
+def label_random_outplanting(request, label_pk):
+    """View to render random outplanting label"""
+    return _label_random_type(request, label_pk, "outplanting")
 
 
 @login_required
 def label_random_herbarium_specimen(request, label_pk):
     """View to render random herbarium specimen label"""
-    qset = HerbariumSpecimen.objects.all()
+    return _label_random_type(request, label_pk, "herbarium_specimen")
+
+
+def _label_random_type(request: HttpRequest, label_pk: int, type: str):
+    """
+    Implementation for random label view
+    """
+    qset = LABEL_TYPE_TO_MODEL[type].objects.all()
     if not qset.exists():
-        return HttpResponse(_("No entries defined"), status=404)
+        return HttpResponse(f"No {type}", status=404)
 
-    model = qset[random.randrange(qset.count())]
+    pk = qset.values_list("pk", flat=True)[random.randrange(qset.count())]
 
-    return _render_herbarium_specimen_entry(request, label_pk, model.pk)
+    return _render_label(request, label_pk, pk)
 
 
-def _render_label_individual(request, label_pk, indi_pk):
-    """View implementation to render label for individual"""
+
+def _render_label(request: HttpRequest, label_pk: int, instance_pk: int):
+    """
+    View implementation to render label for a specific model instance
+    """
     try:
         label = LabelDefinition.objects.get(pk=label_pk)
     except LabelDefinition.DoesNotExist:
         return HttpResponse(_("Invalid label id"), status=404)
 
-    if label.type != "individual":
-        return HttpResponse(_("Invalid label type"), status=404)
-
     try:
-        indi = Individual.objects.get(pk=indi_pk)
+        instance = label.model_class.objects.get(pk=instance_pk)
     except Individual.DoesNotExist:
-        return HttpResponse(_("Invalid individual id"), status=404)
+        return HttpResponse(_("Invalid model id"), status=404)
 
-    context = label.get_individual_context(indi)
-
-    return _render_impl(
-        request, label, context,
-        "%s" % (indi.ipen_generated or indi.accession_number),
-        reverse("labels:individual", args=(label_pk, indi_pk))
-    )
-
-
-def _render_label_garden(request, label_pk, garden_pk):
-    """View implementation to render label for garden address"""
-    try:
-        label = LabelDefinition.objects.get(pk=label_pk)
-    except LabelDefinition.DoesNotExist:
-        return HttpResponse(_("Invalid label id"), status=404)
-
-    if label.type != "garden":
-        return HttpResponse(_("Invalid label type"), status=404)
-
-    try:
-        garden = BotanicGarden.objects.get(pk=garden_pk)
-    except BotanicGarden.DoesNotExist:
-        return HttpResponse(_("Invalid garden id"), status=404)
-
-    context = label.get_garden_context(garden)
+    context, filename = label.get_model_context(instance, return_filename=True)
 
     return _render_impl(
-        request, label, context,
-        garden.name.replace(" ", "_"),
-        reverse("labels:garden", args=(label_pk, garden_pk))
-    )
-
-
-def _render_label_entry(request, label_pk, entry_pk):
-    """View implementation to render label for Entry"""
-    try:
-        label = LabelDefinition.objects.get(pk=label_pk)
-    except LabelDefinition.DoesNotExist:
-        return HttpResponse(_("Invalid label id"), status=404)
-
-    if label.type != "entry":
-        return HttpResponse(_("Invalid label type"), status=404)
-
-    try:
-        entry = Entry.objects.get(pk=entry_pk)
-    except Entry.DoesNotExist:
-        return HttpResponse(_("Invalid entry id"), status=404)
-
-    context = label.get_entry_context(entry)
-
-    return _render_impl(
-        request, label, context,
-        filename="%s" % (entry.ipen_generated or entry.accession_number),
-        label_url=reverse("labels:entry", args=(label_pk, entry_pk))
-    )
-
-
-def _render_herbarium_specimen_entry(request, label_pk, specimen_pk):
-    """View implementation to render label for HerbariumSpecimen"""
-    try:
-        label = LabelDefinition.objects.get(pk=label_pk)
-    except LabelDefinition.DoesNotExist:
-        return HttpResponse(_("Invalid label id"), status=404)
-
-    if label.type != "herbarium_specimen":
-        return HttpResponse(_("Invalid label type"), status=404)
-
-    try:
-        model = HerbariumSpecimen.objects.get(pk=specimen_pk)
-    except HerbariumSpecimen.DoesNotExist:
-        return HttpResponse(_("Invalid specimen id"), status=404)
-
-    context = label.get_herbarium_specimen_context(model)
-
-    return _render_impl(
-        request, label, context,
-        filename="%s" % model.individual.ipen_generated,
-        label_url=reverse("labels:herbarium_specimen", args=(label_pk, specimen_pk))
+        request=request,
+        label=label,
+        context=context,
+        filename=filename,
+        label_url=reverse("labels:individual", args=(label_pk, instance_pk))
     )
 
 
@@ -208,9 +131,11 @@ def _render_impl(
         filename: str = None,
         label_url: str = None,
 ):
+    from labels import valid_filename
+
     """Render implementation for label and template context"""
     format = request.GET.get("format", "html").lower()
-    filename = request.GET.get("filename") or filename
+    filename = valid_filename(request.GET.get("filename") or filename)
 
     if format == "html":
         try:

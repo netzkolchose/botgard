@@ -341,3 +341,43 @@ span.icon-no {
     }
 }
 
+
+.custom-properties {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+
+    .custom-property {
+        margin: .5rem;
+    }
+}
+
+details[data-filter-title="-invisible-"] {
+    display: none;
+}
+
+/* hide changelist filters section if all filters are invisible */
+nav#changelist-filter:not(:has(details:not([data-filter-title="-invisible-"]))) {
+    display: none;
+}
+
+/* when JS is disabled, at least hide the meaningless labels like "text values:" */
+.field-custom_values_bool .flex-container > label,
+.field-custom_values_text .flex-container > label,
+.field-custom_values_user .flex-container > label {
+    display: none;
+}
+.custom-property label {
+    margin-bottom: .25rem;
+}
+
+.field-custom_values_bool .errorlist,
+.field-custom_values_text .errorlist,
+.field-custom_values_user .errorlist,
+.custom-properties-fieldset .errorlist{
+    margin-left: 0;
+}
+
+.submit-row-info-box {
+    width: 100%;
+}

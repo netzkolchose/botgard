@@ -8,11 +8,8 @@ class TestLabelsHTML(TestBase):
     def setUpTestData(cls):
         create_test_fixtures()
 
-    def test_html_label_single(self):
-        self.assertTrue(
-            self.client.login(username="User1", password="the-secret"),
-            "failed to log in"
-        )
+    def test_html_label_individual_single(self):
+        self.login(username="User1")
 
         label_model = LabelDefinition.objects.get(id_name="I2")
 
@@ -27,10 +24,15 @@ class TestLabelsHTML(TestBase):
             label_model, "individual", Individual.objects.get(accession_number=1000), "pdf",
         )
         #print(response.content)
-        self.assert_pdf(response.content, num_pages=1)
+        self.assert_pdf(response.content, expected_size_cm=[21., 27.], expected_pages=1)
+
+    def test_html_label_individual_multi(self):
+        self.login(username="User1")
+
+        label_model = LabelDefinition.objects.get(id_name="I2")
 
         response = self.get_label_response(
-            label_model, "individual", list(Individual.objects.all()), "html",
+            label_model, "individual", list(Individual.objects.all()), "html", action_format_suffix="html",
             expect_unchecked_nomenclature=True,
         )
 
@@ -43,19 +45,7 @@ class TestLabelsHTML(TestBase):
         individuals = list(Individual.objects.all())[:3]
         self.assertEqual(3, len(individuals))
         response = self.get_label_response(
-            label_model, "individual", individuals, "true_pdf",
+            label_model, "individual", individuals, "pdf", action_format_suffix="pdf",
             expect_unchecked_nomenclature=True,
         )
-        self.assert_pdf(response.content, num_pages=3)
-
-    def assert_pdf(self, content: bytes, num_pages: int):
-        # check at least number of pages in PDF
-        with tempfile.TemporaryDirectory() as path:
-            filename = Path(path) / "label.pdf"
-            filename.write_bytes(content)
-            result = subprocess.check_output(["pdfinfo", str(filename)]).decode()
-            match = re.match(r".*Pages:\s+(\d+).*", result.replace("\n", " "))
-            if not match:
-                raise AssertionError(f"'Pages' not found in pdfinfo result: {result}")
-            self.assertEqual(num_pages, int(match.groups()[0]), f"Number of PDF pages does not match, got:\n{result}")
-
+        self.assert_pdf(response.content, expected_size_cm=[21., 27.], expected_pages=3)

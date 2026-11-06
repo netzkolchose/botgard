@@ -27,7 +27,7 @@ class LabelDefinitionForm(forms.ModelForm):
 class LabelDefinitionAdmin(admin.ModelAdmin):
 
     form = LabelDefinitionForm
-    list_display = ("display_name", "id_name", "type", "preview_decorator")
+    list_display = ("display_name", "id_name", "type", "format", "preview_decorator")
     change_form_template = "labels/change_form.html"
     ordering = ("type", "display_name")
 
