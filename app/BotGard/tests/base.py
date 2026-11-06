@@ -982,9 +982,13 @@ class ChangeListForm:
                 self.parent.assertEqual(
                     expected_rows,
                     rows,
-                    f"\nExpected:\n{'\n'.join(str(r)+',' for r in expected_rows)}"
-                    f"\nGot:\n{'\n'.join(str(r)+',' for r in rows)}"
-                    f"\npage_size={ConfigurableTable.ITER_CHANGELIST_ROWS_PAGE_SIZE}"
+                    "\nExpected:\n{}"
+                    "\nGot:\n{}"
+                    "\npage_size={}".format(
+                        '\n'.join(str(r)+',' for r in expected_rows),
+                        '\n'.join(str(r)+',' for r in rows),
+                        ConfigurableTable.ITER_CHANGELIST_ROWS_PAGE_SIZE,
+                    )
                 )
 
                 ConfigurableTable.ITER_CHANGELIST_ROWS_PAGE_SIZE = max(2, len(expected_rows) // 3)
