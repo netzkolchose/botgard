@@ -1045,6 +1045,9 @@ class ChangeForm:
         else:
             return reverse(f"admin:{self.app_name}_{self.model_name}_add")
 
+    def visible_fields(self) -> list[FormField]:
+        return [f for f in self.fields if not f.hidden]
+
     def request(self):
         response = self.parent.client.get(self.url, query_params=self.query_params)
         self.parent.assert_no_warning(response)
@@ -1087,16 +1090,29 @@ class ChangeForm:
         if errors:
             raise AssertionError(f"data not as expected: {self}\n{pprint.pformat(errors)}")
 
+    def assert_save_forbidden(self, expected_status: int = 403):
+        response = self.parent.client.post(self.url)
+        self.parent.assert_response(response, status=expected_status)
+
+    def assert_save_button(self, expected: bool = True):
+        but = self.soup.find("div", {"class": "submit-row"}).find("input", {"name": "_save"})
+        if expected:
+            self.parent.assertIsNotNone(but)
+        else:
+            self.parent.assertIsNone(but)
+
     def save(
             self,
             override_values: Union[None, Dict, QueryDict] = None,
             expect_validation_errors: bool = False,
             action_name: str = "_continue",
+            expect_fields: bool = True,  # Set to False to test POSTing values without fields
     ):
         response = self._save(
             override_values=override_values,
             expect_validation_errors=expect_validation_errors,
-            action_name=action_name
+            action_name=action_name,
+            expect_fields=expect_fields,
         )
         self.parse(response)
 
@@ -1121,6 +1137,7 @@ class ChangeForm:
             override_values: Union[None, Dict, QueryDict] = None,
             expect_validation_errors: bool = False,
             action_name: str = "_continue",
+            expect_fields: bool = True,
     ) -> HttpResponse:
         if override_values is None:
             values = QueryDict(mutable=True)
@@ -1143,9 +1160,9 @@ class ChangeForm:
         actual_values = QueryDict(mutable=True)
         for key in values.keys():
             is_inline_set = "-set-" in key or "_set-" in key
-            field = self.get_form_field(key, do_assert=not is_inline_set)
+            field = self.get_form_field(key, do_assert=not is_inline_set and expect_fields)
             for value in values.getlist(key):
-                if not field and is_inline_set:
+                if not field:
                     value = str(value)
                 else:
                     if field.type == "checkbox":

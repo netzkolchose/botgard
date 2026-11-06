@@ -301,6 +301,7 @@ class IndividualAdmin(IndividualAdminMixin, ConfigurableTable):
         """
         Override to allow saving OutplantingInlineFormSet and skip all the rest if no Individual change permission
         """
+        # go to orignal _changeform_view ...
         if (
                 request.method != "POST"
                 or "_saveasnew" in request.POST
@@ -309,7 +310,15 @@ class IndividualAdmin(IndividualAdminMixin, ConfigurableTable):
         ):
             return super()._changeform_view(request, object_id, form_url, extra_context)
 
+        # or allow access if indi-view AND outplanting_change/add_permission
+        if not (
+                self.has_view_permission(request)
+                and self.has_outplanting_change_permission(request)
+        ):
+            raise PermissionDenied
+
         # -- Below is copied from Django 5.2 contrib/admin/options.py with some adjustments --
+        # (does NEVER save the Individual, only the related Outplantings)
 
         from django.contrib.admin.options import (
             TO_FIELD_VAR, IS_POPUP_VAR, DisallowedModelAdminToField, unquote, flatten_fieldsets,
