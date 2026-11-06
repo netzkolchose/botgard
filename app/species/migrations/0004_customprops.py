@@ -2,8 +2,8 @@
 
 from django.db import migrations, models
 from django.conf import settings
+import django.db.models.deletion
 import config_app.fields
-import tools.global_request
 
 
 def clear_creation_fields(apps, schema_editor):
@@ -18,6 +18,7 @@ def clear_creation_fields(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
+        ('meta', '0001_initial'),
         ('config_app', '0004_customprops'),
         ('species', '0003_species_bnatschg_category'),
     ]
@@ -96,4 +97,21 @@ class Migration(migrations.Migration):
         ),
 
         migrations.RunPython(clear_creation_fields, migrations.RunPython.noop),
+
+        # also add Literature
+        migrations.AddField(
+            model_name='species',
+            name='literature',
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='species', to='meta.literature', verbose_name='literature'),
+        ),
+        migrations.AddField(
+            model_name='species',
+            name='literature_distribution',
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='species_distribution', to='meta.literature', verbose_name='literature (distribution)'),
+        ),
+        migrations.AddField(
+            model_name='species',
+            name='literature_german_name',
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='species_german_name', to='meta.literature', verbose_name='literature (german name)'),
+        ),
     ]

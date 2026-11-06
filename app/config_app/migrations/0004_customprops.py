@@ -3,6 +3,7 @@
 import django.db.models.deletion
 from django.db import migrations, models
 from django.conf import settings
+from django.contrib.postgres.operations import CreateCollation
 
 
 class Migration(migrations.Migration):
@@ -88,4 +89,15 @@ class Migration(migrations.Migration):
                 'verbose_name_plural': 'user values',
             },
         ),
-    ]
+    ] + (
+        [] if not settings.IS_POSTGRES
+        else [
+            # create collation for "natural sorting"
+            # https://cscheng.info/2025/07/10/applying-natural-sort-to-a-django-charfield-with-postgresql.html
+            CreateCollation(
+                name="natural_sort",
+                provider="icu",
+                locale="de-u-kn-true",
+            ),
+        ]
+    )

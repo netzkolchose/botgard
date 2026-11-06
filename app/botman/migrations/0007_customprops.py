@@ -3,7 +3,7 @@
 from django.db import migrations, models
 from django.conf import settings
 import config_app.fields
-import tools.global_request
+import botman.models.garden
 
 
 def clear_creation_fields(apps, schema_editor):
@@ -95,4 +95,15 @@ class Migration(migrations.Migration):
         ),
 
         migrations.RunPython(clear_creation_fields, migrations.RunPython.noop),
+
+        migrations.AlterField(
+            model_name='botanicgarden',
+            name='name',
+            field=models.CharField(db_index=True, max_length=120, unique=True, verbose_name='name'),
+        ),
+        migrations.AlterField(
+            model_name='botanicgarden',
+            name='number',
+            field=models.CharField(default=botman.models.garden.get_new_number, max_length=16, unique=True, verbose_name='garden number', db_collation='natural_sort' if settings.IS_POSTGRES else None),
+        ),
     ]

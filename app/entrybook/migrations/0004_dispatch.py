@@ -11,10 +11,10 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('botman', '0008_natural_sort_collation'),
+        ('botman', '0007_customprops'),
         ('config_app', '0004_customprops'),
-        ('entrybook', '0005_entry_projects'),
-        ('individuals', '0009_individual_projects'),
+        ('entrybook', '0003_customprops'),
+        ('individuals', '0006_customprops'),
         ('meta', '0001_initial'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
