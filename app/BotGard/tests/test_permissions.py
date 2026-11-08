@@ -702,21 +702,27 @@ class TestPermissions(TestBase):
                     (self.assertIn if is_visible else self.assertNotIn)(
                         "found_coordinates_decorator", columns, msg
                     )
+                    (self.assertIn if is_visible else self.assertNotIn)(
+                        "map_found_decorator", columns, msg
+                    )
 
                     # suppose attacker modified a request to table-settings and enabled the field
                     # -> make sure it's still filtered out, even if explicitly stored in TableSettings
                     TableSettings.objects.create(
                         user=User.objects.get(username=username),
                         model=f"{app_name}.{model_name}",
-                        settings=("change_link_decorator", "found_coordinates_decorator"),
+                        settings=("change_link_decorator", "found_coordinates_decorator", "map_found_decorator"),
                     )
                     cl = self.get_changelist(app_name, model_name)
                     columns = cl.get_all_possible_columns()
                     (self.assertIn if is_visible else self.assertNotIn)(
                         "found_coordinates_decorator", columns, msg
                     )
+                    (self.assertIn if is_visible else self.assertNotIn)(
+                        "map_found_decorator", columns, msg
+                    )
                     if is_visible:
-                        cl.assert_columns(["change_link_decorator", "found_coordinates_decorator"], msg)
+                        cl.assert_columns(["change_link_decorator", "found_coordinates_decorator", "map_found_decorator"], msg)
                     else:
                         cl.assert_columns(["change_link_decorator"], msg)
 

@@ -62,10 +62,11 @@
             {% if auto_fit_zoom %}auto_fit_zoom: true,{% endif %}
             default_lat: {{ default_location.1|unlocalize }},
             default_lon: {{ default_location.0|unlocalize }},
-            default_zoom: {{ default_zoom|unlocalize }},
-            {% if outplantings %}outplantings: {{ outplantings|safe }},{% endif %}
-            {% if with_input_fields %}with_input_fields: true,{% endif %}
-            {% if with_garden_map %}garden_map: create_garden_map_interface(false, "{{ form_element_name }}"),{% endif %}
+            default_zoom: {{ default_zoom|unlocalize }}
+            {% if features %}, features: {{ features|safe }}{% endif %}
+            {% if outplantings %}, outplantings: {{ outplantings|safe }}{% endif %}
+            {% if with_input_fields %}, with_input_fields: true{% endif %}
+            {% if with_garden_map %}, garden_map: create_garden_map_interface(false, "{{ form_element_name }}"){% endif %}
         };
         {% endblock %}
         window.{{ module }} = new BotGardMapWidget(options);

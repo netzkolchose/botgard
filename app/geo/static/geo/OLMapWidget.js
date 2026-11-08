@@ -329,6 +329,14 @@ class BotGardMapWidget {
                 }
             }
         }
+        /* --- add custom features --- */
+        if (this.options.features) {
+            for (const item of this.options.features) {
+                for (const feature of wkt_to_features(item)) {
+                    this.featureOverlay.getSource().addFeature(feature);
+                }
+            }
+        }
 
         // Populate and set handlers for the feature container
         const self = this;
@@ -356,18 +364,15 @@ class BotGardMapWidget {
             }
             const jsonFormat = new ol.format.GeoJSON();
             const features = jsonFormat.readFeatures('{"type": "Feature", "geometry": ' + initial_value + '}');
-            const extent = ol.extent.createEmpty();
             features.forEach(function(feature) {
                 this.featureOverlay.getSource().addFeature(feature);
-                ol.extent.extend(extent, feature.getGeometry().getExtent());
             }, this);
-            // Center/zoom the map
-            if (this.options.auto_fit_zoom) {
-                this.map.getView().fit(extent, {minResolution: 1});
-            } else {
-                this.map.getView().fit(extent, {maxZoom: this.options.default_zoom});
-            }
-        } else {
+            self.fitFeatures(features);
+        }
+        else if (this.featureOverlay.getSource().getFeatures().length) {
+            self.fitFeatures(this.featureOverlay.getSource().getFeatures());
+        }
+        else {
             this.map.getView().setCenter(this.defaultCenter());
         }
 
@@ -383,6 +388,20 @@ class BotGardMapWidget {
             });
         }
         this.ready = true;
+    }
+
+    fitFeatures(features) {
+        const extent = ol.extent.createEmpty();
+        features.forEach(function(feature) {
+            ol.extent.extend(extent, feature.getGeometry().getExtent());
+        }, this);
+        // Center/zoom the map
+        const padding = [10, 10, 10, 10];
+        if (this.options.auto_fit_zoom) {
+            this.map.getView().fit(extent, {minResolution: 1, padding});
+        } else {
+            this.map.getView().fit(extent, {maxZoom: this.options.default_zoom, padding});
+        }
     }
 
     setInputFieldsCoords(coords) {

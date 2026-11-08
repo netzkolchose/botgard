@@ -382,6 +382,20 @@ class Individual(IndividualBase(unique_name="individual")):
     map_decorator.exclude_csv = True
 
     @configurable
+    def map_found_decorator(self):
+        from geo.columns import map_feature_column_decorator
+        if not self.found_coordinates:
+            return ""
+        return map_feature_column_decorator(
+            id=f"{self.pk}_fc",
+            features=[self.found_coordinates],
+            srid=self.found_coordinates.srid,
+            default_zoom=5.,
+        )
+    map_found_decorator.short_description = _("Map found coordinates")
+    map_found_decorator.exclude_csv = True
+
+    @configurable
     def found_coordinates_decorator(self):
         if not self.found_coordinates:
             return ""

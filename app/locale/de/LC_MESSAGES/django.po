@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-06 13:14+0100\n"
+"POT-Creation-Date: 2026-11-09 00:13+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -33,13 +33,13 @@ msgstr "erstellt von"
 msgid "created at"
 msgstr "erstellt am"
 
-#: BotGard/basemodel.py:81 individuals/models/individual.py:558
-#: individuals/models/individual.py:576
+#: BotGard/basemodel.py:81 individuals/models/individual.py:572
+#: individuals/models/individual.py:590
 msgid "modified by"
 msgstr "geändert von"
 
-#: BotGard/basemodel.py:88 individuals/models/individual.py:557
-#: individuals/models/individual.py:576
+#: BotGard/basemodel.py:88 individuals/models/individual.py:571
+#: individuals/models/individual.py:590
 msgid "modified at"
 msgstr "geändert am"
 
@@ -87,7 +87,7 @@ msgstr "Übermitteln"
 #: BotGard/tests/data/label-individual-complex.html:5
 #: config_app/models/customprops.py:27
 #: demo-data/labels/individual-multipage-inner.html:5
-#: individuals/models/individual.py:258 individuals/models/individual.py:755
+#: individuals/models/individual.py:258 individuals/models/individual.py:769
 #: individuals/models/outplanting.py:99 species/models.py:59
 #: species/models.py:70 species/models.py:289
 msgid "genus"
@@ -439,7 +439,7 @@ msgid "garden number"
 msgstr "Gartennummer"
 
 #: botman/models/garden.py:52 entrybook/models/dispatch.py:93
-#: individuals/models/individual.py:571
+#: individuals/models/individual.py:585
 #: individuals/models/individual_base.py:159
 #: individuals/models/outplanting.py:41
 #: individuals/templates/individuals/species_audit_widget.html:10
@@ -472,7 +472,7 @@ msgstr ""
 "{{obj.botanicgarden.address_lines.0}}, "
 "{{obj.botanicgarden.address_lines.1}}, usw."
 
-#: botman/models/garden.py:123 individuals/models/individual.py:764
+#: botman/models/garden.py:123 individuals/models/individual.py:778
 #: labels/__init__.py:81 labels/models.py:223
 msgid "label"
 msgstr "Etikett"
@@ -678,7 +678,7 @@ msgstr "Revier"
 
 #: config_app/models/customprops.py:26 entrybook/models/entry.py:116
 #: entrybook/models/entry.py:163 geo/templates/geo/garden_map.html:48
-#: geo/templates/geo/garden_map.html:74 individuals/models/individual.py:565
+#: geo/templates/geo/garden_map.html:74 individuals/models/individual.py:579
 #: individuals/models/outplanting.py:27 individuals/models/outplanting.py:74
 #: individuals/models/territory.py:212
 msgid "department"
@@ -972,7 +972,7 @@ msgid "miscellaneous"
 msgstr "Verschiedenes"
 
 #: entrybook/admin.py:96 individuals/admin.py:235
-#: individuals/models/individual.py:743 species/models.py:330
+#: individuals/models/individual.py:757 species/models.py:330
 msgid "seeds"
 msgstr "Samen"
 
@@ -1053,7 +1053,7 @@ msgid "create label"
 msgstr "Etikett erstellen"
 
 #: entrybook/models/dispatch.py:151 entrybook/models/entry.py:178
-#: individuals/models/individual.py:396 meta/models/project.py:18
+#: individuals/models/individual.py:410 meta/models/project.py:18
 msgid "projects"
 msgstr "Projekte"
 
@@ -1074,12 +1074,12 @@ msgstr "Gattung & Art"
 msgid "Created by"
 msgstr "Erstellt von"
 
-#: entrybook/models/entry.py:106 individuals/models/individual.py:567
+#: entrybook/models/entry.py:106 individuals/models/individual.py:581
 #: individuals/models/outplanting.py:36
 msgid "sowing date"
 msgstr "Aussaatdatum"
 
-#: entrybook/models/entry.py:111 individuals/models/individual.py:568
+#: entrybook/models/entry.py:111 individuals/models/individual.py:582
 #: individuals/models/outplanting.py:37
 msgid "bed out date"
 msgstr "Auspflanzdatum"
@@ -1088,7 +1088,7 @@ msgstr "Auspflanzdatum"
 msgid "Seed/individual entry"
 msgstr "Eingang"
 
-#: entrybook/models/entry.py:171 individuals/models/individual.py:389
+#: entrybook/models/entry.py:171 individuals/models/individual.py:403
 #: individuals/models/individual_base.py:152
 msgid "collecting coordinates"
 msgstr "Fundort - Koordinaten"
@@ -1279,7 +1279,8 @@ msgstr "{} Samen zu {} hinzugefügt"
 msgid "{} seeds removed from {}"
 msgstr "{} Samen aus {} entfernt"
 
-#: individuals/admin.py:367
+#: individuals/admin.py:376
+#, python-format
 msgid "View %s"
 msgstr "%s ansehen"
 
@@ -1335,7 +1336,7 @@ msgstr "Herbarbeleg vorhanden"
 msgid "Individual"
 msgstr "Individuum"
 
-#: individuals/models/individual.py:252 individuals/models/individual.py:749
+#: individuals/models/individual.py:252 individuals/models/individual.py:763
 #: individuals/models/outplanting.py:93 species/models.py:66
 #: species/models.py:283
 msgid "family"
@@ -1345,17 +1346,17 @@ msgstr "Familie"
 msgid "endangering"
 msgstr "Gefährdung"
 
-#: individuals/models/individual.py:286 individuals/models/individual.py:772
+#: individuals/models/individual.py:286 individuals/models/individual.py:786
 #: species/models.py:182
 msgid "nomenclature checked"
 msgstr "Nomenklatur geprüft"
 
-#: individuals/models/individual.py:292 individuals/models/individual.py:786
+#: individuals/models/individual.py:292 individuals/models/individual.py:800
 #: species/models.py:167
 msgid "label text"
 msgstr "Verbreitung"
 
-#: individuals/models/individual.py:298 individuals/models/individual.py:779
+#: individuals/models/individual.py:298 individuals/models/individual.py:793
 #: species/models.py:169
 msgid "detailed"
 msgstr "Verbreitung detail."
@@ -1373,69 +1374,73 @@ msgstr "Standorte"
 msgid "Map"
 msgstr "Karte"
 
-#: individuals/models/individual.py:566 individuals/models/outplanting.py:30
+#: individuals/models/individual.py:395
+msgid "Map found coordinates"
+msgstr "Karte - Fundort"
+
+#: individuals/models/individual.py:580 individuals/models/outplanting.py:30
 #: individuals/models/outplanting.py:107 meta/models/literature.py:84
 msgid "location"
 msgstr "Standort"
 
-#: individuals/models/individual.py:569 individuals/models/outplanting.py:38
+#: individuals/models/individual.py:583 individuals/models/outplanting.py:38
 msgid "inventory date"
 msgstr "Inventurdatum"
 
-#: individuals/models/individual.py:570 individuals/models/outplanting.py:39
+#: individuals/models/individual.py:584 individuals/models/outplanting.py:39
 msgid "plant died on"
 msgstr "Pflanze gestorben am"
 
-#: individuals/models/individual.py:614
+#: individuals/models/individual.py:628
 msgid "The selected garden does not have an IPEN code."
 msgstr "Der gewählte Garten hat keinen IPEN-Code"
 
-#: individuals/models/individual.py:630
+#: individuals/models/individual.py:644
 msgid "Order number must be assigned"
 msgstr "Bestellnummer muß angegeben werden"
 
-#: individuals/models/individual.py:636
+#: individuals/models/individual.py:650
 #, python-format
 msgid "Order number already exists, next free number is %s"
 msgstr "Die Bestellnummer ist bereits vergeben, die nächste freie Nummer is %s"
 
-#: individuals/models/individual.py:685
+#: individuals/models/individual.py:699
 msgid "included"
 msgstr "enthalten"
 
-#: individuals/models/individual.py:686
+#: individuals/models/individual.py:700
 msgid "not included"
 msgstr "nicht enthalten"
 
-#: individuals/models/individual.py:691
+#: individuals/models/individual.py:705
 msgid "is in latest catalog"
 msgstr "im Katalog enthalten"
 
-#: individuals/models/individual.py:704
+#: individuals/models/individual.py:718
 msgid "All"
 msgstr "Alle"
 
-#: individuals/models/individual.py:742 seedcatalog/models.py:55
+#: individuals/models/individual.py:756 seedcatalog/models.py:55
 msgid "seed"
 msgstr "Samen"
 
-#: individuals/models/individual.py:795
+#: individuals/models/individual.py:809
 msgid "Create new catalog."
 msgstr "Neuen Katalog erstellen"
 
-#: individuals/models/individual.py:805 individuals/models/individual.py:810
+#: individuals/models/individual.py:819 individuals/models/individual.py:824
 msgid "catalog"
 msgstr "Katalog"
 
-#: individuals/models/individual.py:805
+#: individuals/models/individual.py:819
 msgid "remove"
 msgstr "entfernen"
 
-#: individuals/models/individual.py:810
+#: individuals/models/individual.py:824
 msgid "add"
 msgstr "hinzufügen"
 
-#: individuals/models/individual.py:813
+#: individuals/models/individual.py:827
 msgid "add to current catalog"
 msgstr "Zu letztem Katalog hinzufügen"
 

@@ -76,6 +76,7 @@ def IndividualBase(unique_name: str) -> Type[models.Model]:
         field_permissions = {
             "found_coordinates": "individuals.can_see_found_coordinates",
             "found_coordinates_decorator": "individuals.can_see_found_coordinates",
+            "map_found_decorator": "individuals.can_see_found_coordinates",
         }
 
         accession_number = models.CharField(

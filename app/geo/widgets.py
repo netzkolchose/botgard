@@ -1,11 +1,14 @@
-from typing import Union, List, Tuple
+from typing import Union, List, Tuple, Optional
 
 from django.contrib.gis.forms.widgets import BaseGeometryWidget
 from django.contrib.gis.geometry import json_regex
 from django.conf import settings
 
 
-def get_botgard_map_template_context(with_polygons: bool = True) -> dict:
+def get_botgard_map_template_context(
+        with_polygons: bool = True,
+        default_zoom: Optional[float] = None,
+) -> dict:
     import config_app
     from individuals.models import Territory, Department
 
@@ -13,6 +16,7 @@ def get_botgard_map_template_context(with_polygons: bool = True) -> dict:
         "map_srid": 3857,
         "map_tile_url": settings.MAP_TILE_URL,
         "default_location": config_app.get_value("geo_location"),
+        "default_zoom": 16.7 if default_zoom is None else default_zoom,
     }
 
     if with_polygons:
@@ -81,6 +85,7 @@ class BotGardOpenLayersWidget(BaseGeometryWidget):
     def get_context(self, name, value, attrs):
         context = super().get_context(name, value, attrs)
         context.update({
+            **get_botgard_map_template_context(),
             "red_dots": self._red_dots,
             "with_input_fields": self._with_input_fields,
             "read_only": self._read_only,
@@ -88,7 +93,6 @@ class BotGardOpenLayersWidget(BaseGeometryWidget):
             "no_clear_features": self._no_clear_features,
             "default_zoom": self._default_zoom,
             "auto_fit_zoom": self._auto_fit_zoom,
-            **get_botgard_map_template_context(),
         })
         if self._with_garden_map:
             context.update({
