@@ -18,7 +18,7 @@ See [Features wiki page](https://github.com/netzkolchose/botgard/wiki/Features-(
 To run the System in production mode you'll need:
 - Linux or FreeBSD 
 - Python 3.10
-- PostgreSQL and postgis (recommended) (https://docs.djangoproject.com/en/5.2/ref/contrib/gis/install/postgis/)
+- PostgreSQL 7.4 and postgis (recommended) (https://docs.djangoproject.com/en/5.2/ref/contrib/gis/install/postgis/)
 - sqlite3 and spatialite as alternative (https://docs.djangoproject.com/en/5.2/ref/contrib/gis/install/spatialite/)
 - nginx
 - latex live
@@ -71,6 +71,8 @@ After that you can just run the development server with:
 ```bash
 ./manage.py runserver
 ```
+
+Read [config_app/README.md](app/config_app/README.md) for details about custom settings of individual deployments.
 
 #### Demo data
 
@@ -155,8 +157,27 @@ and imported into a **newly created database** via:
 ./manage.py loaddata dump-file.json
 ```
 
-The import requires about 10-15 minutes per 100k objects...
+This is a **very slow process**. 
 
+### Data migration via postgres
+
+A much faster approach (only seconds) is to move data from one postgres database to another 
+(assuming it's name is `botgard`):
+```shell
+# on source system
+sudo -u postgres pg_dump botgard > dump-file.sql
+
+# on target system
+sudo -u postgres psql
+# if there is already a database, remove it
+DROP DATABASE "botgard";
+# create new database
+CREATE DATABASE "botgard" ENCODING=UTF8 TEMPLATE=template0 OWNER="postgres";
+# leave psql by pressing CTRL+D
+
+# import the dump
+sudo -u postgres psql -f dump-file.sql botgard
+```
 
 ## Documentation
 

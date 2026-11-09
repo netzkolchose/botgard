@@ -1,0 +1,8 @@
+{% extends 'admin/change_form.html' %}
+{% load i18n %}
+
+
+{% block submit_buttons_bottom %}
+    {{ block.super }}
+    <span hidden="" data-individual-ipen-url="{% url 'individuals:individual_ipen' %}"></span>
+{% endblock %}

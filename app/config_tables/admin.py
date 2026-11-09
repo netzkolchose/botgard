@@ -1,5 +1,5 @@
 import types
-from typing import List, Tuple
+from typing import List, Tuple, Union, Dict, Callable, Iterable, Generator, Optional
 
 from django.db import models
 from django.contrib import admin
@@ -15,11 +15,19 @@ from django.urls import reverse
 from operator import itemgetter
 import django.core.exceptions
 from django.contrib.admin.utils import label_for_field
+from django.contrib.auth import get_user_model
 
+from tools.fieldsets import remove_from_fieldsets, iterate_fields_from_fieldset
 from .forms import TableSettingsForm
 from .models import TableSettings
+from .changelist import ConfigurableChangeList
 from tools.csv_response import csv_response
+from config_app.models import CUSTOM_PROPERTY_TYPE_CHOICES, CustomProperty, CUSTOM_PROPERTY_MODEL_TYPES
+from BotGard.basemodel import botgard_base_model_patch_fieldsets, CREATION_FIELDS
 import config_app
+
+
+User = get_user_model()
 
 
 config_app.register_key(
@@ -155,25 +163,165 @@ class CustomSelectHeaderFilter(CustomHeaderFilter):
         )
 
 
+class CustomPropertyHeaderFilter(CustomHeaderFilter):
+
+    def __init__(
+            self,
+            property: CustomProperty,
+    ):
+        self.property = property
+        self.query_name = f"custom_property_{self.property.pk}"
+
+    def render_widget(self, request: HttpRequest):
+        value = request.GET.get(self.query_name) or ""
+        context = {
+            "query": self.query_name,
+            "value": value,
+            "inactive": "" if value else "inactive",
+        }
+        if self.property.type == "bool":
+            return ConfigurableTable._get_search_widget_boolean(context)
+        elif self.property.type in ("text", "text_long"):
+            if choices := self.property.get_choices():
+                return ConfigurableTable._get_search_widget_choice_box(
+                    context,
+                    choices=[(c, c) for c in choices],
+                )
+            else:
+                context.update({
+                    "data-ac-json-url": reverse("ajax:model_json"),
+                    "data-ac-id": f"custom_property_{self.property.pk}",
+                })
+                return ConfigurableTable._get_search_widget_text(context)
+        elif self.property.type == "user":
+            return ConfigurableTable._get_search_widget_choice_box(
+                context,
+                choices=[
+                    (u, u) for u in User.objects.all().order_by("username").values_list("username", flat=True)
+                ],
+            )
+
+        raise NotImplementedError(f"CustomProperty.type '{self.property.type}'")
+
+
 class ConfigurableTable(admin.ModelAdmin, Configurable):
     change_list_template = 'config_tables/change_list.html'
     configuretable_template = 'config_tables/configuretable.html'
     save_on_top = True
 
-    def _get_actual_tablesettings_object(self, request):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._custom_properties: Union[None, List[CustomProperty]] = None
+        self._custom_property_decorators: Dict[str, Callable] = {}
+
+    @property
+    def custom_properties(self) -> List[CustomProperty]:
+        if self._custom_properties is None:
+            self._custom_properties = list(CustomProperty.objects.filter(
+                model=CustomProperty.get_model_label(self.model)
+            ).order_by("order", "name"))
+        return self._custom_properties
+
+    def __getattr__(self, key):
+        if not (isinstance(key, str) and key.startswith("custom_property_decorator_")):
+            return super().__getattribute__(key)
+
+        # dynamically create a decorator method that displays the custom property for use in changelist
+        if key not in self._custom_property_decorators:
+            try:
+                prop = CustomProperty.objects.get(
+                    pk=key[26:],  # slice the "custom_property_decorator_" part away
+                    model=CustomProperty.get_model_label(self.model),
+                )
+            except CustomProperty.DoesNotExist:
+                raise AttributeError(f"No property: {key}")
+
+            def _func(instance):
+                return prop.get_decorator_value_for_model(instance)
+            _func.__name__ = f"custom_property_decorator_{prop.pk}"
+            _func.short_description = prop.name
+            # TODO: this might duplicate the rows :-(
+            # _func.admin_order_field = f"custom_values_{prop.type.split('_')[0]}__value"
+            _func.custom_header_filter = CustomPropertyHeaderFilter(property=prop)
+            self._custom_property_decorators[key] = _func
+        return self._custom_property_decorators[key]
+
+    def _get_actual_tablesettings_object(self, request) -> TableSettings:
         user = request.user
         modelstring = '%s.%s' % (self.model._meta.app_label, self.model._meta.model_name)
         try:
             tablesettings = TableSettings.objects.get(user=user, model=modelstring)
         except TableSettings.DoesNotExist:
-            tablesettings = TableSettings(user=user, model=modelstring, settings=self.apply_blacklist(self.list_display))
+            tablesettings = TableSettings(
+                user=user,
+                model=modelstring,
+                settings=super().get_list_display(request),
+            )
+
+        tablesettings.settings = self._filter_fields(request, tablesettings.settings)
         return tablesettings
 
-    def get_list_display(self, request):
-        names = self._get_actual_tablesettings_object(request).settings
-        # fix old configurations that require fields that are gone
-        names = [n for n in names if hasattr(self.model, n)]
-        return names
+    def _filter_fields(
+            self,
+            request,
+            columns: Union[Iterable[str], Iterable[Tuple]],
+            by_blacklist: bool = True,
+    ) -> Union[Tuple[str], Tuple[Tuple]]:
+        """
+        Filters fieldnames (or column attributes in tree-view) by
+            - blacklist
+            - existing fields
+            - field-level (or decorator-level) permissions
+
+        Set `by_blacklist` to False if filtering changeform fields
+        """
+        _user_permissions = None
+        _blacklist = (
+            set(getattr(self, "blacklist", None) or ())
+            | set(getattr(self.model, "blacklist", None) or ())
+        ) if by_blacklist else ()
+        model_field_permissions = getattr(self.model, "field_permissions", None) or {}
+
+        def _include_field(name: str) -> bool:
+            nonlocal _user_permissions
+
+            # remove by blacklist, even if previously has been added to table-configuration
+            if name in _blacklist:
+                return False
+            field = getattr(self.model, name, None) or getattr(self, name, None)
+
+            # fix old table-configurations that require fields that are gone
+            if not field:
+                return False
+
+            # remove fields with unfulfilled permissions
+            if perm := model_field_permissions.get(name):
+                if _user_permissions is None:
+                    _user_permissions = set(request.user.get_all_permissions())
+                if perm not in _user_permissions:
+                    return False
+
+            # remove decorators with unfulfilled permission
+            if perm := getattr(field, "permission", None):
+                if _user_permissions is None:
+                    _user_permissions = set(request.user.get_all_permissions())
+                if perm not in _user_permissions:
+                    return False
+
+            return True
+
+        ret_columns = []
+
+        for col in columns:
+            if isinstance(col, str) and not _include_field(col):
+                continue
+            if isinstance(col, (tuple, list)) and not _include_field(col[1]):
+                continue
+            ret_columns.append(col)
+        return tuple(ret_columns)
+
+    def get_list_display(self, request) -> Tuple[str]:
+        return self._get_actual_tablesettings_object(request).settings
 
     def get_list_display_csv(self, request):
         l = list(self.get_list_display(request))
@@ -185,6 +333,14 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
                     continue
             ret.append(x)
         return tuple(ret)
+
+    def get_list_filter(self, request):
+        ret_list = super().get_list_filter(request)
+        ret_list = list(ret_list)
+        # add custom properties to list filters
+        for prop in CustomProperty.get_properties_for_model(self.model):
+            ret_list.append(prop.create_list_filter())
+        return ret_list
 
     def get_urls(self):
         urls = super(ConfigurableTable, self).get_urls()
@@ -223,6 +379,35 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
             s += ' --> '
             obj = tmp
         return s.strip(' --> ')
+
+    def get_fieldsets(self, request, obj=None):
+        """
+        Patches the fieldsets to
+            - include custom-properties and creation fields
+            - remove fields by field-level permissions
+        """
+        fieldsets = super().get_fieldsets(request, obj)
+
+        # add custom-props and creation-fields
+        fieldsets = botgard_base_model_patch_fieldsets(self.model, fieldsets)
+
+        # remove by field-level permissions
+        all_fields = list(iterate_fields_from_fieldset(fieldsets))
+        filtered_fields = self._filter_fields(request, all_fields, by_blacklist=False)
+        remove_fields = set(all_fields) - set(filtered_fields)
+        if remove_fields:
+            fieldsets = remove_from_fieldsets(fieldsets, *remove_fields)
+
+        return fieldsets
+
+    def get_readonly_fields(self, request, obj=None):
+        fields = super().get_readonly_fields(request, obj)
+        if getattr(self.model, "_has_creation_fields", None):
+            fields = list(fields)
+            for field in CREATION_FIELDS:
+                if field not in fields:
+                    fields.append(field)
+        return tuple(fields)
 
     def configuretable_view(self, request, extra_context=None):
         if not (
@@ -290,7 +475,7 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
         selected = []
         for elem in tablesettings.settings:
             # fix old configurations that require fields that are gone
-            if hasattr(self.model, elem):
+            if hasattr(self.model, elem) or hasattr(self, elem):
                 selected.append((elem, label_for_field(elem, self.model, self)))
 
         form = TableSettingsForm(instance=tablesettings, selected=selected, extra_opts=opts)
@@ -326,14 +511,18 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
         """
         # create a dummy model instance to trigger correct function association
         model()
+
         settings = settings or []
 
         # fetch decorator functions from model
-        funcs = self.get_configurable_funcs(model)
+        funcs = self.get_configurable_funcs(model).copy()
 
         # if we are at base admin level fetch also ModelAdmin decorator function
         if model == self.model:
             funcs |= self.get_configurable_funcs(self.__class__)
+            for prop in CustomProperty.get_properties_for_model(self.model):
+                if f := getattr(self, f"custom_property_decorator_{prop.pk}", None):
+                    funcs.add(f)
 
         return [
             (
@@ -376,10 +565,10 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
         attributes = self.get_modelattributes_treepart(model, path, settings)
         attributes += self.get_decorated_functions(model, path, settings)
 
-        attributes = self.apply_blacklist(attributes)
+        attributes = self._filter_fields(request, attributes)
 
         # alphabetic sorting
-        attributes.sort(key=itemgetter(0))
+        attributes = sorted(attributes, key=lambda a: a[0].lower())
 
         ctx = {'attributes': attributes}
         return render(request, 'config_tables/treepart.html', ctx)
@@ -405,10 +594,12 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
                            models.EmailField, models.IPAddressField, models.GenericIPAddressField,
                            models.URLField, models.UUIDField, models.BooleanField, models.NullBooleanField,
                            models.FileField, models.FilePathField,
+                           models.ManyToManyField,
                            )
 
         ac_model = "%s.%s" % (self.model._meta.app_label, self.model._meta.model_name)
         ac_field_name = field_name
+        original_field = None
 
         # see if a model field
         try:
@@ -416,17 +607,15 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
             if not isinstance(field, accepted_fields):
                 return None
             used_field_name = field_name
+            original_field = field
 
         # see if decorator function
         except django.core.exceptions.FieldDoesNotExist:
-            func = None
-            import inspect
-            mems = inspect.getmembers(self.model)
-            for mem in mems:
-                if field_name == mem[0]:
-                    func = mem[1]
-                    break
-            if not func:
+            if field_name.startswith("custom_property_decorator_"):
+                func = getattr(self, field_name, None)
+            else:
+                func = getattr(self.model, field_name, None)
+            if not callable(func):
                 return None
 
             # check for CustomHeaderFilter
@@ -441,6 +630,13 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
             if not used_field_name:
                 return None
             ac_field_name = used_field_name
+
+            # try to get original model's field from decorator function
+            if original_field_name := func.__dict__.get("original_field", None):
+                try:
+                    original_field = self.model._meta.get_field(original_field_name)
+                except django.core.exceptions.FieldDoesNotExist:
+                    pass
 
             # try to get field from fieldname
             try:
@@ -482,6 +678,10 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
         foreign_field_name = None  # the name of the field in related model
         if isinstance(field, models.ForeignKey):
             for i in self.list_filter:
+                try:
+                    len(i)
+                except TypeError:
+                    continue
                 # try to get name from installed ForeignKeyFilter
                 if len(i) == 2:
                     tup = i[0].split("__")
@@ -533,6 +733,12 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
                 limit_field_name = "__".join(used_field_name.split("__")[:-1])
             elif field and foreign_field_name:
                 limit_field_name = used_field_name
+            if original_field and isinstance(original_field, models.ManyToManyField):
+                # limit by checking many2many related PKs
+                limit_field_name = f"{original_field.name}__pk"
+            else:
+                # limit by simple foreignkey related PKs
+                limit_field_name = f"{limit_field_name}_id"
             if limit_field_name:
                 context["data-ac-limit"] = "{}-{}-{}".format(
                     self.model._meta.app_label,
@@ -625,6 +831,27 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
         ret.setdefault("all", "1")
         return ret
 
+    def construct_change_message(
+        self, request, form, formsets, add = ...
+    ):
+        """Patch change_message to avoid logging no-updates to custom_values_text|bool"""
+        messages = super().construct_change_message(request, form, formsets, add)
+        # first of all, remove logs about "values text|bool|user" entirely
+        for message in messages:
+            if changed := message.get("changed"):
+                if fields := changed.get("fields"):
+                    changed["fields"] = [f for f in fields if f not in ("text values", "bool values", "user values")]
+
+        # TODO: unfortunately this method is called after the ModelAdmin has saved the model instance
+        #   so i'm really not sure how we could detect changes to PropertyValue<Type> instances
+        # UPDATE: The comparison is made in AutoCompleteForm.changed_fields
+        #for prop in self.custom_properties:
+        #    if value := form.data.get(f"custom-property-{prop.pk}"):
+        #        if prop.type == "bool":
+        #            value = value == "on"
+
+        return messages
+
     def changelist_view(self, request, extra_context=None, **kwargs):
         """
         Insert header search field markup into render context,
@@ -676,6 +903,9 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
         res = super(ConfigurableTable, self).changelist_view(request, extra_context=extra_context)
         return res
 
+    def get_changelist(self, request, **kwargs):
+        return ConfigurableChangeList
+
     def _get_change_list(self, request):
         """
         copied from django.contrib.admin.options.ModelAdmin
@@ -722,22 +952,14 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
         extra_context.update({"_for_print":True})
         return self.csv_view(request, extra_context)
 
-    def csv_view(self, request, extra_context=None):
-
-        def unescape(x):
-            return x.replace("&nbsp;", " ").replace('&amp;', '&').replace('&lt;', '<').replace('&gt;', '>').replace('&quot;', '"').replace('&#39;', "'")
-
-        # first build a minimal admin.ChangeList instance
-        # which will handle sorting and filtering
-        from django.contrib.admin.options import IncorrectLookupParameters
+    ITER_CHANGELIST_ROWS_PAGE_SIZE = 5000
+    def iter_changelist_rows(
+            self,
+            request: HttpRequest,
+            filter_columns: Optional[List[str]] = None,
+    ) -> Generator[Dict[str, str], None, None]:
         from django.contrib.admin.templatetags.admin_list import result_headers, results
-        from django.utils.html import escape
-        import bs4 as bs
 
-        if not self.has_change_permission(request, None):
-            raise PermissionDenied
-
-        opts = self.model._meta
         list_display = self.get_list_display(request)
         list_display_links = self.get_list_display_links(request, list_display)
         list_filter = self.get_list_filter(request)
@@ -746,66 +968,117 @@ class ConfigurableTable(admin.ModelAdmin, Configurable):
         sortable_by = self.get_sortable_by(request)
 
         ChangeList = self.get_changelist(request)
+
+        old_request_params = request.GET
+        new_request_params = QueryDict(mutable=True)
+        new_request_params.update(request.GET)
         try:
-            cl = ChangeList(
-                request=request,
-                model=self.model,
-                list_display=list_display,
-                list_display_links=list_display_links,
-                list_filter=list_filter,
-                date_hierarchy=self.date_hierarchy,
-                search_fields=search_fields,
-                list_select_related=list_select_related,
-                list_per_page=10000000,       # self.list_per_page,
-                list_max_show_all=10000000,   # self.list_max_show_all,
-                list_editable=[],             # self.list_editable,
-                model_admin=self,
-                sortable_by=sortable_by,
-                search_help_text=None,
-            )
-            cl.formset = None
-        except IncorrectLookupParameters:
-            # An error would have been checked in the admin page that lead to this csv page.
-            # This will probably never happen..
-            return HttpResponse(status=404)
+            request.GET = new_request_params
+            page_idx = 1
+            num_rows_yielded = 0
+            num_rows_total = None
+            include = None
+            while True:
+                request.GET["p"] = page_idx
+
+                batch_size = self.ITER_CHANGELIST_ROWS_PAGE_SIZE
+                cl = ChangeList(
+                    request=request,
+                    model=self.model,
+                    list_display=list_display,
+                    list_display_links=list_display_links,
+                    list_filter=list_filter,
+                    date_hierarchy=self.date_hierarchy,
+                    search_fields=search_fields,
+                    list_select_related=list_select_related,
+                    list_per_page=batch_size,       # self.list_per_page,
+                    list_max_show_all=batch_size,   # self.list_max_show_all,
+                    list_editable=[],               # self.list_editable,
+                    model_admin=self,
+                    sortable_by=sortable_by,
+                    search_help_text=None,
+                )
+                cl.formset = None
+
+                if include is None:
+                    if not filter_columns:
+                        include = [True] * len(list_display)
+                    else:
+                        include = [
+                            True if x in filter_columns else False
+                            for x in list_display
+                        ]
+
+                    headers = {
+                        list_display[i]: x["text"]
+                        for i, x in enumerate(result_headers(cl))
+                        if include[i]
+                    }
+                    yield headers
+
+                for row in results(cl):
+                    yield {
+                        list_display[i]: v
+                        for i, v in enumerate(row)
+                        if include[i]
+                    }
+                    num_rows_yielded += 1
+
+                if num_rows_total is None:
+                    num_rows_total = cl.result_count
+
+                if num_rows_yielded >= num_rows_total:
+                    break
+                else:
+                    page_idx += 1
+
+        finally:
+            request.GET = old_request_params
+
+    def csv_view(self, request, extra_context=None):
+        from django.utils.html import escape
+        import bs4 as bs
+
+        def unescape(x):
+            return x.replace("&nbsp;", " ").replace('&amp;', '&').replace('&lt;', '<').replace('&gt;', '>').replace('&quot;', '"').replace('&#39;', "'").strip()
+
+        if not self.has_change_permission(request, None):
+            raise PermissionDenied
+
+        opts = self.model._meta
 
         for_print = extra_context and "_for_print" in extra_context
 
-        # determine which columns to include in csv
-        # (must be done after ChangeList creation because the sort queries
-        #  reference the column number)
-        include = []
-        csv_columns = self.get_list_display_csv(request)
-        for x in list_display:
-            include.append(True if x in csv_columns else False)
-
-        # now convert the results back to text-only and skip unused columns
-        count = cl.result_list.count()
-        headers = [unescape(x["text"]) for i, x in enumerate(result_headers(cl)) if include[i]]
+        headers = None
         res = []
-        for htmlrow in results(cl):
-            row = []
-            for i, x in enumerate(htmlrow):
-                if include[i]:
-                    if not for_print:
-                        field = getattr(self.model, list_display[i])
-                        if hasattr(field, "as_csv"):
-                            x = field.as_csv(x)
-                        if x.startswith("<"):
-                            if "icon-yes" in x:
-                                x = "X"
-                            elif "icon-no" in x:
-                                x = "-"
-                            else:
-                                soup = bs.BeautifulSoup(x, "html.parser")
-                                x = soup.text
-                    row.append(unescape(x))
-            res.append(row)
+        for htmlrow in self.iter_changelist_rows(
+                request,
+                filter_columns=self.get_list_display_csv(request),
+        ):
+            if headers is None:
+                headers = [unescape(x) for x in htmlrow.values()]
+            else:
+                row = []
+                for name, v in htmlrow.items():
+                    field = getattr(self.model, name, None) or getattr(self, name, None)
+                    if field and hasattr(field, "as_csv"):
+                        v = field.as_csv(v)
+                    if v.startswith("<"):
+                        if "icon-yes" in v:
+                            v = "X"
+                        elif "icon-no" in v:
+                            v = "-"
+                        else:
+                            soup = bs.BeautifulSoup(v, "html.parser")
+                            v = soup.text
+                    row.append(unescape(v))
+                res.append(row)
 
         if for_print:
-            headers = [x for i, x in enumerate(result_headers(cl)) if include[i]]
-            for h in headers:
-                h["text"] = escape(h["text"]).replace(" ", "&nbsp;")
+            headers = [
+                escape(h).replace(" ", "&nbsp;")
+                for h in headers
+            ]
             ctx = {
                 "headers": headers,
                 "rows": res,

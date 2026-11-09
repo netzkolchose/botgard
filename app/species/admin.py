@@ -3,13 +3,12 @@ from config_tables.admin import ConfigurableTable, configurable, ForeignKeyFilte
 from django.utils.translation import gettext_lazy as _
 from django.db.models import QuerySet
 
-from tools import readOnlyAdmin
 from tools.search_fields import search_fields_compatible
 
 from .models import *
 
 
-class FamilyAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
+class FamilyAdmin(ConfigurableTable):
     form = FamilyForm
     list_display = ('change_link_decorator', 'family', 'genus', 'genus_author', 'subfamily', 'tribus', 'subtribus',
                     'delete_link_decorator')
@@ -20,6 +19,10 @@ class FamilyAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
         (None, {
             'fields': ('family', ('subfamily', 'tribus', 'subtribus'), ('genus', 'genus_author')),
         }),
+    )
+    list_filter = (
+        ("created_by__username", ForeignKeyFilter),
+        ("modified_by__username", ForeignKeyFilter),
     )
 
     class Media:
@@ -33,32 +36,7 @@ class FamilyAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
         )
 
 
-class AliveIndividualsListFilter(admin.SimpleListFilter):
-    title = _("alive individuals")
-
-    # Parameter for the filter that will be used in the URL query.
-    parameter_name = "individuals_exist"
-
-    def lookups(self, request, model_admin):
-        return [
-            ("1", _("Exist")),
-            ("0", _("Don't exist")),
-        ]
-
-    def queryset(self, request, queryset: QuerySet):
-        if self.value() == "1":
-            return queryset.filter(
-                individual__is_alive_generated=True,
-            ).distinct()
-        elif self.value() == "0":
-            return queryset.exclude(
-                individual__is_alive_generated=True,
-            ).distinct()
-        else:
-            return queryset
-
-
-class SpeciesAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
+class SpeciesAdmin(ConfigurableTable):
     form = SpeciesForm
     list_display = (
         'change_link_decorator', #'full_name_generated', '__str__',
@@ -76,7 +54,12 @@ class SpeciesAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
         ('family__full_name_generated', ForeignKeyFilter),
         ('family__family', ForeignKeyFilter),
         ('family__genus', ForeignKeyFilter),
+        ('literature__full_name_generated', ForeignKeyFilter),
+        ('literature_distribution__full_name_generated', ForeignKeyFilter),
+        ('literature_german_name__full_name_generated', ForeignKeyFilter),
         AliveIndividualsListFilter,
+        ("created_by__username", ForeignKeyFilter),
+        ("modified_by__username", ForeignKeyFilter),
     )
     search_fields = search_fields_compatible(
         ['@family__family', '@family__genus', '@species', '@variety', 'synonyme', '@family__subfamily',
@@ -87,12 +70,16 @@ class SpeciesAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
     fieldsets = (
         (None, {
             'fields': (
-            'family',
-            ('species', 'species_author'),
-            ('subspecies', 'subspecies_author'),
-            ('variety', 'variety_author'),
-            ('form', 'form_author'),
-            'cultivar', 'deutscher_name', 'synonyme')
+                'family',
+                ('species', 'species_author'),
+                ('subspecies', 'subspecies_author'),
+                ('variety', 'variety_author'),
+                ('form', 'form_author'),
+                'cultivar',
+                'literature',
+                ('deutscher_name', 'literature_german_name'),
+                'synonyme',
+            )
         }),
         #           ('Asteraceae', {
         #           	'classes' : 'collapse',
@@ -100,7 +87,11 @@ class SpeciesAdmin(readOnlyAdmin.ReadPermissionModelAdmin, ConfigurableTable):
         #          }),
         (_('distribution'), {
             'classes': 'collapse',
-            'fields': ('area_of_distribution_etikettxt', 'area_of_distribution_background')
+            'fields': (
+                'area_of_distribution_etikettxt',
+                'area_of_distribution_background',
+                'literature_distribution',
+            )
         }),
         (_('additional'), {
             'classes': 'collapse',

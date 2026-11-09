@@ -1,14 +1,14 @@
 import traceback
 
-from .models import PlantImage
-from tools import readOnlyAdmin
 from django.contrib.admin import StackedInline
 from django import forms
-from django.contrib.admin import widgets
+from django.contrib.admin import widgets, StackedInline
 from django.utils.html import conditional_escape, format_html
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from django.conf import settings
+
+from .models import PlantImage
 
 
 class ImagePreviewWidget(widgets.AdminFileWidget):
@@ -57,7 +57,7 @@ class PlantImageInlineForm(forms.ModelForm):
         }
 
 
-class PlantImageInline(readOnlyAdmin.ReadOnlyStackedInline):
+class PlantImageInline(StackedInline):
     form = PlantImageInlineForm
     model = PlantImage
     extra = 2

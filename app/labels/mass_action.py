@@ -1,8 +1,11 @@
+import subprocess
+import tempfile
 import traceback
 from functools import partial
 import csv as csv_lib
 from io import StringIO, BytesIO
 import zipfile
+from pathlib import Path
 from typing import List, Union, Tuple
 
 from django.db import ProgrammingError
@@ -35,12 +38,15 @@ def add_label_mass_actions(request, actions: dict, label_type: str):
     for pk, id_name, display_name, format in labels_qset.values_list(
             "pk", "id_name", "display_name", "format"
     ):
-
-        if format not in ("csv", "html"):
-            action_name = f"label_{id_name}"
-            actions[action_name] = (
+        if format == "svg":
+            actions[f"label_{id_name}"] = (
                 partial(render_mass_labels_action, label_pk=pk),
-                action_name,
+                f"label_{id_name}",
+                _("Label: %(name)s") % {"name": display_name} + " (PDF)"
+            )
+            actions[f"label_{id_name}_zip"] = (
+                partial(render_mass_labels_action, label_pk=pk, format="zip"),
+                f"label_{id_name}_zip",
                 _("Label: %(name)s") % {"name": display_name} + " (ZIP)"
             )
 
@@ -73,7 +79,7 @@ def render_mass_labels_action(admin: ModelAdmin, request, queryset, label_pk, fo
         unchecked_qset = None
         if label.type == "individual":
             unchecked_qset = queryset.filter(species__nomenclature_checked=False)
-        elif label.type == "herbarium_specimen":
+        elif label.type in ("outplanting", "herbarium_specimen"):
             unchecked_qset = queryset.filter(individual__species__nomenclature_checked=False)
 
         if unchecked_qset is not None and unchecked_qset.exists():
@@ -122,8 +128,13 @@ def render_mass_labels(
 
     elif label.format == "svg":
         if len(pks) >= 2:
-            return "zip", _render_mass_labels_svg(label, pks, format)
+            if format == "zip":
+                return "zip", _render_mass_labels_svg_zip(label, pks, "pdf")
+            else:
+                return "pdf", _render_mass_labels_svg_pdfunite(label, pks)
         else:
+            if format in ("auto", "zip"):
+                format = "pdf"
             return _render_single_label_svg(label, pks[0], format)
 
     elif label.format == "html":
@@ -140,7 +151,7 @@ def _render_mass_labels_csv(label: LabelDefinition, pks: List[int], format: str 
     """
     rows = []
     for pk in pks:
-        context = getattr(label, f"get_{label.type}_context")(pk)
+        context = label.get_model_context(pk)
 
         if not rows:
             header_row = label.render_csv_row(context, header=True)
@@ -163,24 +174,64 @@ def _render_mass_labels_csv(label: LabelDefinition, pks: List[int], format: str 
         raise ValueError("Invalid format '%s', expected one of %s" % (format, ", ".join(LABEL_FORMAT_TO_FILE_FORMAT["csv"])))
 
 
-def _render_mass_labels_svg(label: LabelDefinition, pks: List[int], format: str = "auto") -> bytes:
+class FilenameDeduplicator:
+    def __init__(self):
+        self._filename_set = set()
+
+    def __call__(self, filename: str) -> str:
+        if filename in self._filename_set:
+            count = 2
+            filename = Path(filename)
+            while True:
+                new_filename = str(filename.with_stem(f"{filename.stem}_{count}"))
+                if new_filename not in self._filename_set:
+                    break
+                count += 1
+            filename = new_filename
+
+        self._filename_set.add(filename)
+        return filename
+
+
+def _render_mass_labels_svg_pdfunite(label: LabelDefinition, pks: List[int]) -> bytes:
+    """
+    Renders all labels and join the pdf
+    """
+    filename_list = []
+    deduplicator = FilenameDeduplicator()
+    with tempfile.TemporaryDirectory() as tempdir:
+        for pk in pks:
+            context, filename = label.get_model_context(pk, return_filename=True)
+
+            filename, real_format, content = label.render_file(context, filename)
+
+            filename = deduplicator(filename)
+
+            (Path(tempdir) / filename).write_bytes(content)
+            filename_list.append(filename)
+
+        subprocess.check_call(
+            ["pdfunite", *filename_list, "_joined_.pdf"],
+            cwd=tempdir,
+        )
+
+        return (Path(tempdir) / "_joined_.pdf").read_bytes()
+
+
+def _render_mass_labels_svg_zip(label: LabelDefinition, pks: List[int], format: str = "auto") -> bytes:
     """
     Renders all labels and returns zip file data
     """
     zip_file_io = BytesIO()
+    deduplicator = FilenameDeduplicator()
     with zipfile.ZipFile(zip_file_io, "w") as zip_file:
         for pk in pks:
-            context = getattr(label, f"get_{label.type}_context")(pk)
-
-            filename = str(pk)
-            if label.type == "individual":
-                filename = Individual.objects.get(pk=pk).id_name_generated
-            elif label.type == "garden":
-                filename = BotanicGarden.objects.get(pk=pk).full_name_generated
-            elif label.type == "entry":
-                filename = Entry.objects.get(pk=pk).id_name_generated
+            context, filename = label.get_model_context(pk, return_filename=True)
 
             filename, real_format, content = label.render_file(context, filename, format)
+
+            filename = deduplicator(filename)
+
             zip_file.writestr(filename, content)
 
     zip_file_io.seek(0)
@@ -189,30 +240,26 @@ def _render_mass_labels_svg(label: LabelDefinition, pks: List[int], format: str 
 
 def _render_single_label_svg(label: LabelDefinition, pk: int, format: str = "auto"):
     """
-    Renders all labels and returns zip file data
+    Renders single label and returns (format, data)
     """
-    context = getattr(label, f"get_{label.type}_context")(pk)
-
-    filename = str(pk)
-    if label.type == "individual":
-        filename = Individual.objects.get(pk=pk).id_name_generated
-    elif label.type == "garden":
-        filename = BotanicGarden.objects.get(pk=pk).full_name_generated
-    elif label.type == "entry":
-        filename = Entry.objects.get(pk=pk).id_name_generated
+    context, filename = label.get_model_context(pk, return_filename=True)
 
     filename, real_format, content = label.render_file(context, filename, format)
     return real_format, content
 
 
-def _render_mass_labels_html(label: LabelDefinition, pks: List[int], format: str = "auto") -> Union[str, bytes]:
+def _render_mass_labels_html(
+        label: LabelDefinition,
+        pks: List[int],
+        format: str = "auto",
+) -> Union[str, bytes]:
     """
     Renders all labels and returns HTML or PDF file data
     """
     markups_per_object = []
 
     for pk in pks:
-        context = getattr(label, f"get_{label.type}_context")(pk)
+        context = label.get_model_context(pk)
 
         markup = label.render_markup(context, without_page_markup=True)
         markups_per_object.append(markup)
@@ -245,6 +292,8 @@ def nomenclature_confirmation_view(
 
     if label.type == "individual":
         species_qset = Species.objects.filter(individual__in=unchecked_qset)
+    elif label.type == "outplanting":
+        species_qset = Species.objects.filter(individual__outplanting__in=unchecked_qset)
     elif label.type == "herbarium_specimen":
         species_qset = Species.objects.filter(individual__herbarium_specimens__in=unchecked_qset)
     else:

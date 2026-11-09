@@ -1,5 +1,6 @@
+import datetime
 import json
-from typing import List
+from typing import List, Tuple, Optional
 
 from django.db.models import QuerySet
 from django.utils.translation import gettext_lazy as _
@@ -8,21 +9,34 @@ from django.contrib.admin.filters import FieldListFilter, AllValuesFieldListFilt
 from django.template import Template, Context, Engine
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.html import mark_safe
+from django.contrib.auth import get_user_model
+from django.utils import timezone
+import django.contrib.gis.db.models as gis_models
+import django.contrib.gis.forms as gis_forms
 
 from config_tables.admin import CustomSelectHeaderFilter
 from geo.util import geo_coord_to_html
 from species.models import Species
 from tools.admin_extensions import minimal_admin_context
+from tools.global_request import get_current_user
+from geo.widgets import BotGardOpenLayersWidget
+from tools.users import get_full_username
 from .individual_base import *
 from individuals.numbers import generate_individual_ipen
+from individuals.widgets import SpeciesAuditWidget
 
 
-class Individual(IndividualBase, Configurable):
+User = get_user_model()
+
+
+class Individual(IndividualBase(unique_name="individual")):
 
     class Meta:
         verbose_name = _("individual")
         verbose_name_plural = _("individuals")
-        unique_together = ("ipen_country", "ipen_transfer_restricted", "ipen_accession_number", "ipen_garden_code")
+        permissions = (
+            ("can_see_found_coordinates", _("Can see collecting coordinates")),
+        )
 
     _id_field = "id_name_generated"
 
@@ -45,6 +59,46 @@ class Individual(IndividualBase, Configurable):
         'botman.BotanicGarden', related_name="source_key", verbose_name=_("source"), blank=True,
         null=True, on_delete=models.CASCADE
     )
+
+    # --- audit fields ---
+
+    # format is list of
+    # {
+    #    "date": "YYYY-MM-DD"|None,
+    #    "user": "username",
+    #    "user_pk": int|None,
+    #    "species": "full_name_generated",
+    #    "species_pk": int,
+    #    "species_comment": str|None,
+    #    "literature": "full_name_generated"|None,
+    #    "literature_pk": int|None,
+    #    "comment": str|None
+    # }
+    species_audit = models.JSONField(
+        verbose_name=_("Determination audit"),
+        null=True, blank=True,
+    )
+
+    # format is list of
+    # {
+    #    "date": "YYYY-MM-DD"|None,
+    #    "user": "username",
+    #    "user_pk": int|None,
+    #    "outplantings": [{
+    #       "department": str|None,
+    #       "department_pk": int|None,
+    #       "seeded_date": str|None,
+    #       "inventory_date": str|None,
+    #       "plant_died": str|None,
+    #       "comment": str|None,
+    #    }]
+    # }
+    outplanting_audit = models.JSONField(
+        verbose_name=_("Outplanting audit"),
+        null=True, blank=True,
+    )
+
+    # --- generated fields ---
 
     # list of PKs of Outplanting
     alive_outplantings_generated = PickledObjectField(
@@ -89,16 +143,25 @@ class Individual(IndividualBase, Configurable):
         try:
             self.departments_generated = " ".join(sorted(set(
                 l.department.full_code for l in locations if l.department)))
-            self.territories_generated = " ".join("(%s)" % i for i in
-                                                  sorted(set(l.department.territory.code for l in locations if l.department and l.department.territory)))
+            self.territories_generated = " ".join(
+                "(%s)" % i
+                for i in sorted(set(
+                    l.department.territory.code
+                    for l in locations
+                    if l.department and l.department.territory
+                ))
+            )
         except Department.DoesNotExist:
             pass
         self.is_alive_generated = locations_alive.count() > 0
         if do_save:
-            self.save()
+            self.save(_no_creation_fields=True)
 
     def get_outplantings(self, alive_only=True) -> list:
-        """Returns list of belonging Outplanting instances from database-cache"""
+        """
+        Returns list of belonging Outplanting instances from pk list in
+        `outplantings_generated` or `alive_outplantings_generated`
+        """
         from .outplanting import Outplanting
         ids = self.alive_outplantings_generated if alive_only else self.outplantings_generated
         if not ids:
@@ -318,6 +381,36 @@ class Individual(IndividualBase, Configurable):
     map_decorator.short_description = _("Map")
     map_decorator.exclude_csv = True
 
+    @configurable
+    def map_found_decorator(self):
+        from geo.columns import map_feature_column_decorator
+        if not self.found_coordinates:
+            return ""
+        return map_feature_column_decorator(
+            id=f"{self.pk}_fc",
+            features=[self.found_coordinates],
+            srid=self.found_coordinates.srid,
+            default_zoom=5.,
+        )
+    map_found_decorator.short_description = _("Map found coordinates")
+    map_found_decorator.exclude_csv = True
+
+    @configurable
+    def found_coordinates_decorator(self):
+        if not self.found_coordinates:
+            return ""
+        return mark_safe(geo_coord_to_html(self.found_coordinates))
+    found_coordinates_decorator.short_description = _("collecting coordinates")
+    found_coordinates_decorator.admin_order_field = "found_coordinates"
+
+    @configurable
+    def projects_decorator(self) -> str:
+        from .individual_base import projects_decorator
+        return projects_decorator(self)
+    projects_decorator.short_description = _("projects")
+    projects_decorator.admin_order_field = "projects__full_name_generated"
+    projects_decorator.original_field = "projects"
+
     def save(self, *args, **kwargs):
         # -- update generated fields --
         self.ipen_generated = generate_individual_ipen(self)
@@ -330,6 +423,184 @@ class Individual(IndividualBase, Configurable):
         # -- save Individual --
         super(Individual, self).save(*args, **kwargs)
 
+    def add_species_audit(self, original_instance: "Individual"):
+        """
+        Add audit for species if it has changed.
+        If nothing has changed, copy `species_audit` from `original_instance`.
+
+        :param original_instance: instance of Individual before changes to self.species
+        """
+        if (
+                original_instance.species == self.species
+                and original_instance.species_checked_by == self.species_checked_by
+                and original_instance.species_checked_date == self.species_checked_date
+                and original_instance.literature == self.literature
+                and original_instance.species_comment == self.species_comment
+        ):
+            self.species_audit = original_instance.species_audit
+            return
+
+        audit = original_instance.species_audit
+        if not audit:  # reconstruct first determination entry
+            user = None
+            user_pk = None
+            if original_instance.species_checked_by:
+                user = original_instance.species_checked_by
+                if u := User.objects.filter(username=original_instance.species_checked_by).first():
+                    user_pk = u.pk
+            else:
+                if u := original_instance.created_by:
+                    user = u.username
+                    user_pk = u.pk
+            audit = [{
+                "date": original_instance.species_checked_date or original_instance.created_date,
+                "user": user,
+                "user_pk": user_pk,
+                "species": original_instance.species.full_name_generated,
+                "species_pk": original_instance.species.pk,
+                "literature": original_instance.literature.full_name_generated
+                    if original_instance.literature else None,
+                "literature_pk": original_instance.literature.pk
+                    if original_instance.literature else None,
+                "comment": original_instance.species_comment or None,
+            }]
+
+        user = self.species_checked_by
+        user_pk = None
+        if user:
+            if u := User.objects.filter(username=self.species_checked_by).first():
+                user_pk = u.pk
+        else:
+            user = get_current_user()
+            if user:
+                user_pk = user.pk
+                user = get_full_username(user)
+        audit.append({
+            "date": self.species_checked_date or timezone.now().date().isoformat(),
+            "user": user,
+            "user_pk": user_pk,
+            "species": self.species.full_name_generated,
+            "species_pk": self.species.pk,
+            "literature": self.literature.full_name_generated if self.literature else None,
+            "literature_pk": self.literature.pk if self.literature else None,
+            # add comment only if it changed
+            "comment": (self.species_comment or None)
+                if self.species_comment != original_instance.species_comment else None,
+        })
+
+        for row in audit:
+            if hasattr(row["date"], "isoformat"):
+                row["date"] = row["date"].isoformat()
+        self.species_audit = audit
+
+    def get_outplantings_data(self):
+        """
+        Return current Outplantings data suitable for `outplanting_audit` field
+        """
+        return [
+            {
+                "pk": o.pk,
+                "department": str(o.department),
+                "department_pk": o.department_id,
+                "location": list(o.location) if o.location else None,
+                "seeded_date": o.seeded_date.isoformat() if o.seeded_date else None,
+                "date": o.date.isoformat() if o.date else None,
+                "inventory_date": o.inventory_date.isoformat() if o.inventory_date else None,
+                "plant_died": o.plant_died.isoformat() if o.plant_died else None,
+                "comment": o.comment or None,
+            }
+            for o in self.outplanting_set.order_by("pk")
+        ]
+
+    def store_outplantings_audit(self, old_outplantings_data: List[dict]):
+        """
+        Store changes to outplantings in `outplanting_audit`.
+        Supply response of `get_outplantings_data` before changes to outplantings.
+        Does nothing, if `old_outplantings_data` is same as current data.
+        """
+        outplantings_data = self.get_outplantings_data()
+        if outplantings_data == old_outplantings_data:
+            return
+
+        user = get_current_user()
+        if not self.outplanting_audit:
+            self.outplanting_audit = []
+            # fallback, if outplanting_audit has not existed before outplanting creation
+            if old_outplantings_data:
+                creation_date, creation_user = self.get_creation_date_and_user()
+                self.outplanting_audit.append({
+                    "date": creation_date.isoformat() if creation_date else "-",
+                    "user": get_full_username(creation_user) if creation_user else "-",
+                    "user_pk": creation_user.pk if creation_user else None,
+                    "outplantings": old_outplantings_data,
+                })
+
+        self.outplanting_audit.append({
+            "date": timezone.now().date().isoformat(),
+            "user": get_full_username(user) if user else "-",
+            "user_pk": user.pk if user else None,
+            "outplantings": outplantings_data,
+        })
+        # store audit without calling Individual.save
+        Individual.objects.filter(pk=self.pk).update(outplanting_audit=self.outplanting_audit)
+
+    def outplanting_audit_table(self, with_html: bool = True) -> list[dict]:
+        from django.utils.translation import gettext as _
+        rows = []
+        if not self.outplanting_audit:
+            return rows
+        prev_rows = {}
+        mark_changed = {}
+        for audit_idx, audit in enumerate(self.outplanting_audit):
+            outplantings = audit["outplantings"]
+            if not outplantings:
+                outplantings = [{}]
+            new_prev_rows = {}
+            for i, outpl in enumerate(outplantings):
+                location = outpl.get("location")
+                if location:
+                    try:
+                        if with_html:
+                            location = mark_safe(geo_coord_to_html(location))
+                        else:
+                            if isinstance(location, (list, tuple)):
+                                location = "/".join(str(l) for l in location)
+                    except:
+                        pass
+                rows.append({
+                    _("modified at"): audit["date"] if i == 0 else "",
+                    _("modified by"): audit["user"] if i == 0 else "",
+                    **({
+                           "background": "--selected-row" if i == 0 else (
+                               "--body-bg" if i % 2 == 0 else "--darkened-bg"
+                           )
+                       } if with_html else {}
+                    ),
+                    _("department"): outpl.get("department") or "",
+                    _("location"): location or "",
+                    _("sowing date"): outpl.get("seeded_date") or "",
+                    _("bed out date"): outpl.get("date") or "",
+                    _("inventory date"): outpl.get("inventory_date") or "",
+                    _("plant died on"): outpl.get("plant_died") or "",
+                    _("comment"): outpl.get("comment") or "",
+                })
+
+                if prev_row := prev_rows.get(i):
+                    for key in rows[-1]:
+                        if key not in ("background", _("modified at"), _("modified by")):
+                            if rows[-1][key] != prev_row[key]:
+                                mark_changed.setdefault(len(rows)-1, set()).add(key)
+
+                new_prev_rows[i] = rows[-1]
+
+            prev_rows = new_prev_rows.copy()
+
+        for row_idx, keys in mark_changed.items():
+            for key in keys:
+                rows[row_idx][key] = mark_safe(format_html("<b>{}</b>", rows[row_idx][key]))
+
+        return rows
+
 
 class IndividualValidateMixin(object):
     """
@@ -340,7 +611,7 @@ class IndividualValidateMixin(object):
         """
         Adjust the kwargs["initial"] before passing to ModelForm constructor
         """
-        # create same random accession number in two fields when creating a new individual
+        # create same accession number in two fields when creating a new individual
         initialize_accession = not kwargs.pop("do_not_initialize_accession", False)
         if not kwargs.get("instance") and initialize_accession:
             kwargs.setdefault("initial", {})
@@ -385,17 +656,35 @@ class IndividualForm(
     IndividualValidateMixin,
     AutoCompleteForm(
         Individual,
-        #widgets={
-        #    "accession_number": widgets.NumberInput()  # don't need a spinbox for the accession number
-        #},
+        widgets={
+            "species_audit": SpeciesAuditWidget(),
+        },
         autocomplete_mapping={
             "came_as_species": {"model": Species, "field": "full_name_generated"},
         }
     )
 ):
+    exclude_autocomplete = ("projects", )
+
+    found_coordinates = gis_forms.PointField(
+        srid=Individual.found_coordinates.field.srid,
+        widget=BotGardOpenLayersWidget(
+            with_input_fields=True,
+            red_dots=True,
+            side_by_side=True,
+            map_size=[200, 200],
+            default_zoom=5.,
+            auto_fit_zoom=False,
+        ),
+        required=False,
+    )
     def __init__(self, *args, **kwargs):
         self._update_initial(kwargs)
         super(IndividualForm, self).__init__(*args, **kwargs)
+        if field := self.fields.get("literature"):
+            field.widget.attrs["style"] = "width: 40rem;"
+        if field := self.fields.get("species_comment"):
+            field.widget.attrs["style"] = "width: 100%;"
 
 
 class SeedInLatestCatalogFilter(FieldListFilter):
@@ -513,13 +802,6 @@ class Seed(Individual):
     etikett_text_decorator.searchable_field = "species__area_of_distribution_etikettxt"
 
     @configurable
-    def etikett_detail_decorator(self):
-        return self.species.area_of_distribution_background
-    etikett_detail_decorator.short_description = _("detailed")
-    etikett_detail_decorator.admin_order_field = "species__area_of_distribution_background"
-    etikett_detail_decorator.searchable_field = "species__area_of_distribution_background"
-
-    @configurable
     def seed_add_to_latest_catalog_decorator(self):
         catalog = SeedCatalog.objects.latest_editable_catalog()
         if not catalog:
@@ -551,14 +833,20 @@ class SeedForm(
     IndividualValidateMixin,
     AutoCompleteForm(
         Seed,
-        #widgets={
-        #    "accession_number": widgets.Input()  # don't need a spinbox for the accession number
-        #}
+        widgets={
+            "species_audit": SpeciesAuditWidget(),
+            #    "accession_number": widgets.NumberInput()  # don't need a spinbox for the accession number
+        },
     )
 ):
+    exclude_autocomplete = ("projects", )
     def __init__(self, *args, **kwargs):
         self._update_initial(kwargs)
         super(SeedForm, self).__init__(*args, **kwargs)
+        if field := self.fields.get("literature"):
+            field.widget.attrs["style"] = "width: 40rem;"
+        if field := self.fields.get("species_comment"):
+            field.widget.attrs["style"] = "width: 100%;"
 
 
 

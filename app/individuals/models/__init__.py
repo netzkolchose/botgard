@@ -1,5 +1,5 @@
 from .territory import Territory, TerritoryForm, Department, DepartmentForm
-from .individual import Individual, IndividualForm, Seed, SeedForm, SeedCatalog
+from .individual import Individual, IndividualForm, Seed, SeedForm
 from .outplanting import Outplanting, OutplantingForm
 from .territory import Territory, TerritoryForm, Department, DepartmentForm
 from ..numbers import get_new_accession_number, get_new_order_number

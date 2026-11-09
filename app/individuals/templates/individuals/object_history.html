@@ -1,0 +1,36 @@
+{% extends "admin/object_history.html" %}
+{% load i18n %}
+
+{% block content %}
+    {{ block.super }}
+
+    {% if object.outplanting_audit %}
+        <h2>{% trans 'Outplanting audit' %}</h2>
+
+        {% with table=object.outplanting_audit_table %}
+        <table class="outplanting_audit">
+            <thead>
+                <tr>
+                    {% for name in table.0.keys %}
+                        {% if name != "background" %}
+                            <th>{{ name }}</th>
+                        {% endif %}
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in table %}
+                    <tr {% if row.background %}style="background: var({{ row.background }});"{% endif %}>
+                        {% for key, value in row.items %}
+                            {% if key != "background" %}
+                                <td>{{ value }}</td>
+                            {% endif %}
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endwith %}
+
+    {% endif %}
+{% endblock %}
