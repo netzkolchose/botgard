@@ -18,7 +18,7 @@ See [Features wiki page](https://github.com/netzkolchose/botgard/wiki/Features-(
 To run the System in production mode you'll need:
 - Linux or FreeBSD 
 - Python 3.10
-- PostgreSQL and postgis (recommended) (https://docs.djangoproject.com/en/5.2/ref/contrib/gis/install/postgis/)
+- PostgreSQL 7.4 and postgis (recommended) (https://docs.djangoproject.com/en/5.2/ref/contrib/gis/install/postgis/)
 - sqlite3 and spatialite as alternative (https://docs.djangoproject.com/en/5.2/ref/contrib/gis/install/spatialite/)
 - nginx
 - latex live
